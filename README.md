@@ -108,6 +108,8 @@ Sumber: `backend/src/db.js`
 - [ISAK35 Compliance](docs/ISAK35_COMPLIANCE.md)
 - [Module Guide (Markdown)](docs/NEXFINANCE_MODULE_GUIDE.md)
 - **Module Guide (PDF)**: `docs/NEXFINANCE_MODULE_GUIDE.pdf`
+- [User Manual Book (Markdown)](docs/NEXFINANCE_USER_MANUAL_BOOK.md)
+- **User Manual Book (PDF)**: `docs/NEXFINANCE_USER_MANUAL_BOOK.pdf`
 
 ## Scripts
 

@@ -109,19 +109,35 @@ const Navbar = () => {
   const masterItem = filteredNavItems.find((item) => item.children?.length);
   const masterSubItems = masterItem?.children?.filter(canShowItem) || [];
 
-  const navLinkStyle = (path) => ({
-    color: isActive(path) ? 'white' : 'rgba(255, 255, 255, 0.75)',
-    textDecoration: 'none',
+  const navItemBaseStyle = {
     fontSize: '13px',
-    fontWeight: isActive(path) ? '700' : '500',
     padding: '7px 12px',
     borderRadius: '6px',
-    background: isActive(path) ? 'rgba(255,255,255,0.2)' : 'transparent',
     display: 'inline-flex',
     alignItems: 'center',
     gap: '5px',
     transition: 'all 0.2s',
     whiteSpace: 'nowrap',
+    minHeight: '32px',
+    lineHeight: '1',
+    boxSizing: 'border-box',
+  };
+
+  const navLinkStyle = (path) => ({
+    ...navItemBaseStyle,
+    color: isActive(path) ? 'white' : 'rgba(255, 255, 255, 0.75)',
+    textDecoration: 'none',
+    fontWeight: isActive(path) ? '700' : '500',
+    background: isActive(path) ? 'rgba(255,255,255,0.2)' : 'transparent',
+  });
+
+  const masterButtonStyle = (active) => ({
+    ...navItemBaseStyle,
+    border: 'none',
+    cursor: 'pointer',
+    color: active ? 'white' : 'rgba(255, 255, 255, 0.75)',
+    fontWeight: active ? '700' : '500',
+    background: active ? 'rgba(255,255,255,0.2)' : 'transparent',
   });
 
   return (
@@ -151,21 +167,7 @@ const Navbar = () => {
                         ref={masterButtonRef}
                         type="button"
                         onClick={handleMasterToggle}
-                        style={{
-                          border: 'none',
-                          background: 'transparent',
-                          color: isMasterActive ? 'white' : 'rgba(255, 255, 255, 0.75)',
-                          fontSize: '13px',
-                          fontWeight: isMasterActive ? '700' : '500',
-                          padding: '7px 12px',
-                          borderRadius: '6px',
-                          background: isMasterActive ? 'rgba(255,255,255,0.2)' : 'transparent',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          cursor: 'pointer',
-                          whiteSpace: 'nowrap',
-                        }}
+                        style={masterButtonStyle(isMasterActive)}
                       >
                         <Icon size={14} />
                         {item.name}
