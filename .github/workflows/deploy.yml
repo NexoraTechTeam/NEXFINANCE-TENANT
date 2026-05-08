@@ -30,6 +30,7 @@ jobs:
             echo "▶ Pulling latest code..."
             if [ -d "$APP_DIR/.git" ]; then
               cd "$APP_DIR"
+              git remote set-url origin https://github.com/imam-nurokhi/al-musabbihin-nexfinance.git
               git fetch origin master
               git reset --hard origin/master
             else
