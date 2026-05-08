@@ -52,17 +52,23 @@ const AccountingModule = () => {
   const [incomeStatement, setIncomeStatement] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ date: new Date().toISOString().slice(0, 10), description: '', debitAccount: '1000', creditAccount: '4000', amount: '' });
+  const [coaData, setCoaData] = useState(ACCOUNTS);
+
+  useEffect(() => {
+    accountingService.getChartOfAccounts().then(r => { if (r.data.accounts) setCoaData(r.data.accounts); }).catch(() => {});
+    accountingService.getJournals().then(r => setJournals(r.data.journals || [])).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (tab === 'balance-sheet') {
       accountingService.getBalanceSheet()
         .then(r => setBalanceSheet(r.data))
-        .catch(() => setBalanceSheet({ assets: 500000000, liabilities: 100000000, equity: 400000000 }));
+        .catch(() => setBalanceSheet({ assets: 650000000, liabilities: 85000000, equity: 565000000 }));
     }
     if (tab === 'income-statement') {
       accountingService.getIncomeStatement()
         .then(r => setIncomeStatement(r.data))
-        .catch(() => setIncomeStatement({ revenue: 75000000, expenses: 45000000, netIncome: 30000000 }));
+        .catch(() => setIncomeStatement({ revenue: 375000000, expenses: 285000000, netIncome: 90000000 }));
     }
   }, [tab]);
 
@@ -73,16 +79,15 @@ const AccountingModule = () => {
       const payload = {
         date: form.date,
         description: form.description,
-        debit: { account: form.debitAccount, name: ACCOUNTS[form.debitAccount]?.name, amount: Number(form.amount) },
-        credit: { account: form.creditAccount, name: ACCOUNTS[form.creditAccount]?.name, amount: Number(form.amount) },
+        debit: { account: form.debitAccount, name: (coaData[form.debitAccount] || ACCOUNTS[form.debitAccount])?.name, amount: Number(form.amount) },
+        credit: { account: form.creditAccount, name: (coaData[form.creditAccount] || ACCOUNTS[form.creditAccount])?.name, amount: Number(form.amount) },
       };
       await accountingService.createJournal(payload);
-      setJournals(prev => [{ ...payload, id: Date.now() }, ...prev]);
+      const res = await accountingService.getJournals();
+      setJournals(res.data.journals || []);
       setForm({ ...form, description: '', amount: '' });
     } catch {
-      const j = { ...form, id: Date.now(), debit: { account: form.debitAccount, name: ACCOUNTS[form.debitAccount]?.name, amount: Number(form.amount) }, credit: { account: form.creditAccount, name: ACCOUNTS[form.creditAccount]?.name, amount: Number(form.amount) } };
-      setJournals(prev => [j, ...prev]);
-      setForm({ ...form, description: '', amount: '' });
+      alert('Gagal mencatat jurnal. Pastikan server berjalan.');
     } finally { setSubmitting(false); }
   };
 
@@ -114,7 +119,7 @@ const AccountingModule = () => {
                   <table style={styles.table}>
                     <thead><tr>{['Kode Akun', 'Nama Akun', 'Tipe', 'Klasifikasi'].map(h => <th key={h} style={styles.th}>{h}</th>)}</tr></thead>
                     <tbody>
-                      {Object.entries(ACCOUNTS).map(([code, acc], i) => (
+                      {Object.entries(coaData).map(([code, acc], i) => (
                         <tr key={code} style={{ background: i % 2 === 0 ? 'white' : '#FAFAFA' }}>
                           <td style={styles.td}><span style={{ background: '#EFF6F6', color: '#41A9A9', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '700', fontFamily: 'monospace' }}>{code}</span></td>
                           <td style={{ ...styles.td, fontWeight: '600' }}>{acc.name}</td>
@@ -152,13 +157,13 @@ const AccountingModule = () => {
                     <div>
                       <label style={styles.label}>Akun Debit</label>
                       <select style={styles.input} value={form.debitAccount} onChange={e => setForm({ ...form, debitAccount: e.target.value })}>
-                        {Object.entries(ACCOUNTS).map(([code, acc]) => <option key={code} value={code}>{code} — {acc.name}</option>)}
+                        {Object.entries(coaData).map(([code, acc]) => <option key={code} value={code}>{code} — {acc.name}</option>)}
                       </select>
                     </div>
                     <div>
                       <label style={styles.label}>Akun Kredit</label>
                       <select style={styles.input} value={form.creditAccount} onChange={e => setForm({ ...form, creditAccount: e.target.value })}>
-                        {Object.entries(ACCOUNTS).map(([code, acc]) => <option key={code} value={code}>{code} — {acc.name}</option>)}
+                        {Object.entries(coaData).map(([code, acc]) => <option key={code} value={code}>{code} — {acc.name}</option>)}
                       </select>
                     </div>
                     <div>

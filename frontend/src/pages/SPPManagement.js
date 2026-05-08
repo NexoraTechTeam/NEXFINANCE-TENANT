@@ -1,306 +1,279 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { sppService } from '../services/api';
-import { DollarSign, TrendingUp, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { DollarSign, TrendingUp, CheckCircle, Clock, AlertCircle, Plus, CreditCard, X, Printer } from 'lucide-react';
+
+const fmt = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
+const fmtShort = (n) => `Rp ${(n / 1000000).toFixed(1)}M`;
+
+const S = {
+  container: { minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFC 0%, #EFF6F6 100%)', padding: '32px 20px' },
+  wrapper: { maxWidth: '1200px', margin: '0 auto' },
+  title: { fontSize: '32px', fontWeight: '800', background: 'linear-gradient(135deg, #41A9A9 0%, #2C3E50 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', marginBottom: '8px' },
+  sub: { fontSize: '14px', color: '#9CA3AF', marginBottom: '28px' },
+  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '24px' },
+  statCard: (c) => ({ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', border: '1px solid #E5E7EB', borderLeft: `4px solid ${c}` }),
+  card: { background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', border: '1px solid #E5E7EB' },
+  table: { width: '100%', borderCollapse: 'collapse' },
+  th: { background: 'linear-gradient(135deg, #41A9A9 0%, #2C3E50 100%)', color: 'white', padding: '13px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' },
+  td: { padding: '14px 16px', fontSize: '14px', color: '#2C3E50', borderBottom: '1px solid #F3F4F6' },
+  badge: (s) => {
+    const map = { paid: ['#10B981', '#D1FAE5'], unpaid: ['#F59E0B', '#FEF3C7'], overdue: ['#EF4444', '#FEE2E2'] };
+    const [c, bg] = map[s] || ['#9CA3AF', '#F3F4F6'];
+    return { background: bg, color: c, padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '4px' };
+  },
+  btn: (bg, color = 'white') => ({ background: bg, color, border: 'none', padding: '9px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }),
+  filterBtn: (active) => ({ padding: '8px 16px', borderRadius: '8px', border: `2px solid ${active ? '#41A9A9' : '#E5E7EB'}`, background: active ? '#EFF6F6' : 'white', color: active ? '#41A9A9' : '#6B7280', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }),
+  input: { width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1.5px solid #E5E7EB', fontSize: '14px', outline: 'none', boxSizing: 'border-box' },
+  label: { fontSize: '13px', fontWeight: '600', color: '#2C3E50', marginBottom: '6px', display: 'block' },
+  formGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '20px' },
+  modal: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999, padding: '20px' },
+  modalBox: { background: 'white', borderRadius: '16px', padding: '32px', width: '100%', maxWidth: '520px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' },
+};
+
+const MONTHS = ['Januari 2026','Februari 2026','Maret 2026','April 2026','Mei 2026','Juni 2026','Juli 2026','Agustus 2026','September 2026','Oktober 2026','November 2026','Desember 2026'];
+const CLASSES = ['7A','7B','7C','8A','8B','8C','9A','9B','9C'];
 
 const SPPManagement = () => {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [modal, setModal] = useState(null); // 'create' | 'pay' | null
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [form, setForm] = useState({ studentId: '', studentName: '', class: '7A', amount: '1200000', month: MONTHS[4] });
+  const [payMethod, setPayMethod] = useState('Transfer');
+  const [toast, setToast] = useState(null);
 
-  useEffect(() => {
-    fetchInvoices();
+  const load = useCallback(async () => {
+    try {
+      const res = await sppService.getInvoices();
+      setInvoices(res.data.invoices || []);
+    } catch { setInvoices([]); }
+    finally { setLoading(false); }
   }, []);
 
-  const fetchInvoices = async () => {
+  useEffect(() => { load(); }, [load]);
+
+  const showToast = (msg, ok = true) => {
+    setToast({ msg, ok });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleCreate = async () => {
+    if (!form.studentId || !form.studentName || !form.amount) return showToast('Lengkapi semua field wajib.', false);
+    setSubmitting(true);
     try {
-      const response = await sppService.getInvoices();
-      setInvoices(response.data.invoices);
-    } catch (error) {
-      console.error('Failed to fetch invoices:', error);
-    } finally {
-      setLoading(false);
-    }
+      await sppService.createInvoice({ ...form, amount: Number(form.amount) });
+      await load();
+      setModal(null);
+      setForm({ studentId: '', studentName: '', class: '7A', amount: '1200000', month: MONTHS[4] });
+      showToast('Invoice berhasil dibuat!');
+    } catch (e) {
+      showToast(e.response?.data?.error || 'Gagal membuat invoice.', false);
+    } finally { setSubmitting(false); }
   };
 
-  const stats = {
-    total: invoices.length,
-    paid: invoices.filter(i => i.status === 'paid').length,
-    unpaid: invoices.filter(i => i.status === 'unpaid').length,
-    collected: invoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + i.amount, 0),
+  const handlePay = async () => {
+    if (!selectedInvoice) return;
+    setSubmitting(true);
+    try {
+      await sppService.recordPayment({ invoiceId: selectedInvoice.id, method: payMethod });
+      await load();
+      setModal(null);
+      setSelectedInvoice(null);
+      showToast(`Pembayaran ${selectedInvoice.studentName} berhasil dicatat!`);
+    } catch (e) {
+      showToast(e.response?.data?.error || 'Gagal mencatat pembayaran.', false);
+    } finally { setSubmitting(false); }
   };
 
-  const paidPercentage = stats.total > 0 ? ((stats.paid / stats.total) * 100).toFixed(1) : 0;
+  const openPay = (inv) => { setSelectedInvoice(inv); setPayMethod('Transfer'); setModal('pay'); };
 
-  const filteredInvoices = filter === 'all' ? invoices : invoices.filter(i => i.status === filter);
+  const paid = invoices.filter(i => i.status === 'paid');
+  const unpaid = invoices.filter(i => i.status === 'unpaid');
+  const totalCollected = paid.reduce((s, i) => s + i.amount, 0);
+  const rate = invoices.length > 0 ? ((paid.length / invoices.length) * 100).toFixed(1) : '0';
 
-  const styles = {
-    container: {
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #F8FAFC 0%, #EFF6F6 100%)',
-      padding: '32px 20px',
-    },
-    wrapper: {
-      maxWidth: '1200px',
-      margin: '0 auto',
-    },
-    header: {
-      marginBottom: '32px',
-    },
-    title: {
-      fontSize: '32px',
-      fontWeight: '800',
-      color: '#2C3E50',
-      marginBottom: '8px',
-      background: 'linear-gradient(135deg, #41A9A9 0%, #2C3E50 100%)',
-      WebkitBackgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
-      backgroundClip: 'text',
-    },
-    subtitle: {
-      fontSize: '14px',
-      color: '#9CA3AF',
-    },
-    statsGrid: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-      gap: '16px',
-      marginBottom: '32px',
-    },
-    statCard: {
-      background: 'white',
-      borderRadius: '12px',
-      padding: '20px',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
-      border: '1px solid #E5E7EB',
-    },
-    statLabel: {
-      fontSize: '12px',
-      fontWeight: '600',
-      color: '#9CA3AF',
-      textTransform: 'uppercase',
-      letterSpacing: '0.5px',
-      marginBottom: '8px',
-    },
-    statValue: {
-      fontSize: '24px',
-      fontWeight: '800',
-      color: '#2C3E50',
-    },
-    filterContainer: {
-      display: 'flex',
-      gap: '12px',
-      marginBottom: '24px',
-      flexWrap: 'wrap',
-    },
-    filterBtn: {
-      padding: '10px 20px',
-      borderRadius: '8px',
-      border: '2px solid #E5E7EB',
-      background: 'white',
-      fontSize: '13px',
-      fontWeight: '600',
-      cursor: 'pointer',
-      transition: 'all 0.3s ease',
-      color: '#6B7280',
-    },
-    tableContainer: {
-      background: 'white',
-      borderRadius: '12px',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
-      border: '1px solid #E5E7EB',
-      overflow: 'hidden',
-    },
-    table: {
-      width: '100%',
-      borderCollapse: 'collapse',
-    },
-    tableHead: {
-      background: 'linear-gradient(135deg, #41A9A9 0%, #2C3E50 100%)',
-      color: 'white',
-    },
-    tableHeader: {
-      padding: '16px 20px',
-      textAlign: 'left',
-      fontSize: '13px',
-      fontWeight: '700',
-      textTransform: 'uppercase',
-      letterSpacing: '0.5px',
-    },
-    tableRow: {
-      borderBottom: '1px solid #E5E7EB',
-      transition: 'background-color 0.2s ease',
-    },
-    tableData: {
-      padding: '16px 20px',
-      fontSize: '14px',
-      color: '#2C3E50',
-    },
-    statusBadge: (status) => ({
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '6px',
-      padding: '6px 12px',
-      borderRadius: '6px',
-      fontSize: '12px',
-      fontWeight: '600',
-      background: status === 'paid' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
-      color: status === 'paid' ? '#10B981' : '#F59E0B',
-    }),
-    loadingContainer: {
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '400px',
-      fontSize: '16px',
-      color: '#9CA3AF',
-    },
-    emptyState: {
-      textAlign: 'center',
-      padding: '40px 20px',
-      color: '#9CA3AF',
-    }
-  };
+  const filtered = filter === 'all' ? invoices : invoices.filter(i => i.status === filter);
 
-  if (loading) {
-    return (
-      <div style={styles.container}>
-        <div style={styles.loadingContainer}>
-          <div>⏳ Loading SPP Data...</div>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div style={{ ...S.container, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: '#9CA3AF' }}>⏳ Memuat data SPP...</div>;
 
   return (
-    <div style={styles.container}>
-      <div style={styles.wrapper}>
-        {/* Header */}
-        <div style={styles.header}>
-          <div style={styles.title}>💰 SPP Management</div>
-          <div style={styles.subtitle}>Student Fee Collection & Invoice Tracking</div>
+    <div style={S.container}>
+      {toast && (
+        <div style={{ position: 'fixed', top: '20px', right: '20px', background: toast.ok ? '#10B981' : '#EF4444', color: 'white', padding: '14px 20px', borderRadius: '10px', zIndex: 1000, fontSize: '14px', fontWeight: '600', boxShadow: '0 8px 24px rgba(0,0,0,0.15)' }}>
+          {toast.ok ? '✅' : '❌'} {toast.msg}
         </div>
+      )}
 
-        {/* Statistics */}
-        <div style={styles.statsGrid}>
-          <div style={styles.statCard}>
-            <div style={styles.statLabel}>Total Invoices</div>
-            <div style={styles.statValue}>{stats.total}</div>
+      <div style={S.wrapper}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <div style={S.title}>💰 Manajemen SPP</div>
+            <div style={S.sub}>Penagihan & Pembayaran SPP Siswa — Sekolah Islam Terpadu Al-Musabbihin</div>
           </div>
-          <div style={styles.statCard}>
-            <div style={styles.statLabel}>Paid</div>
-            <div style={{...styles.statValue, color: '#10B981'}}>{stats.paid}</div>
-          </div>
-          <div style={styles.statCard}>
-            <div style={styles.statLabel}>Unpaid</div>
-            <div style={{...styles.statValue, color: '#F59E0B'}}>{stats.unpaid}</div>
-          </div>
-          <div style={styles.statCard}>
-            <div style={styles.statLabel}>Collection Rate</div>
-            <div style={{...styles.statValue, color: '#41A9A9'}}>{paidPercentage}%</div>
-          </div>
-          <div style={styles.statCard}>
-            <div style={styles.statLabel}>Total Collected</div>
-            <div style={styles.statValue}>Rp {(stats.collected / 1000000).toFixed(1)}M</div>
-          </div>
-        </div>
-
-        {/* Filter */}
-        <div style={styles.filterContainer}>
-          <button
-            style={{
-              ...styles.filterBtn,
-              ...(filter === 'all' ? {
-                background: 'linear-gradient(135deg, #41A9A9 0%, #2C3E50 100%)',
-                color: 'white',
-                border: 'none',
-              } : {})
-            }}
-            onClick={() => setFilter('all')}
-          >
-            All ({stats.total})
-          </button>
-          <button
-            style={{
-              ...styles.filterBtn,
-              ...(filter === 'paid' ? {
-                background: 'rgba(16, 185, 129, 0.1)',
-                color: '#10B981',
-                border: '2px solid #10B981',
-              } : {})
-            }}
-            onClick={() => setFilter('paid')}
-          >
-            Paid ({stats.paid})
-          </button>
-          <button
-            style={{
-              ...styles.filterBtn,
-              ...(filter === 'unpaid' ? {
-                background: 'rgba(245, 158, 11, 0.1)',
-                color: '#F59E0B',
-                border: '2px solid #F59E0B',
-              } : {})
-            }}
-            onClick={() => setFilter('unpaid')}
-          >
-            Unpaid ({stats.unpaid})
+          <button style={S.btn('linear-gradient(135deg, #41A9A9 0%, #2C3E50 100%)')} onClick={() => setModal('create')}>
+            <Plus size={16} /> Buat Invoice
           </button>
         </div>
 
-        {/* Table */}
-        <div style={styles.tableContainer}>
-          {filteredInvoices.length > 0 ? (
-            <table style={styles.table}>
-              <thead style={styles.tableHead}>
-                <tr>
-                  <th style={styles.tableHeader}>👤 Student</th>
-                  <th style={styles.tableHeader}>📚 Class</th>
-                  <th style={styles.tableHeader}>💵 Amount</th>
-                  <th style={styles.tableHeader}>📅 Month</th>
-                  <th style={styles.tableHeader}>📊 Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredInvoices.map((invoice, idx) => (
-                  <tr 
-                    key={invoice.studentId}
-                    style={styles.tableRow}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F8FAFC'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <td style={styles.tableData}>{invoice.studentName}</td>
-                    <td style={styles.tableData}>{invoice.class}</td>
-                    <td style={{...styles.tableData, fontWeight: '600', color: '#41A9A9'}}>
-                      Rp {invoice.amount.toLocaleString('id-ID')}
-                    </td>
-                    <td style={styles.tableData}>{invoice.month}</td>
-                    <td style={styles.tableData}>
-                      <div style={styles.statusBadge(invoice.status)}>
-                        {invoice.status === 'paid' ? (
-                          <>
-                            <CheckCircle size={14} />
-                            <span>Paid</span>
-                          </>
-                        ) : (
-                          <>
-                            <Clock size={14} />
-                            <span>Unpaid</span>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Stats */}
+        <div style={S.statsGrid}>
+          {[
+            { label: 'Total Invoice', value: invoices.length, color: '#41A9A9', icon: DollarSign },
+            { label: 'Sudah Lunas', value: paid.length, color: '#10B981', icon: CheckCircle },
+            { label: 'Belum Bayar', value: unpaid.length, color: '#F59E0B', icon: Clock },
+            { label: 'Collection Rate', value: rate + '%', color: '#3B82F6', icon: TrendingUp },
+            { label: 'Total Terkumpul', value: fmtShort(totalCollected), color: '#8B5CF6', icon: DollarSign },
+          ].map((s, i) => {
+            const Icon = s.icon;
+            return (
+              <div key={i} style={S.statCard(s.color)}>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: '#9CA3AF', textTransform: 'uppercase', marginBottom: '6px' }}>{s.label}</div>
+                <div style={{ fontSize: '22px', fontWeight: '800', color: '#2C3E50', marginBottom: '6px' }}>{s.value}</div>
+                <Icon size={18} color={s.color} style={{ opacity: 0.5 }} />
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Filter + Table */}
+        <div style={S.card}>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+            {[['all', `Semua (${invoices.length})`], ['paid', `Lunas (${paid.length})`], ['unpaid', `Belum Bayar (${unpaid.length})`]].map(([val, label]) => (
+              <button key={val} style={S.filterBtn(filter === val)} onClick={() => setFilter(val)}>{label}</button>
+            ))}
+          </div>
+
+          {filtered.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '48px 0', color: '#9CA3AF' }}>
+              <AlertCircle size={40} style={{ margin: '0 auto 12px', display: 'block', opacity: 0.3 }} />
+              Tidak ada invoice.
+            </div>
           ) : (
-            <div style={styles.emptyState}>
-              <AlertCircle size={40} style={{margin: '0 auto 12px', opacity: 0.3}} />
-              <div>No invoices found</div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={S.table}>
+                <thead>
+                  <tr>{['ID Invoice', 'Nama Siswa', 'Kelas', 'Bulan', 'Jumlah', 'Jatuh Tempo', 'Status', 'Aksi'].map(h => <th key={h} style={S.th}>{h}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {filtered.map((inv, i) => (
+                    <tr key={inv.id} style={{ background: i % 2 === 0 ? 'white' : '#FAFAFA' }}>
+                      <td style={S.td}><span style={{ background: '#EFF6F6', color: '#41A9A9', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700', fontFamily: 'monospace' }}>{inv.id}</span></td>
+                      <td style={{ ...S.td, fontWeight: '600' }}>{inv.studentName}</td>
+                      <td style={S.td}>{inv.class}</td>
+                      <td style={S.td}>{inv.month}</td>
+                      <td style={{ ...S.td, fontWeight: '700', color: '#41A9A9' }}>{fmt(inv.amount)}</td>
+                      <td style={{ ...S.td, fontSize: '12px', color: '#6B7280' }}>{inv.dueDate}</td>
+                      <td style={S.td}>
+                        <span style={S.badge(inv.status)}>
+                          {inv.status === 'paid' ? <><CheckCircle size={12} /> Lunas</> : <><Clock size={12} /> Belum Bayar</>}
+                        </span>
+                        {inv.status === 'paid' && inv.paymentMethod && <div style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '3px' }}>{inv.paymentMethod} · {inv.paidAt}</div>}
+                      </td>
+                      <td style={S.td}>
+                        {inv.status === 'unpaid' && (
+                          <button onClick={() => openPay(inv)} style={S.btn('#10B981')}>
+                            <CreditCard size={14} /> Bayar
+                          </button>
+                        )}
+                        {inv.status === 'paid' && (
+                          <button onClick={() => window.print()} style={S.btn('white', '#41A9A9')}>
+                            <Printer size={14} /> Bukti
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
       </div>
+
+      {/* Modal: Buat Invoice */}
+      {modal === 'create' && (
+        <div style={S.modal} onClick={e => e.target === e.currentTarget && setModal(null)}>
+          <div style={S.modalBox}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div style={{ fontSize: '22px', fontWeight: '800', color: '#2C3E50' }}>Buat Invoice SPP</div>
+              <button onClick={() => setModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><X size={22} /></button>
+            </div>
+            <div style={S.formGrid}>
+              <div>
+                <label style={S.label}>ID Siswa <span style={{ color: '#EF4444' }}>*</span></label>
+                <input style={S.input} placeholder="STU013" value={form.studentId} onChange={e => setForm({ ...form, studentId: e.target.value })} />
+              </div>
+              <div>
+                <label style={S.label}>Nama Siswa <span style={{ color: '#EF4444' }}>*</span></label>
+                <input style={S.input} placeholder="Ahmad Fauzi" value={form.studentName} onChange={e => setForm({ ...form, studentName: e.target.value })} />
+              </div>
+              <div>
+                <label style={S.label}>Kelas</label>
+                <select style={S.input} value={form.class} onChange={e => setForm({ ...form, class: e.target.value })}>
+                  {CLASSES.map(c => <option key={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={S.label}>Jumlah SPP (Rp) <span style={{ color: '#EF4444' }}>*</span></label>
+                <input type="number" style={S.input} placeholder="1200000" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} />
+              </div>
+              <div style={{ gridColumn: '1/-1' }}>
+                <label style={S.label}>Bulan</label>
+                <select style={S.input} value={form.month} onChange={e => setForm({ ...form, month: e.target.value })}>
+                  {MONTHS.map(m => <option key={m}>{m}</option>)}
+                </select>
+              </div>
+            </div>
+            <div style={{ background: '#EFF6F6', borderRadius: '8px', padding: '12px 16px', marginBottom: '20px', fontSize: '13px', color: '#2C3E50' }}>
+              📋 Invoice akan dibuat dengan jatuh tempo <strong>7 hari</strong> dari sekarang dan status <strong>Belum Bayar</strong>.
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button style={S.btn('white', '#6B7280')} onClick={() => setModal(null)}>Batal</button>
+              <button style={S.btn('linear-gradient(135deg, #41A9A9 0%, #2C3E50 100%)')} onClick={handleCreate} disabled={submitting}>
+                <Plus size={16} /> {submitting ? 'Menyimpan...' : 'Buat Invoice'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Catat Pembayaran */}
+      {modal === 'pay' && selectedInvoice && (
+        <div style={S.modal} onClick={e => e.target === e.currentTarget && setModal(null)}>
+          <div style={S.modalBox}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div style={{ fontSize: '22px', fontWeight: '800', color: '#2C3E50' }}>Catat Pembayaran</div>
+              <button onClick={() => setModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><X size={22} /></button>
+            </div>
+            <div style={{ background: '#F8FAFC', borderRadius: '10px', padding: '16px', marginBottom: '20px' }}>
+              {[['Siswa', selectedInvoice.studentName], ['Kelas', selectedInvoice.class], ['Bulan', selectedInvoice.month], ['Jumlah', fmt(selectedInvoice.amount)], ['Jatuh Tempo', selectedInvoice.dueDate]].map(([k, v]) => (
+                <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid #E5E7EB', fontSize: '14px' }}>
+                  <span style={{ color: '#6B7280' }}>{k}</span>
+                  <span style={{ fontWeight: '700', color: '#2C3E50' }}>{v}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={S.label}>Metode Pembayaran</label>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                {['Transfer', 'Tunai', 'QRIS'].map(m => (
+                  <button key={m} onClick={() => setPayMethod(m)} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: `2px solid ${payMethod === m ? '#10B981' : '#E5E7EB'}`, background: payMethod === m ? '#D1FAE5' : 'white', color: payMethod === m ? '#10B981' : '#6B7280', fontWeight: '700', fontSize: '14px', cursor: 'pointer' }}>
+                    {m === 'Transfer' ? '🏦' : m === 'Tunai' ? '💵' : '📱'} {m}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button style={S.btn('white', '#6B7280')} onClick={() => setModal(null)}>Batal</button>
+              <button style={S.btn('#10B981')} onClick={handlePay} disabled={submitting}>
+                <CheckCircle size={16} /> {submitting ? 'Memproses...' : `Konfirmasi ${payMethod}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

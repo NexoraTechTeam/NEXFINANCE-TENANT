@@ -35,8 +35,11 @@ const PayrollManagement = () => {
 
   useEffect(() => {
     payrollService.getEmployees()
-      .then(r => setEmployees(r.data.employees))
-      .catch(() => setEmployees([{ id: 'EMP001', name: 'Budi Santoso', position: 'Guru', baseSalary: 5000000, certificationAllowance: 5000000, familyAllowance: 250000 }]));
+      .then(r => setEmployees(r.data.employees || []))
+      .catch(() => setEmployees([]));
+    payrollService.getHistory()
+      .then(r => setHistory(r.data.payrolls || []))
+      .catch(() => {});
   }, []);
 
   const calculate = async () => {

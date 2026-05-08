@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { procurementService } from '../services/api';
 import { ShoppingCart, FileText, Package, CheckCircle, Plus, AlertCircle, TrendingUp } from 'lucide-react';
 
@@ -37,6 +37,11 @@ const ProcurementManagement = () => {
   const [modal, setModal] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({});
+
+  useEffect(() => {
+    procurementService.getPRs().then(r => setPrs(r.data.purchaseRequests || [])).catch(() => {});
+    procurementService.getPOs().then(r => setPos(r.data.purchaseOrders || [])).catch(() => {});
+  }, []);
 
   const openModal = (type) => { setModal(type); setForm({}); };
 

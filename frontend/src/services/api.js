@@ -40,6 +40,7 @@ export const sppService = {
 export const payrollService = {
   getEmployees: () => api.get('/payroll/employees'),
   calculatePayroll: (data) => api.post('/payroll/calculate', data),
+  getHistory: () => api.get('/payroll/history'),
   getReports: () => api.get('/payroll/reports')
 };
 
