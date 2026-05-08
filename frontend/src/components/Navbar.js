@@ -35,8 +35,10 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 1024);
   const [masterOpen, setMasterOpen] = React.useState(false);
+  const [masterMenuPos, setMasterMenuPos] = React.useState({ top: 72, left: 0 });
   const [userMenuOpen, setUserMenuOpen] = React.useState(false);
   const masterRef = React.useRef(null);
+  const masterButtonRef = React.useRef(null);
   const userRef = React.useRef(null);
 
   React.useEffect(() => {
@@ -46,7 +48,9 @@ const Navbar = () => {
   }, []);
   React.useEffect(() => {
     const closeOnOutside = (e) => {
-      if (!masterRef.current?.contains(e.target)) setMasterOpen(false);
+      const onMasterButton = masterButtonRef.current?.contains(e.target);
+      const onMasterMenu = masterRef.current?.contains(e.target);
+      if (!onMasterButton && !onMasterMenu) setMasterOpen(false);
       if (!userRef.current?.contains(e.target)) setUserMenuOpen(false);
     };
     document.addEventListener('mousedown', closeOnOutside);
@@ -56,8 +60,40 @@ const Navbar = () => {
     setMasterOpen(false);
     setUserMenuOpen(false);
   }, [location.pathname]);
+  React.useEffect(() => {
+    if (!masterOpen || isMobile) return undefined;
+    const updateMasterMenuPos = () => {
+      const rect = masterButtonRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setMasterMenuPos({
+        top: rect.bottom + 8,
+        left: Math.min(Math.max(12, rect.left), Math.max(12, window.innerWidth - 220)),
+      });
+    };
+    updateMasterMenuPos();
+    window.addEventListener('resize', updateMasterMenuPos);
+    window.addEventListener('scroll', updateMasterMenuPos, true);
+    return () => {
+      window.removeEventListener('resize', updateMasterMenuPos);
+      window.removeEventListener('scroll', updateMasterMenuPos, true);
+    };
+  }, [masterOpen, isMobile]);
 
   const handleLogout = () => { logout(); navigate('/login'); };
+  const handleMasterToggle = () => {
+    if (masterOpen) {
+      setMasterOpen(false);
+      return;
+    }
+    const rect = masterButtonRef.current?.getBoundingClientRect();
+    if (rect) {
+      setMasterMenuPos({
+        top: rect.bottom + 8,
+        left: Math.min(Math.max(12, rect.left), Math.max(12, window.innerWidth - 220)),
+      });
+    }
+    setMasterOpen(true);
+  };
 
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(`${path}/`);
   const canShowItem = (item) => {
@@ -70,6 +106,8 @@ const Navbar = () => {
   };
 
   const filteredNavItems = NAV_ITEMS.filter(canShowItem);
+  const masterItem = filteredNavItems.find((item) => item.children?.length);
+  const masterSubItems = masterItem?.children?.filter(canShowItem) || [];
 
   const navLinkStyle = (path) => ({
     color: isActive(path) ? 'white' : 'rgba(255, 255, 255, 0.75)',
@@ -102,17 +140,17 @@ const Navbar = () => {
               <span>NexFinance</span>
             </Link>
             {!isMobile && (
-              <div style={{ display: 'flex', gap: '2px', position: 'relative' }}>
+              <div style={{ display: 'flex', gap: '2px', overflowX: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none', paddingRight: 10 }}>
               {filteredNavItems.map((item) => {
                 const Icon = item.icon;
                 if (item.children?.length) {
-                  const subItems = item.children.filter(canShowItem);
-                  const isMasterActive = subItems.some((sub) => isActive(sub.path));
+                  const isMasterActive = masterSubItems.some((sub) => isActive(sub.path));
                   return (
-                    <div key={item.name} ref={masterRef} style={{ position: 'relative' }}>
+                    <div key={item.name}>
                       <button
+                        ref={masterButtonRef}
                         type="button"
-                        onClick={() => setMasterOpen((v) => !v)}
+                        onClick={handleMasterToggle}
                         style={{
                           border: 'none',
                           background: 'transparent',
@@ -133,23 +171,6 @@ const Navbar = () => {
                         {item.name}
                         <ChevronDown size={12} style={{ transform: masterOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .2s' }} />
                       </button>
-                      {masterOpen && (
-                        <div style={{ position: 'absolute', top: '100%', left: 0, minWidth: 190, marginTop: 6, background: '#fff', borderRadius: 8, border: '1px solid #E5E7EB', boxShadow: '0 10px 24px rgba(0,0,0,0.12)', zIndex: 120, overflow: 'hidden' }}>
-                          {subItems.map((sub) => {
-                            const SubIcon = sub.icon;
-                            return (
-                              <Link
-                                key={sub.path}
-                                to={sub.path}
-                                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', textDecoration: 'none', color: isActive(sub.path) ? '#2C3E50' : '#334155', fontSize: 13, fontWeight: isActive(sub.path) ? 700 : 500, background: isActive(sub.path) ? '#EFF6F6' : '#fff' }}
-                              >
-                                <SubIcon size={14} />
-                                {sub.name}
-                              </Link>
-                            );
-                          })}
-                        </div>
-                      )}
                     </div>
                   );
                 }
@@ -170,7 +191,7 @@ const Navbar = () => {
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0, marginLeft: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0, marginLeft: '18px', paddingLeft: isMobile ? 0 : 12, borderLeft: isMobile ? 'none' : '1px solid rgba(255,255,255,0.18)' }}>
             {!isMobile && (
               <div ref={userRef} style={{ position: 'relative' }}>
                 <button
@@ -181,7 +202,7 @@ const Navbar = () => {
                   <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '700', color: 'white' }}>
                     {user?.email?.[0]?.toUpperCase() || 'A'}
                   </div>
-                  <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: '12px', fontWeight: '500', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email || 'Admin'}</span>
+                  <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: '12px', fontWeight: '500', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email || 'Admin'}</span>
                   <ChevronDown size={12} style={{ transform: userMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .2s' }} />
                 </button>
                 {userMenuOpen && (
@@ -203,6 +224,37 @@ const Navbar = () => {
           </div>
         </div>
       </nav>
+      {masterOpen && !isMobile && (
+        <div
+          ref={masterRef}
+          style={{
+            position: 'fixed',
+            top: masterMenuPos.top,
+            left: masterMenuPos.left,
+            minWidth: 210,
+            background: '#fff',
+            borderRadius: 8,
+            border: '1px solid #E5E7EB',
+            boxShadow: '0 10px 24px rgba(0,0,0,0.12)',
+            zIndex: 220,
+            overflow: 'hidden',
+          }}
+        >
+          {masterSubItems.map((sub) => {
+            const SubIcon = sub.icon;
+            return (
+              <Link
+                key={sub.path}
+                to={sub.path}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', textDecoration: 'none', color: isActive(sub.path) ? '#2C3E50' : '#334155', fontSize: 13, fontWeight: isActive(sub.path) ? 700 : 500, background: isActive(sub.path) ? '#EFF6F6' : '#fff' }}
+              >
+                <SubIcon size={14} />
+                {sub.name}
+              </Link>
+            );
+          })}
+        </div>
+      )}
 
       {menuOpen && isMobile && (
         <div style={{ position: 'fixed', top: '64px', left: 0, right: 0, background: 'rgba(44,62,80,0.97)', backdropFilter: 'blur(10px)', padding: '16px 20px', zIndex: 99, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>

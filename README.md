@@ -1,223 +1,135 @@
-# Al-Musabbihin NexFinance
+# NexFinance — Al-Musabbihin School Finance System
 
-**ISAK35 Finance System for Schools**
+Sistem keuangan sekolah berbasis web dengan fokus operasional harian, kontrol akses berbasis role (RBAC), audit log, dan notifikasi multi-channel (Email + WhatsApp).
 
-A comprehensive financial management system designed specifically for educational institutions, implementing the ISAK35 standard for school accounting and financial reporting.
+## Highlights
 
-## Project Overview
+- **Dashboard finansial** dengan KPI pemasukan/pengeluaran dan distribusi beban
+- **Manajemen SPP**: invoice, pembayaran, bukti pembayaran, dan pelaporan koleksi
+- **Payroll**: perhitungan gaji, histori run payroll, dan ringkasan biaya SDM
+- **Expense & Procurement**: alur pengajuan, approval, PR/PO, dan penerimaan barang
+- **Accounting & Reports**: jurnal, neraca, laba-rugi, serta ringkasan lintas modul
+- **Master Data**: siswa, karyawan, user, role, dan matriks akses role → menu
+- **Activity Logs**: jejak aktivitas lintas modul
+- **Notifications**: pengiriman notifikasi via Email dan WhatsApp
 
-Al-Musabbihin NexFinance is a modern, scalable web application that provides:
+## Arsitektur Singkat
 
-- **Financial Management**: Budget planning, expense tracking, and financial reporting
-- **School Administration**: Student fees, salary management, and payroll processing
-- **Compliance**: ISAK35 standard compliance for school financial management
-- **Real-time Analytics**: Dashboard with key financial metrics and insights
-- **Multi-user Access**: Role-based access control for administrators, accountants, and supervisors
-- **Audit Trail**: Complete transaction history and compliance documentation
+- **Frontend**: React (`frontend/`)
+- **Backend API**: Express (`backend/`)
+- **Auth**: JWT + RBAC per modul
+- **Data saat ini**: in-memory store di `backend/src/db.js` (siap diadaptasi ke DB persisten)
 
-## Technology Stack
+## Daftar Modul
 
-### Backend
-- Node.js / Express.js
-- PostgreSQL / MongoDB
-- RESTful API architecture
-- JWT Authentication
+| Modul | Route Frontend | Prefix API |
+| --- | --- | --- |
+| Dashboard | `/dashboard` | `/api/v1/dashboard` |
+| SPP | `/spp` | `/api/v1/spp` |
+| Payroll | `/payroll` | `/api/v1/payroll` |
+| Expenses | `/expenses` | `/api/v1/expenses` |
+| Procurement | `/procurement` | `/api/v1/procurement` |
+| Accounting | `/accounting` | `/api/v1/accounting` |
+| Reports | `/reports` | kombinasi endpoint laporan modul |
+| Master (Siswa/Karyawan/Akses) | `/master/*` | `/api/v1/master` |
+| Activity Logs | `/activity-logs` | `/api/v1/activity` |
+| Notifications | `/notifications` | `/api/v1/notifications` |
 
-### Frontend
-- React.js / Next.js
-- TypeScript
-- Material-UI / Tailwind CSS
-- Real-time data visualization
+## Role & Permission
 
-### DevOps
-- Docker & Docker Compose
-- Kubernetes-ready
-- CI/CD Pipeline
-- Cloud-native deployment
+Role default:
 
-## Project Structure
+- `super_admin`
+- `admin`
+- `bendahara`
+- `kabag`
+- `staff`
+- `auditor`
 
-```
-al-musabbihin-nexfinance/
-├── backend/           # Node.js backend API
-├── frontend/          # React.js frontend application
-├── docs/              # Documentation and specifications
-├── deployment/        # Docker and deployment configurations
-└── README.md          # This file
-```
+Definisi permission role ada di:
 
-## Getting Started
+- `backend/src/middleware/rbac.js`
+- dapat dikelola dari UI **Master → Hak Akses Role** (editable untuk Super Admin)
 
-### Prerequisites
-- Docker & Docker Compose
-- Node.js 18+
-- npm or yarn
+## Quick Start (Local Development)
 
-### Quick Start with Docker
-
-```bash
-# Clone the repository
-git clone https://github.com/Nexora-Tech-Team/al-musabbihin-nexfinance.git
-cd al-musabbihin-nexfinance
-
-# Start services with Docker Compose
-docker-compose up -d
-
-# Application will be available at:
-# Frontend: http://localhost:3000
-# API: http://localhost:5000
-```
-
-### Local Development Setup
+### 1. Backend
 
 ```bash
-# Backend setup
 cd backend
 npm install
+cp .env.example .env
 npm run dev
+```
 
-# Frontend setup (in new terminal)
+Backend berjalan di `http://localhost:5000`.
+
+### 2. Frontend
+
+```bash
 cd frontend
 npm install
+npm start
+```
+
+Frontend berjalan di `http://localhost:3000`.
+
+## Environment Variables Penting
+
+Contoh backend ada di `backend/.env.example`.
+
+Variabel notifikasi:
+
+- `EMAIL_PROVIDER_URL` / `EMAIL_WEBHOOK_URL`
+- `EMAIL_PROVIDER_TOKEN`
+- `WHATSAPP_META_TOKEN`
+- `WHATSAPP_PHONE_NUMBER_ID`
+- `WHATSAPP_WEBHOOK_URL` (fallback opsional)
+
+Variabel frontend:
+
+- `REACT_APP_API_URL` (default: `http://localhost:5000/api/v1`)
+
+## Akun Demo (seed in-memory)
+
+Sumber: `backend/src/db.js`
+
+- `superadmin@nexfinance.com` / `superadmin123`
+- `admin@nexfinance.com` / `admin123`
+- `bendahara@nexfinance.com` / `bendahara123`
+- `kabag@nexfinance.com` / `kabag123`
+- `staff@nexfinance.com` / `staff123`
+- `auditor@nexfinance.com` / `auditor123`
+
+## Dokumentasi
+
+- [API Documentation](docs/API_DOCUMENTATION.md)
+- [Deployment Guide](docs/DEPLOYMENT_GUIDE.md)
+- [ISAK35 Compliance](docs/ISAK35_COMPLIANCE.md)
+- [Module Guide (Markdown)](docs/NEXFINANCE_MODULE_GUIDE.md)
+- **Module Guide (PDF)**: `docs/NEXFINANCE_MODULE_GUIDE.pdf`
+
+## Scripts
+
+### Backend
+
+```bash
+cd backend
 npm run dev
+npm run start
+npm run test
+npm run lint
 ```
 
-## Configuration
+### Frontend
 
-### Environment Variables
-
-Create `.env` files in respective directories:
-
-**Backend (.env)**
-```
-NODE_ENV=development
-PORT=5000
-DATABASE_URL=postgresql://user:password@localhost:5432/nexfinance
-JWT_SECRET=your-secret-key
-```
-
-**Frontend (.env.local)**
-```
-REACT_APP_API_URL=http://localhost:5000/api
-REACT_APP_ENV=development
-```
-
-## Features
-
-### Phase 1: Core Finance Module
-- [ ] General Ledger Management
-- [ ] Chart of Accounts
-- [ ] Journal Entry Processing
-- [ ] Financial Statement Generation
-
-### Phase 2: School Operations
-- [ ] Student Fee Management
-- [ ] Salary & Payroll System
-- [ ] Expense Tracking
-- [ ] Budget Allocation
-
-### Phase 3: Reporting & Compliance
-- [ ] ISAK35 Compliance Reports
-- [ ] Audit Trail Reports
-- [ ] Financial Analytics Dashboard
-- [ ] Multi-year Comparisons
-
-## Deployment
-
-### Docker Compose (Development)
 ```bash
-docker-compose up -d
+cd frontend
+npm start
+npm run build
+npm test
 ```
 
-### Production Deployment
-See `/deployment` directory for:
-- Kubernetes manifests
-- Cloud deployment guides
-- Infrastructure as Code (Terraform/Ansible)
+## Status
 
-## Documentation
-
-- `/docs/API_DOCUMENTATION.md` - API endpoints and specifications
-- `/docs/ISAK35_COMPLIANCE.md` - ISAK35 standard implementation details
-- `/docs/DATABASE_SCHEMA.md` - Database design documentation
-- `/docs/DEPLOYMENT_GUIDE.md` - Production deployment procedures
-
-## Development
-
-### Running Tests
-```bash
-# Backend tests
-cd backend && npm test
-
-# Frontend tests
-cd frontend && npm test
-```
-
-### Building for Production
-```bash
-# Build Docker images
-docker-compose -f docker-compose.prod.yml build
-
-# Deploy to production
-docker-compose -f docker-compose.prod.yml up -d
-```
-
-## Monitoring & Logging
-
-- Application logs: Docker Compose logs
-- Error tracking: Sentry integration (optional)
-- Performance monitoring: New Relic / DataDog (optional)
-
-## Contributing
-
-1. Create a feature branch: `git checkout -b feature/feature-name`
-2. Commit changes: `git commit -am 'Add feature'`
-3. Push to branch: `git push origin feature/feature-name`
-4. Submit a Pull Request
-
-## Security
-
-- All API endpoints require JWT authentication
-- Sensitive data is encrypted at rest
-- HTTPS required for production
-- Regular security audits and dependency updates
-- Environment variables for sensitive configuration
-
-## Troubleshooting
-
-### Port already in use
-```bash
-# Change port in docker-compose.yml or .env files
-```
-
-### Database connection errors
-```bash
-# Verify DATABASE_URL in .env
-# Check database service is running
-docker-compose ps
-```
-
-### CORS issues
-```bash
-# Update CORS settings in backend configuration
-```
-
-## Support & Maintenance
-
-For support, issues, or feature requests, please create an issue in the repository.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- ISAK35 Standard Implementation
-- School Financial Management Best Practices
-- Built by Nexora Tech Team
-
----
-
-**Status**: Active Development  
-**Last Updated**: 2026  
-**Nexora Technology Team**
+Project aktif dan terus dikembangkan untuk kebutuhan operasional keuangan sekolah Al-Musabbihin.

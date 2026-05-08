@@ -86,7 +86,18 @@ export default function Dashboard() {
       const r = await dashboardService.getKPI();
       setKpi(r.data);
     } catch {
-      setKpi({ monthRevenue: 10_200_000, collectionRate: '66.7%', cashBalance: 525_000_000, pendingItems: 6, totalEmployees: 7, totalInvoices: 12, paidInvoices: 8 });
+      setKpi({
+        monthRevenue: 10_200_000,
+        collectionRate: '66.7%',
+        cashBalance: 525_000_000,
+        pendingItems: 6,
+        totalStudents: 0,
+        totalEmployees: 0,
+        totalInvoices: 0,
+        paidInvoices: 0,
+        pendingExpenses: 0,
+        pendingPR: 0,
+      });
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -108,7 +119,7 @@ export default function Dashboard() {
   ] : [];
 
   const infoCards = kpi ? [
-    { label: 'Total Siswa', value: kpi.totalStudents || 450, icon: Users, color: '#8B5CF6', to: '/master/students' },
+    { label: 'Total Siswa', value: kpi.totalStudents ?? 0, icon: Users, color: '#8B5CF6', to: '/master/students' },
     { label: 'Total Karyawan', value: kpi.totalEmployees, icon: Users, color: '#41A9A9', to: '/master/employees' },
     { label: 'Total Invoice SPP', value: kpi.totalInvoices, icon: ClipboardList, color: '#10B981', to: '/spp' },
     { label: 'Pengeluaran Pending', value: kpi.pendingExpenses, icon: Activity, color: '#F59E0B', to: '/expenses' },
