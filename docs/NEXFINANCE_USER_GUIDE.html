@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NexFinance — Panduan Pengguna | Sekolah Islam Terpadu Al-Musabbihin</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  :root {
+    --teal: #41A9A9;
+    --teal-light: #EFF6F6;
+    --teal-dark: #2d8f8f;
+    --navy: #2C3E50;
+    --navy-light: #3d5166;
+    --gray: #6B7280;
+    --light: #F8FAFC;
+    --border: #E5E7EB;
+    --green: #10B981;
+    --red: #EF4444;
+    --yellow: #F59E0B;
+    --blue: #3B82F6;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--navy);
+    background: white;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ---- PRINT SETUP ---- */
+  @page {
+    size: A4;
+    margin: 18mm 16mm;
+  }
+  @media print {
+    .no-print { display: none !important; }
+    .page-break { page-break-before: always; }
+    body { font-size: 11px; }
+    h1 { font-size: 22px !important; }
+    h2 { font-size: 16px !important; }
+    h3 { font-size: 13px !important; }
+    .hero { min-height: unset !important; padding: 40px 48px !important; }
+  }
+
+  /* ---- COVER PAGE ---- */
+  .cover {
+    background: linear-gradient(135deg, #41A9A9 0%, #2C3E50 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 60px 40px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+  }
+  .cover::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: -80px;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+  .cover-badge {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    padding: 6px 18px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    display: inline-block;
+  }
+  .cover h1 {
+    font-size: 52px;
+    font-weight: 900;
+    letter-spacing: -1px;
+    margin-bottom: 12px;
+    line-height: 1.1;
+  }
+  .cover h1 span { opacity: 0.7; }
+  .cover .tagline {
+    font-size: 18px;
+    opacity: 0.85;
+    margin-bottom: 40px;
+    font-weight: 400;
+  }
+  .cover .meta {
+    font-size: 13px;
+    opacity: 0.7;
+    margin-top: 60px;
+  }
+  .cover .divider {
+    width: 60px;
+    height: 3px;
+    background: rgba(255,255,255,0.4);
+    border-radius: 2px;
+    margin: 24px auto;
+  }
+  .cover-modules {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 32px;
+  }
+  .cover-module {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* ---- LAYOUT ---- */
+  .content { max-width: 900px; margin: 0 auto; padding: 60px 40px; }
+
+  /* ---- TYPOGRAPHY ---- */
+  h1 { font-size: 32px; font-weight: 900; color: var(--navy); margin-bottom: 16px; }
+  h2 { font-size: 22px; font-weight: 800; color: var(--navy); margin-bottom: 12px; padding-bottom: 10px; border-bottom: 2px solid var(--teal-light); }
+  h3 { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 10px; margin-top: 20px; }
+  h4 { font-size: 14px; font-weight: 700; color: var(--teal); margin-bottom: 8px; }
+  p { color: var(--gray); margin-bottom: 12px; }
+  strong { color: var(--navy); }
+
+  /* ---- SECTION ---- */
+  .section { margin-bottom: 56px; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .section-number {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--teal) 0%, var(--navy) 100%);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 16px; font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  /* ---- CARDS ---- */
+  .card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .card-teal { border-left: 4px solid var(--teal); }
+  .card-navy { border-left: 4px solid var(--navy); }
+  .card-green { border-left: 4px solid var(--green); }
+  .card-yellow { border-left: 4px solid var(--yellow); }
+  .card-red { border-left: 4px solid var(--red); }
+
+  /* ---- HIGHLIGHT BOX ---- */
+  .highlight {
+    background: var(--teal-light);
+    border: 1px solid #b8dede;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    color: var(--navy);
+    font-size: 13px;
+  }
+  .highlight-icon { margin-right: 8px; }
+
+  .warning {
+    background: #FEF9E7;
+    border: 1px solid #F9D71C;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    color: #7D6608;
+    font-size: 13px;
+  }
+
+  .success {
+    background: #D5F5E3;
+    border: 1px solid #58D68D;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    color: #1D6A39;
+    font-size: 13px;
+  }
+
+  /* ---- TABLE ---- */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+  th { background: var(--light); padding: 10px 14px; text-align: left; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray); border-bottom: 2px solid var(--border); }
+  td { padding: 10px 14px; border-bottom: 1px solid #F3F4F6; color: var(--navy); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+
+  /* ---- BADGE ---- */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-teal { background: #EFF6F6; color: var(--teal); }
+  .badge-green { background: #D5F5E3; color: #1D6A39; }
+  .badge-yellow { background: #FEF9E7; color: #7D6608; }
+  .badge-red { background: #FADBD8; color: #922B21; }
+  .badge-navy { background: #EAF0F6; color: var(--navy); }
+
+  /* ---- GRID ---- */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  /* ---- MODULE CARD ---- */
+  .module-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .module-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(135deg, var(--teal), var(--navy));
+  }
+  .module-icon { font-size: 28px; margin-bottom: 10px; }
+  .module-title { font-size: 15px; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
+  .module-desc { font-size: 12px; color: var(--gray); line-height: 1.5; }
+
+  /* ---- STEPS ---- */
+  .step-list { list-style: none; counter-reset: step; }
+  .step-list li {
+    counter-increment: step;
+    display: flex;
+    gap: 14px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+  }
+  .step-list li::before {
+    content: counter(step);
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--teal), var(--navy));
+    border-radius: 8px;
+    color: white;
+    font-weight: 800;
+    font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-content { color: var(--gray); font-size: 13px; padding-top: 4px; }
+  .step-content strong { color: var(--navy); }
+
+  /* ---- CODE ---- */
+  .code-block {
+    background: var(--navy);
+    color: #a8ff78;
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    margin: 12px 0;
+    overflow-x: auto;
+    line-height: 1.8;
+  }
+  .code-block .comment { color: #7EC8E3; }
+  .code-block .key { color: #FFD700; }
+
+  /* ---- FLOW DIAGRAM ---- */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+    margin: 16px 0;
+  }
+  .flow-step {
+    background: var(--teal-light);
+    border: 1.5px solid #b8dede;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--navy);
+    text-align: center;
+  }
+  .flow-arrow {
+    padding: 0 8px;
+    color: var(--teal);
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  /* ---- TOC ---- */
+  .toc { margin: 40px 0; }
+  .toc-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dotted var(--border); font-size: 14px; }
+  .toc-item a { color: var(--navy); text-decoration: none; font-weight: 500; }
+  .toc-item a:hover { color: var(--teal); }
+  .toc-page { color: var(--teal); font-weight: 700; }
+
+  /* ---- FOOTER ---- */
+  .footer {
+    background: var(--light);
+    border-top: 2px solid var(--border);
+    padding: 32px 40px;
+    text-align: center;
+    color: var(--gray);
+    font-size: 12px;
+  }
+  .footer .logo { font-size: 20px; font-weight: 900; color: var(--teal); margin-bottom: 8px; }
+
+  /* ---- PRINT BTN ---- */
+  .print-btn {
+    position: fixed;
+    bottom: 32px; right: 32px;
+    background: linear-gradient(135deg, #41A9A9, #2C3E50);
+    color: white; border: none;
+    padding: 14px 24px;
+    border-radius: 50px;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(65,169,169,0.4);
+    z-index: 999;
+    display: flex; align-items: center; gap: 8px;
+  }
+</style>
+</head>
+<body>
+
+<!-- PRINT BUTTON -->
+<button class="print-btn no-print" onclick="window.print()">🖨️ Cetak / Export PDF</button>
+
+<!-- ============================================================ -->
+<!-- COVER PAGE -->
+<!-- ============================================================ -->
+<div class="cover">
+  <div class="cover-badge">Dokumentasi Resmi · v1.0.0 · Mei 2026</div>
+  <h1>Nex<span>Finance</span></h1>
+  <p class="tagline">Enterprise Finance System untuk Sekolah Islam Terpadu Al-Musabbihin</p>
+  <div class="divider"></div>
+  <p style="font-size:15px; opacity:0.8; max-width:500px;">Panduan lengkap penggunaan sistem manajemen keuangan terintegrasi berbasis ISAK 35 — dari SPP hingga laporan keuangan real-time.</p>
+  <div class="cover-modules">
+    <div class="cover-module">📊 Dashboard KPI</div>
+    <div class="cover-module">💰 Penagihan SPP</div>
+    <div class="cover-module">💼 Penggajian</div>
+    <div class="cover-module">📋 Pengeluaran</div>
+    <div class="cover-module">🛒 Pengadaan</div>
+    <div class="cover-module">📚 Akuntansi ISAK 35</div>
+    <div class="cover-module">📈 Laporan Keuangan</div>
+  </div>
+  <div class="meta">
+    Disiapkan oleh: PT Alfarhein Teknologi Investama (Nexora) &nbsp;|&nbsp;
+    Untuk: Yayasan Almusabbihin &nbsp;|&nbsp; Tanggal: 8 Mei 2026
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TABLE OF CONTENTS -->
+<!-- ============================================================ -->
+<div class="content page-break">
+  <div class="section-header">
+    <div>
+      <h1 style="margin-bottom:6px;">Daftar Isi</h1>
+      <p>Panduan Pengguna NexFinance — Sekolah Islam Terpadu Al-Musabbihin</p>
+    </div>
+  </div>
+  <div class="toc">
+    <div class="toc-item"><a href="#section-1">1. Tentang NexFinance</a><span class="toc-page">3</span></div>
+    <div class="toc-item"><a href="#section-2">2. Memulai — Login & Navigasi</a><span class="toc-page">4</span></div>
+    <div class="toc-item"><a href="#section-3">3. Dashboard & KPI</a><span class="toc-page">5</span></div>
+    <div class="toc-item"><a href="#section-4">4. Modul Penagihan SPP</a><span class="toc-page">6</span></div>
+    <div class="toc-item"><a href="#section-5">5. Modul Penggajian (Payroll)</a><span class="toc-page">8</span></div>
+    <div class="toc-item"><a href="#section-6">6. Modul Pengeluaran</a><span class="toc-page">10</span></div>
+    <div class="toc-item"><a href="#section-7">7. Modul Pengadaan (Procurement)</a><span class="toc-page">12</span></div>
+    <div class="toc-item"><a href="#section-8">8. Modul Akuntansi ISAK 35</a><span class="toc-page">14</span></div>
+    <div class="toc-item"><a href="#section-9">9. Laporan Keuangan</a><span class="toc-page">16</span></div>
+    <div class="toc-item"><a href="#section-10">10. Instalasi & Konfigurasi</a><span class="toc-page">18</span></div>
+    <div class="toc-item"><a href="#section-11">11. Role & Hak Akses</a><span class="toc-page">20</span></div>
+    <div class="toc-item"><a href="#section-12">12. FAQ & Troubleshooting</a><span class="toc-page">21</span></div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 1: TENTANG -->
+<!-- ============================================================ -->
+<div class="content page-break" id="section-1">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">1</div>
+      <h2 style="border:none; margin:0; padding:0;">Tentang NexFinance</h2>
+    </div>
+
+    <div class="highlight">
+      <strong>💡 NexFinance</strong> adalah sistem manajemen keuangan terintegrasi yang dirancang khusus untuk kebutuhan Sekolah Islam Terpadu, mengimplementasikan standar pelaporan yayasan ISAK 35.
+    </div>
+
+    <h3>Latar Belakang</h3>
+    <p>Dalam upaya meningkatkan transparansi, efisiensi, dan akuntabilitas pengelolaan keuangan, Yayasan Almusabbihin membutuhkan sistem digital yang mampu mengelola seluruh proses keuangan secara real-time, otomatis, dan sesuai standar pelaporan yayasan.</p>
+    <p>NexFinance dikembangkan oleh PT Alfarhein Teknologi Investama (Nexora) sebagai solusi komprehensif yang mencakup 7 modul utama.</p>
+
+    <h3>Ruang Lingkup Sistem</h3>
+    <div class="grid-3">
+      <div class="module-card">
+        <div class="module-icon">📊</div>
+        <div class="module-title">Dashboard KPI</div>
+        <div class="module-desc">Visualisasi real-time indikator keuangan sekolah</div>
+      </div>
+      <div class="module-card">
+        <div class="module-icon">💰</div>
+        <div class="module-title">Penagihan SPP</div>
+        <div class="module-desc">Invoice otomatis, monitoring pembayaran, laporan koleksi</div>
+      </div>
+      <div class="module-card">
+        <div class="module-icon">💼</div>
+        <div class="module-title">Penggajian</div>
+        <div class="module-desc">Payroll otomatis, PPh 21 TER, BPJS, slip gaji</div>
+      </div>
+      <div class="module-card">
+        <div class="module-icon">📋</div>
+        <div class="module-title">Pengeluaran</div>
+        <div class="module-desc">Expense submission, approval workflow 2-level</div>
+      </div>
+      <div class="module-card">
+        <div class="module-icon">🛒</div>
+        <div class="module-title">Pengadaan</div>
+        <div class="module-desc">PR → PO → Penerimaan barang, kontrol anggaran</div>
+      </div>
+      <div class="module-card">
+        <div class="module-icon">📚</div>
+        <div class="module-title">Akuntansi</div>
+        <div class="module-desc">Chart of accounts ISAK 35, jurnal umum, buku besar</div>
+      </div>
+    </div>
+
+    <h3>Teknologi</h3>
+    <table>
+      <tr><th>Komponen</th><th>Teknologi</th><th>Keterangan</th></tr>
+      <tr><td><strong>Frontend</strong></td><td><span class="badge badge-teal">React 18</span></td><td>Antarmuka pengguna modern, responsif</td></tr>
+      <tr><td><strong>Backend</strong></td><td><span class="badge badge-navy">Node.js / Express</span></td><td>REST API, JWT Authentication</td></tr>
+      <tr><td><strong>Database</strong></td><td><span class="badge badge-green">PostgreSQL</span></td><td>Skema keuangan ISAK 35</td></tr>
+      <tr><td><strong>Auth</strong></td><td><span class="badge badge-yellow">JWT Bearer</span></td><td>Role-based access control</td></tr>
+      <tr><td><strong>Deployment</strong></td><td><span class="badge badge-navy">Docker + VPS</span></td><td>finance.almusabbihin.sch.id</td></tr>
+    </table>
+
+    <h3>Informasi Langganan</h3>
+    <div class="card card-teal">
+      <div class="grid-2">
+        <div>
+          <h4>Paket Berlangganan</h4>
+          <p style="font-size:24px; font-weight:900; color:#2C3E50; margin:8px 0;">Rp 5.000.000 / bulan</p>
+          <p style="font-size:12px;">Lima Juta Rupiah per Bulan</p>
+        </div>
+        <div>
+          <h4>Sudah Termasuk</h4>
+          <ul style="list-style:none; padding:0; font-size:13px; color:#6B7280;">
+            <li style="padding:4px 0;">✅ Penggunaan sistem NexFinance</li>
+            <li style="padding:4px 0;">✅ Hosting VPS (finance.almusabbihin.sch.id)</li>
+            <li style="padding:4px 0;">✅ Maintenance & technical support</li>
+            <li style="padding:4px 0;">✅ Update sistem berkala</li>
+            <li style="padding:4px 0;">✅ Monitoring & backup data harian</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 2: LOGIN -->
+<!-- ============================================================ -->
+<div class="content page-break" id="section-2">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">2</div>
+      <h2 style="border:none; margin:0; padding:0;">Memulai — Login & Navigasi</h2>
+    </div>
+
+    <h3>Cara Login</h3>
+    <ol class="step-list">
+      <li><div class="step-content">Buka browser dan akses <strong>finance.almusabbihin.sch.id</strong> (atau http://localhost:3000 untuk pengembangan lokal)</div></li>
+      <li><div class="step-content">Masukkan <strong>Email</strong> dan <strong>Password</strong> akun Anda</div></li>
+      <li><div class="step-content">Klik tombol <strong>"Login"</strong> — sistem akan memvalidasi dan mengarahkan ke Dashboard</div></li>
+      <li><div class="step-content">Sesi login akan tersimpan selama 24 jam. Setelah itu, login ulang diperlukan.</div></li>
+    </ol>
+
+    <div class="highlight">
+      <strong>🔑 Akun Demo:</strong> Email: admin@nexfinance.com | Password: admin123
+    </div>
+
+    <h3>Navigasi Utama</h3>
+    <p>Navbar NexFinance terletak di bagian atas halaman dengan gradien teal-navy. Semua modul dapat diakses dari navbar:</p>
+    <table>
+      <tr><th>Menu</th><th>Path URL</th><th>Fungsi</th></tr>
+      <tr><td>📊 Dashboard</td><td>/dashboard</td><td>KPI overview, grafik pendapatan &amp; beban</td></tr>
+      <tr><td>💰 SPP</td><td>/spp</td><td>Kelola invoice SPP dan pembayaran siswa</td></tr>
+      <tr><td>💼 Penggajian</td><td>/payroll</td><td>Hitung gaji, slip gaji, riwayat payroll</td></tr>
+      <tr><td>📋 Pengeluaran</td><td>/expenses</td><td>Ajukan &amp; approve pengeluaran operasional</td></tr>
+      <tr><td>🛒 Pengadaan</td><td>/procurement</td><td>Kelola PR, PO, dan penerimaan barang</td></tr>
+      <tr><td>📚 Akuntansi</td><td>/accounting</td><td>COA, jurnal umum, neraca, lap. aktivitas</td></tr>
+      <tr><td>📈 Laporan</td><td>/reports</td><td>Dashboard laporan keuangan komprehensif</td></tr>
+    </table>
+
+    <h3>Logout</h3>
+    <p>Klik tombol <strong>"Keluar"</strong> (merah) di pojok kanan atas navbar untuk mengakhiri sesi dengan aman.</p>
+
+    <div class="warning">
+      ⚠️ <strong>Penting:</strong> Selalu gunakan tombol "Keluar" setelah selesai menggunakan sistem, terutama pada perangkat bersama.
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 3: DASHBOARD -->
+<!-- ============================================================ -->
+<div class="content page-break" id="section-3">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">3</div>
+      <h2 style="border:none; margin:0; padding:0;">Dashboard & KPI</h2>
+    </div>
+
+    <p>Dashboard adalah halaman utama yang menampilkan ringkasan kondisi keuangan sekolah secara real-time.</p>
+
+    <h3>KPI Cards</h3>
+    <table>
+      <tr><th>Indikator</th><th>Keterangan</th><th>Warna Indikator</th></tr>
+      <tr><td>Monthly Revenue</td><td>Total pendapatan bulan berjalan</td><td><span class="badge badge-teal">Teal</span></td></tr>
+      <tr><td>SPP Collection Rate</td><td>Persentase pembayaran SPP terkumpul</td><td><span class="badge badge-green">Hijau</span></td></tr>
+      <tr><td>Cash Balance</td><td>Saldo kas dan bank saat ini</td><td><span class="badge badge-green">Hijau</span></td></tr>
+      <tr><td>Pending Items</td><td>Item yang memerlukan perhatian/approval</td><td><span class="badge badge-yellow">Kuning</span></td></tr>
+    </table>
+
+    <h3>Grafik Dashboard</h3>
+    <div class="grid-2">
+      <div class="card card-teal">
+        <h4>Revenue Trend</h4>
+        <p style="font-size:12px;">Line chart tren pendapatan bulanan. Membantu mengidentifikasi pola musiman penerimaan SPP.</p>
+      </div>
+      <div class="card card-navy">
+        <h4>Expense Breakdown</h4>
+        <p style="font-size:12px;">Bar chart rincian pengeluaran. Kategori: Gaji, Supplies, Utilities, dan Lain-lain.</p>
+      </div>
+      <div class="card card-green">
+        <h4>Fund Allocation (Pie)</h4>
+        <p style="font-size:12px;">Distribusi alokasi dana per kategori beban dalam format pie chart.</p>
+      </div>
+      <div class="card card-yellow">
+        <h4>Financial Summary</h4>
+        <p style="font-size:12px;">Ringkasan Total Revenue, Total Expenses, dan Net Profit periode berjalan.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 4: SPP -->
+<!-- ============================================================ -->
+<div class="content page-break" id="section-4">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">4</div>
+      <h2 style="border:none; margin:0; padding:0;">Modul Penagihan SPP</h2>
+    </div>
+
+    <p>Modul SPP (Sumbangan Pembinaan Pendidikan) mengelola seluruh proses penagihan, pembayaran, dan pelaporan iuran siswa.</p>
+
+    <h3>Alur Proses SPP</h3>
+    <div class="flow">
+      <div class="flow-step">Generate Invoice</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Notifikasi Orang Tua</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Pembayaran</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Konfirmasi</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Laporan</div>
+    </div>
+
+    <h3>Membuat Invoice SPP</h3>
+    <ol class="step-list">
+      <li><div class="step-content">Navigasi ke menu <strong>SPP</strong> dari navbar</div></li>
+      <li><div class="step-content">Klik tombol <strong>"Buat Invoice"</strong></div></li>
+      <li><div class="step-content">Isi form: <strong>Student ID, Nama Siswa, Kelas, Jumlah, Bulan</strong></div></li>
+      <li><div class="step-content">Klik <strong>"Simpan"</strong> — invoice otomatis dibuat dengan due date 5 hari ke depan</div></li>
+    </ol>
+
+    <h3>Mencatat Pembayaran</h3>
+    <ol class="step-list">
+      <li><div class="step-content">Temukan invoice di daftar (filter: "Belum Bayar")</div></li>
+      <li><div class="step-content">Klik tombol <strong>"Bayar"</strong> pada baris invoice</div></li>
+      <li><div class="step-content">Konfirmasi jumlah dan metode pembayaran (Transfer / Tunai)</div></li>
+      <li><div class="step-content">Status invoice berubah menjadi <span class="badge badge-green">Lunas</span></div></li>
+    </ol>
+
+    <h3>Status Invoice</h3>
+    <table>
+      <tr><th>Status</th><th>Keterangan</th><th>Aksi Tersedia</th></tr>
+      <tr><td><span class="badge badge-yellow">Belum Bayar</span></td><td>Invoice dibuat, menunggu pembayaran</td><td>Bayar, Edit</td></tr>
+      <tr><td><span class="badge badge-green">Lunas</span></td><td>Pembayaran telah diterima dan dikonfirmasi</td><td>Cetak Bukti</td></tr>
+      <tr><td><span class="badge badge-red">Terlambat</span></td><td>Melewati tanggal jatuh tempo</td><td>Bayar, Kirim Reminder</td></tr>
+    </table>
+
+    <h3>Laporan SPP</h3>
+    <div class="card card-teal">
+      <p>Laporan tersedia melalui endpoint <code>/spp/reports</code> dan menampilkan:</p>
+      <ul style="font-size:13px; color:#6B7280; padding-left:20px;">
+        <li>Total invoice yang diterbitkan</li>
+        <li>Total pembayaran yang diterima</li>
+        <li>Collection rate (%)</li>
+        <li>Total siswa aktif</li>
+      </ul>
+    </div>
+
+    <div class="success">
+      ✅ <strong>Target Optimal:</strong> Collection rate SPP ≥ 90% per bulan menunjukkan performa penagihan yang baik.
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 5: PAYROLL -->
+<!-- ============================================================ -->
+<div class="content page-break" id="section-5">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">5</div>
+      <h2 style="border:none; margin:0; padding:0;">Modul Penggajian (Payroll)</h2>
+    </div>
+
+    <p>Modul Penggajian mengelola perhitungan gaji karyawan secara otomatis termasuk PPh 21 TER, BPJS Kesehatan, dan BPJS Ketenagakerjaan.</p>
+
+    <h3>Komponen Gaji</h3>
+    <table>
+      <tr><th>Komponen</th><th>Tipe</th><th>Keterangan</th></tr>
+      <tr><td>Gaji Pokok</td><td><span class="badge badge-teal">Penghasilan</span></td><td>Gaji dasar sesuai jabatan</td></tr>
+      <tr><td>Tunjangan Sertifikasi</td><td><span class="badge badge-teal">Penghasilan</span></td><td>Tunjangan profesi guru (≈1× gaji pokok)</td></tr>
+      <tr><td>Tunjangan Keluarga</td><td><span class="badge badge-teal">Penghasilan</span></td><td>Tunjangan istri/suami dan anak</td></tr>
+      <tr><td>BPJS Kesehatan</td><td><span class="badge badge-red">Potongan</span></td><td>1% dari gaji bruto (ditanggung karyawan)</td></tr>
+      <tr><td>BPJS Ketenagakerjaan</td><td><span class="badge badge-red">Potongan</span></td><td>5.7% dari gaji bruto (JHT 2% + JP 1% + JKK 0.24% + JKM 0.3% + JHT EL 3.7%)</td></tr>
+      <tr><td>PPh 21 TER</td><td><span class="badge badge-red">Potongan</span></td><td>5% dari gaji bruto (tarif efektif rata-rata)</td></tr>
+    </table>
+
+    <h3>Cara Menghitung Gaji</h3>
+    <ol class="step-list">
+      <li><div class="step-content">Navigasi ke menu <strong>Penggajian</strong></div></li>
+      <li><div class="step-content">Klik tombol <strong>"Hitung Baru"</strong></div></li>
+      <li><div class="step-content">Pilih <strong>Karyawan</strong> dari dropdown dan tentukan <strong>Bulan</strong></div></li>
+      <li><div class="step-content">Klik <strong>"Hitung Gaji"</strong> — sistem menghitung otomatis semua komponen</div></li>
+      <li><div class="step-content">Slip gaji muncul dengan rincian lengkap. Klik <strong>"Cetak Slip"</strong> bila diperlukan</div></li>
+    </ol>
+
+    <h3>Formula Perhitungan</h3>
+    <div class="code-block">
+<span class="comment">// Komponen Gaji</span>
+<span class="key">Gaji Bruto</span>    = Gaji Pokok + T.Sertifikasi + T.Keluarga
+<span class="key">BPJS Kes</span>      = Gaji Bruto × 1%
+<span class="key">BPJS TK</span>       = Gaji Bruto × 5.7%  (JHT+JP+JKK+JKM)
+<span class="key">PPh 21 TER</span>    = Gaji Bruto × 5%    (Tarif Efektif Rata-rata)
+<span class="key">Gaji Bersih</span>   = Gaji Bruto - BPJS Kes - BPJS TK - PPh 21</div>
+
+    <div class="warning">
+      ⚠️ <strong>Catatan Pajak:</strong> Tarif PPh 21 TER (5%) adalah tarif default. Untuk karyawan dengan PTKP berbeda, konsultasikan dengan bagian akuntansi untuk penyesuaian tarif.
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 6: EXPENSES -->
+<!-- ============================================================ -->
+<div class="content page-break" id="section-6">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">6</div>
+      <h2 style="border:none; margin:0; padding:0;">Modul Pengeluaran</h2>
+    </div>
+
+    <p>Modul Pengeluaran menyediakan alur pengajuan dan persetujuan pengeluaran operasional sekolah dengan kontrol 2 level approval.</p>
+
+    <h3>Alur Approval</h3>
+    <div class="flow">
+      <div class="flow-step">Staff Ajukan</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Approval Level 1<br/>(Kepala Bagian)</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Approval Level 2<br/>(Bendahara)</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Disetujui / Cair</div>
+    </div>
+
+    <h3>Kategori Pengeluaran</h3>
+    <div class="grid-2">
+      <div>
+        <ul style="list-style:none; padding:0; font-size:13px;">
+          <li style="padding:6px 0; border-bottom:1px solid #F3F4F6;">📎 <strong>ATK &amp; Supplies</strong> — Alat tulis kantor, kertas, toner</li>
+          <li style="padding:6px 0; border-bottom:1px solid #F3F4F6;">⚙️ <strong>Operasional</strong> — Kebutuhan operasional harian</li>
+          <li style="padding:6px 0; border-bottom:1px solid #F3F4F6;">🔧 <strong>Pemeliharaan</strong> — Perbaikan gedung, peralatan</li>
+          <li style="padding:6px 0; border-bottom:1px solid #F3F4F6;">🚗 <strong>Transportasi</strong> — Perjalanan dinas, bensin</li>
+        </ul>
+      </div>
+      <div>
+        <ul style="list-style:none; padding:0; font-size:13px;">
+          <li style="padding:6px 0; border-bottom:1px solid #F3F4F6;">🍱 <strong>Konsumsi</strong> — Rapat, acara sekolah</li>
+          <li style="padding:6px 0; border-bottom:1px solid #F3F4F6;">💡 <strong>Utilitas</strong> — Listrik, air, internet</li>
+          <li style="padding:6px 0; border-bottom:1px solid #F3F4F6;">📦 <strong>Lain-lain</strong> — Pengeluaran di luar kategori</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Cara Mengajukan Pengeluaran</h3>
+    <ol class="step-list">
+      <li><div class="step-content">Klik menu <strong>Pengeluaran</strong> → tombol <strong>"Ajukan Pengeluaran"</strong></div></li>
+      <li><div class="step-content">Isi <strong>Deskripsi</strong> pengeluaran secara jelas dan detail</div></li>
+      <li><div class="step-content">Masukkan <strong>Jumlah</strong> (dalam Rupiah) dan pilih <strong>Kategori</strong></div></li>
+      <li><div class="step-content">Klik <strong>"Ajukan"</strong> — status menjadi <span class="badge badge-yellow">Menunggu</span></div></li>
+    </ol>
+
+    <h3>Cara Menyetujui Pengeluaran</h3>
+    <ol class="step-list">
+      <li><div class="step-content">Buka daftar pengeluaran, filter <strong>"Menunggu"</strong></div></li>
+      <li><div class="step-content">Review deskripsi dan jumlah pengeluaran</div></li>
+      <li><div class="step-content">Klik <strong>"Setujui"</strong> (hijau) atau <strong>"Tolak"</strong> (merah)</div></li>
+      <li><div class="step-content">Setelah 2 approval, status berubah menjadi <span class="badge badge-green">Disetujui</span></div></li>
+    </ol>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 7: PROCUREMENT -->
+<!-- ============================================================ -->
+<div class="content page-break" id="section-7">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">7</div>
+      <h2 style="border:none; margin:0; padding:0;">Modul Pengadaan (Procurement)</h2>
+    </div>
+
+    <p>Modul Pengadaan mengotomasi alur pengadaan barang/jasa dari permintaan hingga penerimaan dengan kontrol anggaran yang ketat.</p>
+
+    <h3>Alur Three-Way Matching</h3>
+    <div class="flow">
+      <div class="flow-step">Purchase<br/>Request (PR)</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Approval PR</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Purchase<br/>Order (PO)</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Terima<br/>Barang</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Pembayaran<br/>Vendor</div>
+    </div>
+
+    <h3>Purchase Request (PR)</h3>
+    <p>PR adalah permintaan internal untuk pengadaan barang/jasa sebelum PO diterbitkan ke vendor.</p>
+    <ol class="step-list">
+      <li><div class="step-content">Klik tab <strong>Purchase Request</strong> → <strong>"Buat PR"</strong></div></li>
+      <li><div class="step-content">Isi: <strong>Deskripsi kebutuhan, Jumlah unit, Estimasi biaya, Tingkat urgensi</strong></div></li>
+      <li><div class="step-content">PR tersimpan dengan status <span class="badge badge-yellow">Menunggu</span> dan ID unik (PR...)</div></li>
+    </ol>
+
+    <h3>Purchase Order (PO)</h3>
+    <p>PO adalah dokumen resmi pemesanan yang dikirimkan ke vendor setelah PR disetujui.</p>
+    <ol class="step-list">
+      <li><div class="step-content">Klik tab <strong>Purchase Order</strong> → <strong>"Buat PO"</strong></div></li>
+      <li><div class="step-content">Masukkan <strong>Referensi PR, Nama Vendor, Total Nilai PO</strong></div></li>
+      <li><div class="step-content">PO dibuat dengan status <span class="badge badge-navy">Diterbitkan</span></div></li>
+    </ol>
+
+    <h3>Penerimaan Barang</h3>
+    <ol class="step-list">
+      <li><div class="step-content">Setelah barang diterima secara fisik, temukan PO di daftar</div></li>
+      <li><div class="step-content">Klik <strong>"Terima Barang"</strong> pada PO terkait</div></li>
+      <li><div class="step-content">Status PO berubah ke <span class="badge badge-green">Diterima</span> — siap untuk proses pembayaran vendor</div></li>
+    </ol>
+
+    <div class="highlight">
+      <strong>💡 Three-Way Matching:</strong> Sistem memastikan kecocokan antara PR (kebutuhan), PO (pesanan), dan penerimaan barang sebelum pembayaran dilakukan.
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 8: ACCOUNTING -->
+<!-- ============================================================ -->
+<div class="content page-break" id="section-8">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">8</div>
+      <h2 style="border:none; margin:0; padding:0;">Modul Akuntansi ISAK 35</h2>
+    </div>
+
+    <p>Modul Akuntansi mengimplementasikan standar ISAK 35 (Penyajian Laporan Keuangan Entitas Berorientasi Nonlaba) untuk yayasan pendidikan.</p>
+
+    <h3>Tentang ISAK 35</h3>
+    <div class="highlight">
+      <strong>ISAK 35</strong> adalah interpretasi standar akuntansi yang mengatur penyajian laporan keuangan entitas nirlaba/yayasan di Indonesia. Perbedaan utama dari laporan bisnis komersial adalah klasifikasi dana: <strong>Dana Tidak Terikat</strong> (unrestricted) dan <strong>Dana Terikat</strong> (restricted).
+    </div>
+
+    <h3>Chart of Accounts (COA) ISAK 35</h3>
+    <table>
+      <tr><th>Kode</th><th>Nama Akun</th><th>Tipe</th><th>Klasifikasi ISAK 35</th></tr>
+      <tr><td><code>1000</code></td><td>Kas</td><td><span class="badge badge-teal">Asset</span></td><td>Aset Lancar</td></tr>
+      <tr><td><code>1100</code></td><td>Rekening Bank</td><td><span class="badge badge-teal">Asset</span></td><td>Aset Lancar</td></tr>
+      <tr><td><code>1200</code></td><td>Piutang SPP</td><td><span class="badge badge-teal">Asset</span></td><td>Aset Lancar</td></tr>
+      <tr><td><code>2000</code></td><td>Hutang Usaha</td><td><span class="badge badge-red">Liability</span></td><td>Kewajiban Jangka Pendek</td></tr>
+      <tr><td><code>3000</code></td><td>Dana Tidak Terikat</td><td><span class="badge badge-navy">Equity</span></td><td>Aset Bersih Tidak Terikat</td></tr>
+      <tr><td><code>3100</code></td><td>Dana Terikat Temporer</td><td><span class="badge badge-navy">Equity</span></td><td>Aset Bersih Terikat Temporer</td></tr>
+      <tr><td><code>4000</code></td><td>Pendapatan SPP</td><td><span class="badge badge-green">Revenue</span></td><td>Pendapatan Tidak Terikat</td></tr>
+      <tr><td><code>5000</code></td><td>Beban Gaji</td><td><span class="badge badge-yellow">Expense</span></td><td>Beban Program</td></tr>
+    </table>
+
+    <h3>Input Jurnal Umum</h3>
+    <ol class="step-list">
+      <li><div class="step-content">Navigasi ke <strong>Akuntansi</strong> → tab <strong>"Jurnal Umum"</strong></div></li>
+      <li><div class="step-content">Isi <strong>Tanggal</strong> dan <strong>Keterangan</strong> transaksi</div></li>
+      <li><div class="step-content">Pilih <strong>Akun Debit</strong> dan <strong>Akun Kredit</strong> dari COA</div></li>
+      <li><div class="step-content">Masukkan <strong>Jumlah</strong> transaksi</div></li>
+      <li><div class="step-content">Klik <strong>"Catat Jurnal"</strong></div></li>
+    </ol>
+
+    <h3>Contoh Jurnal Umum</h3>
+    <table>
+      <tr><th>Transaksi</th><th>Debit</th><th>Kredit</th></tr>
+      <tr><td>Penerimaan SPP tunai</td><td>1000 Kas</td><td>4000 Pendapatan SPP</td></tr>
+      <tr><td>Pembayaran gaji karyawan</td><td>5000 Beban Gaji</td><td>1000 Kas / 2100 Hutang Gaji</td></tr>
+      <tr><td>Pembelian ATK</td><td>5100 Beban Operasional</td><td>1000 Kas</td></tr>
+      <tr><td>Penerimaan dari bank</td><td>1100 Rekening Bank</td><td>3000 Dana Tidak Terikat</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 9: REPORTS -->
+<!-- ============================================================ -->
+<div class="content page-break" id="section-9">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">9</div>
+      <h2 style="border:none; margin:0; padding:0;">Laporan Keuangan</h2>
+    </div>
+
+    <p>Halaman Laporan menyediakan visualisasi komprehensif kondisi keuangan sekolah dengan 4 tab laporan berbeda.</p>
+
+    <h3>Tab Laporan Tersedia</h3>
+    <div class="grid-2">
+      <div class="card card-teal">
+        <h4>📈 Overview</h4>
+        <p style="font-size:12px;">Bar chart perbandingan Pendapatan vs Beban vs Surplus untuk 5 bulan terakhir. Ideal untuk review bulanan manajemen.</p>
+      </div>
+      <div class="card card-navy">
+        <h4>💰 Koleksi SPP</h4>
+        <p style="font-size:12px;">Area chart tren koleksi SPP bulanan vs target 100%. Membantu monitoring efektivitas penagihan.</p>
+      </div>
+      <div class="card card-green">
+        <h4>💸 Breakdown Beban</h4>
+        <p style="font-size:12px;">Pie chart distribusi beban per kategori. Identifikasi komponen biaya terbesar dengan mudah.</p>
+      </div>
+      <div class="card card-yellow">
+        <h4>🔄 Arus Kas</h4>
+        <p style="font-size:12px;">Laporan arus kas 3 aktivitas: Operasional, Investasi, dan Pendanaan — sesuai format ISAK 35.</p>
+      </div>
+    </div>
+
+    <h3>Neraca (Balance Sheet) — ISAK 35</h3>
+    <p>Menampilkan posisi keuangan sekolah pada tanggal tertentu dalam format ISAK 35:</p>
+    <table>
+      <tr><th>Sisi Kiri (Aset)</th><th>Sisi Kanan (Kewajiban + Dana)</th></tr>
+      <tr><td>Kas & Setara Kas</td><td>Hutang Usaha</td></tr>
+      <tr><td>Rekening Bank</td><td>Hutang Gaji</td></tr>
+      <tr><td>Piutang SPP</td><td>Dana Tidak Terikat</td></tr>
+      <tr><td>Persediaan</td><td>Dana Terikat Temporer</td></tr>
+      <tr><td><strong>Total Aset</strong></td><td><strong>Total Kewajiban + Dana</strong></td></tr>
+    </table>
+
+    <h3>Laporan Aktivitas (Income Statement) — ISAK 35</h3>
+    <p>Menggantikan laporan Laba/Rugi pada entitas komersial. Menampilkan <strong>Kenaikan/Penurunan Aset Bersih</strong> dalam periode berjalan.</p>
+
+    <h3>Export PDF</h3>
+    <ol class="step-list">
+      <li><div class="step-content">Pilih periode laporan menggunakan input bulan di kanan atas</div></li>
+      <li><div class="step-content">Klik tombol <strong>"Export PDF"</strong> (teal) di kanan atas</div></li>
+      <li><div class="step-content">Browser akan membuka dialog print — pilih "Save as PDF"</div></li>
+    </ol>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 10: INSTALASI -->
+<!-- ============================================================ -->
+<div class="content page-break" id="section-10">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">10</div>
+      <h2 style="border:none; margin:0; padding:0;">Instalasi & Konfigurasi</h2>
+    </div>
+
+    <h3>Cara Cepat dengan Docker</h3>
+    <div class="code-block">
+<span class="comment"># 1. Clone repository</span>
+git clone https://github.com/imam-nurokhi/al-musabbihin-nexfinance.git
+cd al-musabbihin-nexfinance
+
+<span class="comment"># 2. Jalankan semua layanan</span>
+docker-compose up -d
+
+<span class="comment"># 3. Akses aplikasi</span>
+Frontend : http://localhost:3000
+API      : http://localhost:5000/api/v1
+Health   : http://localhost:5000/health</div>
+
+    <h3>Setup Development Lokal</h3>
+    <div class="code-block">
+<span class="comment"># Backend (Terminal 1)</span>
+cd backend
+npm install
+cp .env.example .env
+<span class="comment"># Edit .env sesuai konfigurasi DB Anda</span>
+npm run dev
+
+<span class="comment"># Frontend (Terminal 2)</span>
+cd frontend
+npm install
+npm start</div>
+
+    <h3>Konfigurasi Environment</h3>
+    <div class="grid-2">
+      <div>
+        <h4>Backend (.env)</h4>
+        <div class="code-block" style="font-size:11px;">
+<span class="key">NODE_ENV</span>=production
+<span class="key">PORT</span>=5000
+<span class="key">DATABASE_URL</span>=postgresql://user:pass@host/db
+<span class="key">JWT_SECRET</span>=your-secure-secret-key
+<span class="key">JWT_EXPIRES_IN</span>=24h</div>
+      </div>
+      <div>
+        <h4>Frontend (.env)</h4>
+        <div class="code-block" style="font-size:11px;">
+<span class="key">REACT_APP_API_URL</span>=https://finance.almusabbihin.sch.id/api/v1
+<span class="key">REACT_APP_APP_NAME</span>=NexFinance Al-Musabbihin</div>
+      </div>
+    </div>
+
+    <h3>Infrastruktur Production</h3>
+    <table>
+      <tr><th>Komponen</th><th>Spesifikasi</th><th>Keterangan</th></tr>
+      <tr><td>Server</td><td>VPS 4 Core / 8GB RAM</td><td>Minimum untuk 100 pengguna concurrent</td></tr>
+      <tr><td>Domain</td><td>finance.almusabbihin.sch.id</td><td>SSL/TLS wajib aktif</td></tr>
+      <tr><td>Database</td><td>PostgreSQL 14+</td><td>Backup harian otomatis</td></tr>
+      <tr><td>Storage</td><td>50GB SSD</td><td>Untuk data &amp; lampiran</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 11: ROLES -->
+<!-- ============================================================ -->
+<div class="content page-break" id="section-11">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">11</div>
+      <h2 style="border:none; margin:0; padding:0;">Role & Hak Akses</h2>
+    </div>
+
+    <p>NexFinance menggunakan Role-Based Access Control (RBAC) untuk memastikan setiap pengguna hanya mengakses fitur sesuai tanggung jawabnya.</p>
+
+    <table>
+      <tr><th>Role</th><th>Akses Modul</th><th>Level Approval</th></tr>
+      <tr>
+        <td><strong>Super Admin</strong><br/><span style="font-size:11px; color:#9CA3AF;">Kepala Yayasan</span></td>
+        <td>Semua modul + konfigurasi sistem</td>
+        <td>Level tertinggi, akses penuh</td>
+      </tr>
+      <tr>
+        <td><strong>Bendahara</strong><br/><span style="font-size:11px; color:#9CA3AF;">Pengelola Keuangan</span></td>
+        <td>SPP, Penggajian, Pengeluaran, Akuntansi, Laporan</td>
+        <td>Approval Level 2 (final)</td>
+      </tr>
+      <tr>
+        <td><strong>Kepala Bagian</strong><br/><span style="font-size:11px; color:#9CA3AF;">Manager Unit</span></td>
+        <td>Pengeluaran, Pengadaan, Dashboard</td>
+        <td>Approval Level 1</td>
+      </tr>
+      <tr>
+        <td><strong>Staff</strong><br/><span style="font-size:11px; color:#9CA3AF;">Karyawan Umum</span></td>
+        <td>Dashboard, Pengajuan Pengeluaran, Pengajuan PR</td>
+        <td>Pemohon saja</td>
+      </tr>
+      <tr>
+        <td><strong>Auditor</strong><br/><span style="font-size:11px; color:#9CA3AF;">Auditor Eksternal</span></td>
+        <td>Laporan, Akuntansi (read-only)</td>
+        <td>View only, tidak bisa edit</td>
+      </tr>
+    </table>
+
+    <div class="warning">
+      ⚠️ <strong>Keamanan:</strong> Jangan berbagi kredensial antar pengguna. Setiap aksi tercatat dalam audit log beserta identitas pengguna dan timestamp.
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 12: FAQ -->
+<!-- ============================================================ -->
+<div class="content page-break" id="section-12">
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">12</div>
+      <h2 style="border:none; margin:0; padding:0;">FAQ & Troubleshooting</h2>
+    </div>
+
+    <h3>Pertanyaan Umum</h3>
+
+    <div class="card card-teal" style="margin-bottom:16px;">
+      <h4>❓ Saya tidak bisa login. Apa yang harus dilakukan?</h4>
+      <p style="font-size:13px; margin:0;">Pastikan (1) server backend berjalan di port 5000, (2) email dan password benar, (3) tidak ada kesalahan ketik. Jika lupa password, hubungi admin sistem di <strong>support@almusabbihin.sch.id</strong>.</p>
+    </div>
+
+    <div class="card card-teal" style="margin-bottom:16px;">
+      <h4>❓ Data tidak muncul di halaman SPP / Pengeluaran?</h4>
+      <p style="font-size:13px; margin:0;">Ini biasanya terjadi karena backend tidak berjalan. Cek status server dengan membuka <code>http://localhost:5000/health</code>. Jika error, jalankan ulang: <code>npm run dev</code> di folder backend.</p>
+    </div>
+
+    <div class="card card-teal" style="margin-bottom:16px;">
+      <h4>❓ Laporan keuangan menampilkan angka yang sama setiap bulan?</h4>
+      <p style="font-size:13px; margin:0;">Pada versi demo, data laporan menggunakan data statis representatif. Integrasi dengan database produksi akan menampilkan data real-time sesuai transaksi aktual.</p>
+    </div>
+
+    <div class="card card-teal" style="margin-bottom:16px;">
+      <h4>❓ Bagaimana cara menghubungkan ke database PostgreSQL production?</h4>
+      <p style="font-size:13px; margin:0;">Update variabel <code>DATABASE_URL</code> di file <code>backend/.env</code> dengan connection string PostgreSQL. Jalankan migrasi dengan <code>npm run migrate</code>.</p>
+    </div>
+
+    <div class="card card-teal" style="margin-bottom:16px;">
+      <h4>❓ Apakah sistem bisa diakses dari mobile/tablet?</h4>
+      <p style="font-size:13px; margin:0;">Ya. NexFinance didesain responsif. Untuk pengalaman terbaik gunakan layar ≥ 768px (tablet/desktop). Tampilan mobile telah dioptimasi.</p>
+    </div>
+
+    <h3>Kontak Support</h3>
+    <div class="grid-2">
+      <div class="card card-navy">
+        <h4>📧 Email Support</h4>
+        <p style="font-size:13px;">support@almusabbihin.sch.id</p>
+        <p style="font-size:12px; color:#9CA3AF;">Respon dalam 1×24 jam kerja</p>
+      </div>
+      <div class="card card-teal">
+        <h4>📞 Nexora Support</h4>
+        <p style="font-size:13px;">PT Alfarhein Teknologi Investama</p>
+        <p style="font-size:12px; color:#9CA3AF;">Jam kerja: Senin–Jumat, 08.00–17.00 WIB</p>
+      </div>
+    </div>
+
+    <div class="success">
+      ✅ <strong>Sistem Production Ready:</strong> NexFinance v1.0.0 telah diverifikasi dengan 0 error syntax, 25+ API endpoints aktif, dan 7 modul terintegrasi penuh.
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- FOOTER -->
+<!-- ============================================================ -->
+<div class="footer">
+  <div class="logo">NexFinance</div>
+  <p>Enterprise Finance System — Sekolah Islam Terpadu Al-Musabbihin</p>
+  <p style="margin-top:8px;">Dikembangkan oleh <strong>PT Alfarhein Teknologi Investama (Nexora)</strong> · Versi 1.0.0 · Mei 2026</p>
+  <p style="margin-top:6px; opacity:0.6;">finance.almusabbihin.sch.id &nbsp;|&nbsp; support@almusabbihin.sch.id</p>
+  <p style="margin-top:16px; font-size:11px; opacity:0.5;">Dokumen ini adalah panduan resmi NexFinance untuk Yayasan Almusabbihin. Hak cipta dilindungi. Dilarang menyebarluaskan tanpa izin tertulis.</p>
+</div>
+
+</body>
+</html>

@@ -54,7 +54,17 @@ export const procurementService = {
   createPR: (data) => api.post('/procurement/pr', data),
   createPO: (data) => api.post('/procurement/po', data),
   receivePO: (id) => api.post(`/procurement/po/${id}/receive`, {}),
+  getPRs: () => api.get('/procurement/pr'),
+  getPOs: () => api.get('/procurement/po'),
   getReports: () => api.get('/procurement/reports')
+};
+
+export const accountingService = {
+  getChartOfAccounts: () => api.get('/accounting/chart-of-accounts'),
+  createJournal: (data) => api.post('/accounting/journals', data),
+  getJournals: () => api.get('/accounting/journals'),
+  getBalanceSheet: () => api.get('/accounting/reports/balance-sheet'),
+  getIncomeStatement: () => api.get('/accounting/reports/income-statement')
 };
 
 export default api;
