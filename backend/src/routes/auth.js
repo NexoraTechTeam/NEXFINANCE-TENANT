@@ -7,7 +7,7 @@ const router = express.Router();
 const users = {
   'admin@nexfinance.com': {
     id: '1',
-    password: '$2a$10$eDRj1LCwQpCXqk8F1VtNe.VfFvN5vGFVx0p2e9Q9KzN2GxKX3qkQi', // hashed: admin123
+    password: 'admin123', // Plain text for demo (use hashed in production)
     role: 'admin'
   }
 };
@@ -16,7 +16,8 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   const user = users[email];
   
-  if (!user || !await bcryptjs.compare(password, user.password)) {
+  // Simple password check for demo
+  if (!user || user.password !== password) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
