@@ -1,209 +1,341 @@
-import React, { useState } from 'react';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
-import { TrendingUp, FileText, Download, BarChart2, DollarSign, CheckCircle } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import {
+  BarChart, Bar, AreaChart, Area, LineChart, Line,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer, PieChart, Pie, Cell,
+  ReferenceLine,
+} from 'recharts';
+import { TrendingUp, FileText, Download, BarChart2, DollarSign, RefreshCw, ArrowUpRight } from 'lucide-react';
+import { exportFinancialReport } from '../utils/exportPDF';
+import { sppService, expenseService, payrollService } from '../services/api';
 
-const fmt = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
-const COLORS = ['#41A9A9', '#2C3E50', '#1ABC9C', '#66C2C2', '#3B82F6', '#8B5CF6'];
+const IDR = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n || 0);
+const short = (n) => n >= 1e6 ? `Rp ${(n / 1e6).toFixed(1)}Jt` : `Rp ${(n / 1e3).toFixed(0)}K`;
+const pct = (a, b) => b ? ((a / b) * 100).toFixed(1) + '%' : '0%';
 
-const monthlyData = [
-  { bulan: 'Jan', pendapatan: 65000000, beban: 42000000, laba: 23000000 },
-  { bulan: 'Feb', pendapatan: 68000000, beban: 44000000, laba: 24000000 },
-  { bulan: 'Mar', pendapatan: 70000000, beban: 43000000, laba: 27000000 },
-  { bulan: 'Apr', pendapatan: 72000000, beban: 45000000, laba: 27000000 },
-  { bulan: 'Mei', pendapatan: 75000000, beban: 48000000, laba: 27000000 },
+const COLORS = ['#41A9A9', '#2C3E50', '#10B981', '#3B82F6', '#8B5CF6', '#F59E0B'];
+const TABS = [
+  { key: 'overview',  icon: TrendingUp, label: 'Overview' },
+  { key: 'spp',       icon: DollarSign, label: 'Koleksi SPP' },
+  { key: 'expense',   icon: BarChart2,  label: 'Distribusi Beban' },
+  { key: 'cashflow',  icon: FileText,   label: 'Arus Kas' },
 ];
 
-const sppCollectionData = [
+const monthly = [
+  { bulan: 'Jan', pendapatan: 65_000_000, beban: 42_000_000, laba: 23_000_000 },
+  { bulan: 'Feb', pendapatan: 68_000_000, beban: 44_000_000, laba: 24_000_000 },
+  { bulan: 'Mar', pendapatan: 72_000_000, beban: 43_000_000, laba: 29_000_000 },
+  { bulan: 'Apr', pendapatan: 75_000_000, beban: 45_500_000, laba: 29_500_000 },
+  { bulan: 'Mei', pendapatan: 78_000_000, beban: 46_000_000, laba: 32_000_000 },
+];
+const sppData = [
   { bulan: 'Jan', terkumpul: 87, target: 100 },
   { bulan: 'Feb', terkumpul: 91, target: 100 },
   { bulan: 'Mar', terkumpul: 89, target: 100 },
   { bulan: 'Apr', terkumpul: 94, target: 100 },
   { bulan: 'Mei', terkumpul: 88, target: 100 },
 ];
-
-const expenseBreakdown = [
-  { name: 'Gaji & Honor', value: 45000000 },
-  { name: 'Operasional', value: 12000000 },
-  { name: 'Pemeliharaan', value: 6000000 },
-  { name: 'ATK & Supplies', value: 3000000 },
-  { name: 'Utilitas', value: 2000000 },
+const expenseData = [
+  { name: 'Gaji & Honor', value: 185_000_000 },
+  { name: 'Operasional',  value: 57_000_000 },
+  { name: 'Pemeliharaan', value: 28_500_000 },
+  { name: 'ATK & Supplies', value: 9_250_000 },
+  { name: 'Utilitas',     value: 14_250_000 },
+];
+const cashflow = [
+  { bulan: 'Jan', operasional: 18_000_000, investasi: -5_000_000, pendanaan: 3_000_000 },
+  { bulan: 'Feb', operasional: 21_000_000, investasi: 0,           pendanaan: 2_000_000 },
+  { bulan: 'Mar', operasional: 25_000_000, investasi: -8_000_000, pendanaan: 4_000_000 },
+  { bulan: 'Apr', operasional: 26_500_000, investasi: -2_000_000, pendanaan: 2_000_000 },
+  { bulan: 'Mei', operasional: 28_000_000, investasi: 0,           pendanaan: 3_000_000 },
 ];
 
-const styles = {
-  container: { minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFC 0%, #EFF6F6 100%)', padding: '32px 20px' },
-  wrapper: { maxWidth: '1400px', margin: '0 auto' },
-  title: { fontSize: '32px', fontWeight: '800', background: 'linear-gradient(135deg, #41A9A9 0%, #2C3E50 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', marginBottom: '8px' },
-  subtitle: { fontSize: '14px', color: '#9CA3AF', marginBottom: '32px' },
-  card: { background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', border: '1px solid #E5E7EB', marginBottom: '24px' },
-  cardTitle: { fontSize: '18px', fontWeight: '700', color: '#2C3E50', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' },
-  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' },
-  chartsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(480px, 1fr))', gap: '24px', marginBottom: '24px' },
-  tabs: { display: 'flex', gap: '4px', marginBottom: '24px', borderBottom: '2px solid #E5E7EB', overflowX: 'auto' },
-  tab: (active) => ({ padding: '10px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '600', color: active ? '#41A9A9' : '#9CA3AF', borderBottom: active ? '3px solid #41A9A9' : '3px solid transparent', marginBottom: '-2px', whiteSpace: 'nowrap' }),
-  btn: (bg) => ({ background: bg, color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }),
-  summaryRow: { display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #F3F4F6', fontSize: '14px' },
-  badge: (color) => ({ background: color + '20', color, padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '600' }),
-};
-
-const FinancialReports = () => {
-  const [period, setPeriod] = useState('2026-05');
-  const [tab, setTab] = useState('overview');
-
-  const ttlPendapatan = monthlyData.reduce((s, m) => s + m.pendapatan, 0);
-  const ttlBeban = monthlyData.reduce((s, m) => s + m.beban, 0);
-  const ttlLaba = ttlPendapatan - ttlBeban;
-  const avgCollection = Math.round(sppCollectionData.reduce((s, m) => s + m.terkumpul, 0) / sppCollectionData.length);
-
-  const tooltipStyle = { background: 'white', border: '2px solid #41A9A9', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' };
-
+const Tooltip_ = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
   return (
-    <div style={styles.container}>
-      <div style={styles.wrapper}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={styles.title}>📊 Laporan Keuangan</div>
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <input type="month" value={period} onChange={e => setPeriod(e.target.value)} style={{ padding: '8px 14px', borderRadius: '8px', border: '1.5px solid #E5E7EB', fontSize: '14px', outline: 'none' }} />
-            <button style={styles.btn('linear-gradient(135deg, #41A9A9 0%, #2C3E50 100%)')} onClick={() => window.print()}>
-              <Download size={16} /> Export PDF
-            </button>
-          </div>
+    <div className="chart-tooltip">
+      <div className="chart-tooltip-title">{label}</div>
+      {payload.map((p, i) => (
+        <div key={i} className="chart-tooltip-row">
+          <span className="chart-tooltip-label" style={{ color: p.color }}>{p.name}</span>
+          <span className="chart-tooltip-value">{typeof p.value === 'number' && Math.abs(p.value) > 999 ? short(p.value) : p.value + (p.name === 'Terkumpul' || p.name === 'Target' ? '%' : '')}</span>
         </div>
-        <div style={styles.subtitle}>Dashboard laporan keuangan ISAK 35 — Sekolah Islam Terpadu Al-Musabbihin</div>
-
-        <div style={styles.statsGrid}>
-          {[
-            { label: 'Total Pendapatan YTD', value: fmt(ttlPendapatan), color: '#10B981', icon: TrendingUp, trend: '+12% vs tahun lalu' },
-            { label: 'Total Beban YTD', value: fmt(ttlBeban), color: '#EF4444', icon: DollarSign, trend: '+8% vs tahun lalu' },
-            { label: 'Surplus Dana', value: fmt(ttlLaba), color: '#41A9A9', icon: CheckCircle, trend: '+18% vs tahun lalu' },
-            { label: 'Rata-rata SPP', value: `${avgCollection}%`, color: '#F59E0B', icon: BarChart2, trend: 'Tingkat koleksi' },
-          ].map((s, i) => {
-            const Icon = s.icon;
-            return (
-              <div key={i} style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', border: '1px solid #E5E7EB', borderLeft: `4px solid ${s.color}` }}>
-                <div style={{ fontSize: '12px', fontWeight: '600', color: '#9CA3AF', textTransform: 'uppercase', marginBottom: '6px' }}>{s.label}</div>
-                <div style={{ fontSize: '22px', fontWeight: '800', color: '#2C3E50', marginBottom: '4px' }}>{s.value}</div>
-                <div style={{ fontSize: '12px', color: s.color, fontWeight: '600' }}>{s.trend}</div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div style={styles.card}>
-          <div style={styles.tabs}>
-            {[
-              { key: 'overview', label: '📈 Overview' },
-              { key: 'spp', label: '💰 Koleksi SPP' },
-              { key: 'expense', label: '💸 Breakdown Beban' },
-              { key: 'cashflow', label: '🔄 Arus Kas' },
-            ].map(t => <button key={t.key} style={styles.tab(tab === t.key)} onClick={() => setTab(t.key)}>{t.label}</button>)}
-          </div>
-
-          {tab === 'overview' && (
-            <>
-              <div style={styles.cardTitle}><TrendingUp size={20} color="#41A9A9" /> Pendapatan vs Beban (5 Bulan Terakhir)</div>
-              <ResponsiveContainer width="100%" height={340}>
-                <BarChart data={monthlyData} barGap={4}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-                  <XAxis dataKey="bulan" stroke="#9CA3AF" fontSize={13} />
-                  <YAxis stroke="#9CA3AF" fontSize={11} tickFormatter={v => `${(v/1000000).toFixed(0)}M`} />
-                  <Tooltip contentStyle={tooltipStyle} formatter={v => fmt(v)} />
-                  <Legend />
-                  <Bar dataKey="pendapatan" name="Pendapatan" fill="#41A9A9" radius={[6, 6, 0, 0]} />
-                  <Bar dataKey="beban" name="Beban" fill="#2C3E50" radius={[6, 6, 0, 0]} />
-                  <Bar dataKey="laba" name="Surplus" fill="#10B981" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </>
-          )}
-
-          {tab === 'spp' && (
-            <>
-              <div style={styles.cardTitle}><DollarSign size={20} color="#41A9A9" /> Tingkat Koleksi SPP (%)</div>
-              <ResponsiveContainer width="100%" height={340}>
-                <AreaChart data={sppCollectionData}>
-                  <defs>
-                    <linearGradient id="colorSPP" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#41A9A9" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#41A9A9" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-                  <XAxis dataKey="bulan" stroke="#9CA3AF" />
-                  <YAxis stroke="#9CA3AF" domain={[80, 100]} tickFormatter={v => `${v}%`} />
-                  <Tooltip contentStyle={tooltipStyle} formatter={v => `${v}%`} />
-                  <Legend />
-                  <Area type="monotone" dataKey="terkumpul" name="Terkumpul" stroke="#41A9A9" strokeWidth={3} fill="url(#colorSPP)" dot={{ fill: '#41A9A9', r: 5 }} />
-                  <Line type="monotone" dataKey="target" name="Target" stroke="#E5E7EB" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </>
-          )}
-
-          {tab === 'expense' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', alignItems: 'center' }}>
-              <div>
-                <div style={styles.cardTitle}><BarChart2 size={20} color="#41A9A9" /> Distribusi Beban</div>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie data={expenseBreakdown} cx="50%" cy="50%" outerRadius={100} dataKey="value" label={({ name }) => name}>
-                      {expenseBreakdown.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                    </Pie>
-                    <Tooltip formatter={v => fmt(v)} contentStyle={tooltipStyle} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div>
-                <div style={{ fontWeight: '700', color: '#2C3E50', marginBottom: '16px' }}>Rincian Beban</div>
-                {expenseBreakdown.map((item, i) => (
-                  <div key={item.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #F3F4F6' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: COLORS[i % COLORS.length] }} />
-                      <span style={{ fontSize: '14px', color: '#6B7280' }}>{item.name}</span>
-                    </div>
-                    <div>
-                      <span style={{ fontWeight: '700', fontSize: '14px', color: '#2C3E50' }}>{fmt(item.value)}</span>
-                      <span style={{ fontSize: '11px', color: '#9CA3AF', marginLeft: '8px' }}>({((item.value / ttlBeban) * 100).toFixed(1)}%)</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {tab === 'cashflow' && (
-            <>
-              <div style={styles.cardTitle}><FileText size={20} color="#41A9A9" /> Laporan Arus Kas</div>
-              <div style={{ maxWidth: '700px' }}>
-                {[
-                  { section: 'AKTIVITAS OPERASIONAL', color: '#41A9A9', items: [['Penerimaan SPP', 65000000], ['Penerimaan Lain-lain', 8000000], ['Pembayaran Gaji', -45000000], ['Pembayaran Beban Operasional', -14000000]], subtotal: 14000000 },
-                  { section: 'AKTIVITAS INVESTASI', color: '#3B82F6', items: [['Pembelian Peralatan', -5000000], ['Pembelian Kendaraan', 0]], subtotal: -5000000 },
-                  { section: 'AKTIVITAS PENDANAAN', color: '#8B5CF6', items: [['Penerimaan Infaq/Sedekah', 3000000], ['Penerimaan Wakaf', 2000000]], subtotal: 5000000 },
-                ].map(({ section, color, items, subtotal }) => (
-                  <div key={section} style={{ marginBottom: '20px' }}>
-                    <div style={{ fontWeight: '800', color, marginBottom: '10px', fontSize: '14px', letterSpacing: '0.3px' }}>{section}</div>
-                    {items.map(([name, val]) => (
-                      <div key={name} style={styles.summaryRow}>
-                        <span style={{ color: '#6B7280', paddingLeft: '16px' }}>{name}</span>
-                        <span style={{ fontWeight: '600', color: val >= 0 ? '#2C3E50' : '#EF4444' }}>{fmt(val)}</span>
-                      </div>
-                    ))}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', fontWeight: '800', fontSize: '14px', borderTop: `2px solid ${color}20` }}>
-                      <span style={{ color }}>Subtotal {section.split(' ').slice(0, 2).join(' ')}</span>
-                      <span style={{ color: subtotal >= 0 ? '#10B981' : '#EF4444' }}>{fmt(subtotal)}</span>
-                    </div>
-                  </div>
-                ))}
-                <div style={{ background: '#EFF6F6', borderRadius: '10px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: '800', fontSize: '16px', color: '#2C3E50' }}>Kenaikan Bersih Kas</span>
-                  <span style={{ fontWeight: '800', fontSize: '20px', color: '#41A9A9' }}>{fmt(14000000)}</span>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+      ))}
     </div>
   );
 };
 
-export default FinancialReports;
+export default function FinancialReports() {
+  const [tab, setTab] = useState('overview');
+  const [period, setPeriod] = useState('2026-05');
+  const [activeBar, setActiveBar] = useState(null);
+  const [activePie, setActivePie] = useState(null);
+  const [exporting, setExporting] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (msg, ok = true) => { setToast({ msg, ok }); setTimeout(() => setToast(null), 3500); };
+
+  const handleExport = useCallback(async () => {
+    setExporting(true);
+    try {
+      exportFinancialReport({ monthly, sppData, expenseData, kpi: {} });
+      showToast('Laporan keuangan berhasil diekspor!');
+    } catch (e) {
+      showToast('Gagal mengekspor laporan.', false);
+    } finally {
+      setTimeout(() => setExporting(false), 800);
+    }
+  }, []);
+
+  const totalPend = monthly.reduce((s, m) => s + m.pendapatan, 0);
+  const totalBeban = monthly.reduce((s, m) => s + m.beban, 0);
+  const totalLaba = totalPend - totalBeban;
+  const avgSPP = (sppData.reduce((s, m) => s + m.terkumpul, 0) / sppData.length).toFixed(1);
+  const totalExp = expenseData.reduce((s, e) => s + e.value, 0);
+
+  const summaryKPIs = [
+    { label: 'Total Pendapatan YTD', value: short(totalPend), color: '#10B981', bg: '#D1FAE5', trend: '+12%' },
+    { label: 'Total Beban YTD',      value: short(totalBeban), color: '#EF4444', bg: '#FEE2E2', trend: '+8%' },
+    { label: 'Surplus Dana',          value: short(totalLaba),  color: '#41A9A9', bg: '#EFF6F6', trend: '+18%' },
+    { label: 'Avg SPP Collection',    value: avgSPP + '%',      color: '#3B82F6', bg: '#DBEAFE', trend: 'Target 100%' },
+  ];
+
+  return (
+    <div className="page" style={{ minHeight: '100vh', background: 'var(--bg)', padding: '28px 20px' }}>
+      {toast && <div className={`toast ${toast.ok ? 'toast-ok' : 'toast-err'}`}>{toast.ok ? '✅' : '❌'} {toast.msg}</div>}
+
+      <div style={{ maxWidth: 1400, margin: '0 auto' }}>
+
+        {/* ── Header ───────────────────────────────── */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+          <div>
+            <h1 className="grad-text" style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>Laporan Keuangan</h1>
+            <p style={{ color: 'var(--text-2)', fontSize: 13 }}>Dashboard laporan interaktif — Standar ISAK 35 · Klik chart untuk drill-down</p>
+          </div>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <input type="month" value={period} onChange={e => setPeriod(e.target.value)} className="input" style={{ width: 160, fontSize: 13, padding: '8px 12px' }} />
+            <button className="btn btn-primary" onClick={handleExport} disabled={exporting}>
+              {exporting ? <RefreshCw size={14} className="anim-spin" /> : <Download size={14} />}
+              {exporting ? 'Mengekspor...' : 'Export PDF'}
+            </button>
+          </div>
+        </div>
+
+        {/* ── KPI Strip ────────────────────────────── */}
+        <div className="stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12, marginBottom: 20 }}>
+          {summaryKPIs.map((k, i) => (
+            <div key={i} className="card anim-fadeup" style={{ padding: '16px 18px', borderTop: `3px solid ${k.color}` }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 6 }}>{k.label}</div>
+              <div style={{ fontSize: 21, fontWeight: 800, color: k.color }}>{k.value}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <ArrowUpRight size={11} color={k.color} /> {k.trend}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Tabs ─────────────────────────────────── */}
+        <div className="card" style={{ overflow: 'hidden' }}>
+          <div style={{ display: 'flex', borderBottom: '1.5px solid var(--border)', overflowX: 'auto' }}>
+            {TABS.map(t => {
+              const Icon = t.icon;
+              const active = tab === t.key;
+              return (
+                <button key={t.key} onClick={() => setTab(t.key)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '14px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: active ? 700 : 500, color: active ? 'var(--teal)' : 'var(--text-2)', borderBottom: `2.5px solid ${active ? 'var(--teal)' : 'transparent'}`, marginBottom: -1.5, whiteSpace: 'nowrap', transition: 'all .15s' }}>
+                  <Icon size={15} /> {t.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div style={{ padding: 24 }}>
+
+            {/* TAB: Overview */}
+            {tab === 'overview' && (
+              <div className="anim-fadein">
+                <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>Pendapatan vs Beban vs Surplus</div>
+                  <span style={{ fontSize: 11, color: 'var(--text-3)' }}>Klik bar untuk melihat detail bulan</span>
+                </div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={monthly} onClick={d => d?.activePayload && setActiveBar(d.activePayload[0].payload)} barGap={4}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                    <XAxis dataKey="bulan" tick={{ fontSize: 12, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: '#94A3B8' }} tickFormatter={v => `${v / 1e6}Jt`} axisLine={false} tickLine={false} />
+                    <Tooltip content={<Tooltip_ />} cursor={{ fill: '#F8FAFC' }} />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    <Bar dataKey="pendapatan" name="Pendapatan" fill="#41A9A9" radius={[5, 5, 0, 0]} />
+                    <Bar dataKey="beban"      name="Beban"      fill="#EF4444" radius={[5, 5, 0, 0]} opacity={.85} />
+                    <Bar dataKey="laba"       name="Surplus"    fill="#10B981" radius={[5, 5, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+
+                {activeBar && (
+                  <div className="anim-scalein" style={{ marginTop: 16, background: 'var(--bg)', borderRadius: 12, padding: '16px 20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                      <span style={{ fontWeight: 700, color: 'var(--navy)', fontSize: 14 }}>📅 Detail Bulan {activeBar.bulan}</span>
+                      <button className="btn btn-sm" style={{ background: 'none', border: '1px solid var(--border)', color: 'var(--text-3)', padding: '3px 9px', fontSize: 11 }} onClick={() => setActiveBar(null)}>✕ Tutup</button>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
+                      {[['Pendapatan', activeBar.pendapatan, '#10B981', '#D1FAE5'], ['Beban', activeBar.beban, '#EF4444', '#FEE2E2'], ['Surplus', activeBar.laba, '#41A9A9', '#EFF6F6'], ['Margin', pct(activeBar.laba, activeBar.pendapatan), '#3B82F6', '#DBEAFE']].map(([l, v, c, bg]) => (
+                        <div key={l} style={{ background: bg, borderRadius: 8, padding: '10px 14px' }}>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: c, textTransform: 'uppercase', marginBottom: 4 }}>{l}</div>
+                          <div style={{ fontSize: 16, fontWeight: 800, color: c }}>{typeof v === 'string' ? v : short(v)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB: SPP */}
+            {tab === 'spp' && (
+              <div className="anim-fadein">
+                <div style={{ marginBottom: 12, fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>Tingkat Koleksi SPP Bulanan (%)</div>
+                <ResponsiveContainer width="100%" height={280}>
+                  <AreaChart data={sppData}>
+                    <defs>
+                      <linearGradient id="gSPP" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#41A9A9" stopOpacity={.2} />
+                        <stop offset="95%" stopColor="#41A9A9" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                    <XAxis dataKey="bulan" tick={{ fontSize: 12, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
+                    <YAxis domain={[75, 100]} tick={{ fontSize: 11, fill: '#94A3B8' }} tickFormatter={v => v + '%'} axisLine={false} tickLine={false} />
+                    <Tooltip content={<Tooltip_ />} />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    <ReferenceLine y={90} stroke="#10B981" strokeDasharray="6 3" label={{ value: 'Target Baik 90%', position: 'right', fontSize: 10, fill: '#10B981' }} />
+                    <Area type="monotone" dataKey="terkumpul" name="Terkumpul" stroke="#41A9A9" strokeWidth={2.5} fill="url(#gSPP)" dot={{ r: 5, fill: '#41A9A9', cursor: 'pointer' }} activeDot={{ r: 7 }} />
+                    <Line type="monotone" dataKey="target" name="Target" stroke="#E2E8F0" strokeWidth={1.5} strokeDasharray="5 4" dot={false} />
+                  </AreaChart>
+                </ResponsiveContainer>
+                <div style={{ marginTop: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10 }}>
+                  {sppData.map((s, i) => (
+                    <div key={i} style={{ background: s.terkumpul >= 90 ? '#D1FAE5' : s.terkumpul >= 80 ? '#FEF3C7' : '#FEE2E2', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: '#64748B', marginBottom: 3 }}>{s.bulan}</div>
+                      <div style={{ fontSize: 20, fontWeight: 800, color: s.terkumpul >= 90 ? '#10B981' : s.terkumpul >= 80 ? '#F59E0B' : '#EF4444' }}>{s.terkumpul}%</div>
+                      <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>{s.terkumpul >= 90 ? '✓ Baik' : s.terkumpul >= 80 ? '△ Cukup' : '⚠ Perhatian'}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* TAB: Expense */}
+            {tab === 'expense' && (
+              <div className="anim-fadein">
+                <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>Distribusi Beban Operasional</div>
+                  <span style={{ fontSize: 11, color: 'var(--text-3)' }}>Klik segmen atau baris untuk highlight</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'center' }}>
+                  <ResponsiveContainer width="100%" height={260}>
+                    <PieChart>
+                      <Pie data={expenseData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={3} dataKey="value" onClick={(_, i) => setActivePie(i === activePie ? null : i)}>
+                        {expenseData.map((_, i) => (
+                          <Cell key={i} fill={COLORS[i % COLORS.length]} opacity={activePie === null || activePie === i ? 1 : 0.35} stroke={activePie === i ? '#fff' : 'none'} strokeWidth={3} style={{ cursor: 'pointer' }} />
+                        ))}
+                      </Pie>
+                      <Tooltip content={({ active, payload }) => {
+                        if (!active || !payload?.length) return null;
+                        const { name, value } = payload[0];
+                        return <div className="chart-tooltip"><div className="chart-tooltip-title">{name}</div><div className="chart-tooltip-row"><span className="chart-tooltip-label">Jumlah</span><span className="chart-tooltip-value">{short(value)}</span></div><div className="chart-tooltip-row"><span className="chart-tooltip-label">Porsi</span><span className="chart-tooltip-value">{pct(value, totalExp)}</span></div></div>;
+                      }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {expenseData.map((e, i) => (
+                      <div key={i} onClick={() => setActivePie(i === activePie ? null : i)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, cursor: 'pointer', background: activePie === i ? COLORS[i % COLORS.length] + '18' : 'var(--bg)', border: `1.5px solid ${activePie === i ? COLORS[i % COLORS.length] : 'transparent'}`, transition: 'all .15s' }}>
+                        <span style={{ width: 10, height: 10, borderRadius: 3, background: COLORS[i % COLORS.length], flexShrink: 0 }} />
+                        <span style={{ flex: 1, fontSize: 13, color: 'var(--text)' }}>{e.name}</span>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: COLORS[i % COLORS.length] }}>{short(e.value)}</div>
+                          <div style={{ fontSize: 10, color: 'var(--text-3)' }}>{pct(e.value, totalExp)}</div>
+                        </div>
+                      </div>
+                    ))}
+                    <div style={{ padding: '10px 14px', borderRadius: 10, background: 'var(--teal-light)', border: '1.5px solid var(--teal)', display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>Total Beban</span>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--teal)' }}>{short(totalExp)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB: Cashflow */}
+            {tab === 'cashflow' && (
+              <div className="anim-fadein">
+                <div style={{ marginBottom: 12, fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>Laporan Arus Kas — 3 Aktivitas</div>
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={cashflow} onClick={d => d?.activePayload && setActiveBar(d.activePayload[0].payload)} barGap={4}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                    <XAxis dataKey="bulan" tick={{ fontSize: 12, fill: '#94A3B8' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: '#94A3B8' }} tickFormatter={v => `${v / 1e6}Jt`} axisLine={false} tickLine={false} />
+                    <Tooltip content={<Tooltip_ />} cursor={{ fill: '#F8FAFC' }} />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    <ReferenceLine y={0} stroke="#E2E8F0" />
+                    <Bar dataKey="operasional" name="Operasional" fill="#41A9A9" radius={[5, 5, 0, 0]} />
+                    <Bar dataKey="investasi"   name="Investasi"   fill="#EF4444" radius={[5, 5, 0, 0]} opacity={.85} />
+                    <Bar dataKey="pendanaan"   name="Pendanaan"   fill="#3B82F6" radius={[5, 5, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+                {activeBar && (
+                  <div className="anim-scalein" style={{ marginTop: 14, background: 'var(--bg)', borderRadius: 10, padding: '14px 18px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10 }}>
+                    <div style={{ gridColumn: '1/-1', fontWeight: 700, color: 'var(--navy)', fontSize: 13, marginBottom: 4 }}>📅 {activeBar.bulan}</div>
+                    {[['Operasional', activeBar.operasional, '#41A9A9', '#EFF6F6'], ['Investasi', activeBar.investasi, '#EF4444', '#FEE2E2'], ['Pendanaan', activeBar.pendanaan, '#3B82F6', '#DBEAFE'], ['Net Cash', (activeBar.operasional || 0) + (activeBar.investasi || 0) + (activeBar.pendanaan || 0), '#10B981', '#D1FAE5']].map(([l, v, c, bg]) => (
+                      <div key={l} style={{ background: bg, borderRadius: 8, padding: '9px 12px' }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: c, textTransform: 'uppercase', marginBottom: 3 }}>{l}</div>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: c }}>{short(v)}</div>
+                      </div>
+                    ))}
+                    <button className="btn btn-sm" style={{ background: 'none', border: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 11, marginTop: 4 }} onClick={() => setActiveBar(null)}>✕ Tutup</button>
+                  </div>
+                )}
+
+                {/* Cashflow Summary Table */}
+                <div style={{ marginTop: 20 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 10 }}>Ringkasan Arus Kas YTD</div>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="table">
+                      <thead>
+                        <tr>
+                          <th>Aktivitas</th>
+                          {cashflow.map(m => <th key={m.bulan} style={{ textAlign: 'right' }}>{m.bulan}</th>)}
+                          <th style={{ textAlign: 'right' }}>Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[['Operasional', 'operasional', '#41A9A9'], ['Investasi', 'investasi', '#EF4444'], ['Pendanaan', 'pendanaan', '#3B82F6']].map(([label, key, color]) => {
+                          const total = cashflow.reduce((s, m) => s + (m[key] || 0), 0);
+                          return (
+                            <tr key={key}>
+                              <td style={{ fontWeight: 600, color }}>{label}</td>
+                              {cashflow.map(m => <td key={m.bulan} style={{ textAlign: 'right', fontWeight: 600, color: (m[key] || 0) < 0 ? '#EF4444' : 'var(--text)' }}>{short(m[key] || 0)}</td>)}
+                              <td style={{ textAlign: 'right', fontWeight: 800, color }}>{short(total)}</td>
+                            </tr>
+                          );
+                        })}
+                        <tr style={{ borderTop: '2px solid var(--teal)' }}>
+                          <td style={{ fontWeight: 800, color: 'var(--navy)' }}>Net Arus Kas</td>
+                          {cashflow.map(m => {
+                            const net = (m.operasional || 0) + (m.investasi || 0) + (m.pendanaan || 0);
+                            return <td key={m.bulan} style={{ textAlign: 'right', fontWeight: 800, color: net >= 0 ? '#10B981' : '#EF4444' }}>{short(net)}</td>;
+                          })}
+                          <td style={{ textAlign: 'right', fontWeight: 800, color: '#10B981' }}>{short(cashflow.reduce((s, m) => s + (m.operasional || 0) + (m.investasi || 0) + (m.pendanaan || 0), 0))}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
