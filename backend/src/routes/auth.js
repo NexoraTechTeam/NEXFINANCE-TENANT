@@ -14,10 +14,13 @@ const users = {
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
+  console.log(`[AUTH] Login attempt: ${email} / ${password}`);
   const user = users[email];
+  console.log(`[AUTH] User found: ${!!user}`);
   
   // Simple password check for demo
   if (!user || user.password !== password) {
+    console.log(`[AUTH] Auth failed - user: ${!!user}, password match: ${user && user.password === password}`);
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
