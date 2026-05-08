@@ -1,0 +1,60 @@
+name: Deploy NexFinance
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build & Deploy to VPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: 22
+          script_stop: true
+          script: |
+            set -e
+            APP_DIR="${{ secrets.VPS_APP_PATH }}/nexfinance"
+
+            echo "▶ Pulling latest code..."
+            if [ -d "$APP_DIR/.git" ]; then
+              cd "$APP_DIR"
+              git fetch origin master
+              git reset --hard origin/master
+            else
+              git clone https://github.com/imam-nurokhi/al-musabbihin-nexfinance.git "$APP_DIR"
+              cd "$APP_DIR"
+            fi
+
+            echo "▶ Ensuring .env exists..."
+            if [ ! -f "$APP_DIR/.env" ]; then
+              cp "$APP_DIR/.env.prod.example" "$APP_DIR/.env"
+              echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$APP_DIR/.env"
+              echo "⚠  .env created with random JWT_SECRET — update if needed"
+            fi
+
+            echo "▶ Building & restarting containers..."
+            cd "$APP_DIR"
+            docker compose -f docker-compose.prod.yml build --no-cache
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+            echo "▶ Waiting for health checks..."
+            sleep 15
+            docker compose -f docker-compose.prod.yml ps
+
+            echo "▶ Checking backend health..."
+            docker exec nexfinance-backend curl -sf http://localhost:5000/health || (echo "Backend health check failed" && exit 1)
+
+            echo "✅ NexFinance deployed successfully!"
+            echo "🌐 https://nexfinance.nexoratech.co"
