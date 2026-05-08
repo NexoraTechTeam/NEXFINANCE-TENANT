@@ -20,7 +20,9 @@ api.interceptors.request.use((config) => {
 export const authService = {
   login: (email, password) => api.post('/auth/login', { email, password }),
   register: (email, password) => api.post('/auth/register', { email, password }),
-  verify: () => api.get('/auth/verify')
+  verify: () => api.get('/auth/verify'),
+  getProfile: () => api.get('/auth/me'),
+  getPermissions: () => api.get('/auth/permissions')
 };
 
 export const dashboardService = {
@@ -66,6 +68,36 @@ export const accountingService = {
   getJournals: () => api.get('/accounting/journals'),
   getBalanceSheet: () => api.get('/accounting/reports/balance-sheet'),
   getIncomeStatement: () => api.get('/accounting/reports/income-statement')
+};
+
+export const masterService = {
+  // Students
+  getStudents: (params) => api.get('/master/students', { params }),
+  createStudent: (data) => api.post('/master/students', data),
+  updateStudent: (id, data) => api.put(`/master/students/${id}`, data),
+  deleteStudent: (id) => api.delete(`/master/students/${id}`),
+
+  // Employees
+  getEmployees: () => api.get('/master/employees'),
+  createEmployee: (data) => api.post('/master/employees', data),
+  updateEmployee: (id, data) => api.put(`/master/employees/${id}`, data),
+  deleteEmployee: (id) => api.delete(`/master/employees/${id}`),
+
+  // Users & role visibility
+  getUsers: () => api.get('/master/users'),
+  createUser: (data) => api.post('/master/users', data),
+  updateUser: (id, data) => api.put(`/master/users/${id}`, data),
+};
+
+export const activityService = {
+  getLogs: (params) => api.get('/activity', { params }),
+  getStats: () => api.get('/activity/stats'),
+  clearOldLogs: () => api.delete('/activity/clear'),
+};
+
+export const notificationService = {
+  send: (data) => api.post('/notifications/send', data),
+  getConfig: () => api.get('/notifications/config'),
 };
 
 export default api;

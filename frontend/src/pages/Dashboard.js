@@ -109,6 +109,29 @@ export default function Dashboard() {
   const totalPend = monthly.reduce((s, m) => s + m.pendapatan, 0);
   const totalBeban = monthly.reduce((s, m) => s + m.beban, 0);
   const totalLaba = totalPend - totalBeban;
+  const totalExpDist = expDist.reduce((s, e) => s + e.value, 0);
+
+  const getPieIndexFromEvent = (evt) => {
+    if (!evt || typeof evt !== 'object') return null;
+    if (Number.isInteger(evt.activeTooltipIndex)) return evt.activeTooltipIndex;
+
+    const clickedPayload = evt.activePayload?.[0]?.payload;
+    if (clickedPayload) {
+      const idx = expDist.findIndex(
+        (item) => item.name === clickedPayload.name && item.value === clickedPayload.value
+      );
+      if (idx >= 0) return idx;
+    }
+
+    if (Number.isInteger(evt.index)) return evt.index;
+    return null;
+  };
+
+  const handlePieClick = (evt) => {
+    const index = getPieIndexFromEvent(evt);
+    if (index === null || index < 0 || index >= expDist.length) return;
+    setActivePie((prev) => (prev === index ? null : index));
+  };
 
   return (
     <div className="page" style={{ minHeight: '100vh', background: 'var(--bg)', padding: '28px 20px' }}>
@@ -252,7 +275,7 @@ export default function Dashboard() {
             <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>Distribusi Beban</div>
             <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 12 }}>Klik segmen untuk detail</div>
             <ResponsiveContainer width="100%" height={180}>
-              <PieChart onClick={(_, i) => setActivePie(i === activePie ? null : i)}>
+              <PieChart onClick={handlePieClick}>
                 <Pie data={expDist} cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3} dataKey="value">
                   {expDist.map((_, i) => (
                     <Cell key={i} fill={COLORS[i % COLORS.length]} opacity={activePie === null || activePie === i ? 1 : 0.4} stroke={activePie === i ? '#fff' : 'none'} strokeWidth={2} />
@@ -270,11 +293,11 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
-            {activePie !== null && (
+            {activePie !== null && !!expDist[activePie] && (
               <div className="anim-scalein" style={{ marginTop: 10, background: COLORS[activePie % COLORS.length] + '15', borderRadius: 8, padding: '10px 14px', borderLeft: `3px solid ${COLORS[activePie % COLORS.length]}` }}>
                 <div style={{ fontWeight: 700, color: 'var(--text)', fontSize: 13, marginBottom: 3 }}>{expDist[activePie].name}</div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: COLORS[activePie % COLORS.length] }}>{IDR(expDist[activePie].value)}</div>
-                <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>{((expDist[activePie].value / expDist.reduce((s, e) => s + e.value, 0)) * 100).toFixed(1)}% dari total beban</div>
+                <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>{((expDist[activePie].value / totalExpDist) * 100).toFixed(1)}% dari total beban</div>
               </div>
             )}
           </div>

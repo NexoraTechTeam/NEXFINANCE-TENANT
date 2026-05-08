@@ -2,6 +2,18 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 const IDR = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n || 0);
+const formatDateTimeID = (value) => {
+  if (!value) return '-';
+  const dt = new Date(value);
+  if (Number.isNaN(dt.getTime())) return String(value);
+  return dt.toLocaleString('id-ID', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
 const TEAL = [65, 169, 169];
 const NAVY = [44, 62, 80];
 const LIGHT = [239, 246, 246];
@@ -333,6 +345,116 @@ export const exportFinancialReport = (data) => {
 
   footer(doc);
   doc.save(`Laporan_Keuangan_${new Date().toISOString().slice(0, 10)}.pdf`);
+};
+
+export const exportReceiptPDF = (invoice) => {
+  const paidDateTime = invoice.paidAt || invoice.paidDateTime || invoice.paymentDate || invoice.updatedAt || invoice.createdAt;
+  const invoiceId = invoice.id || invoice.invoiceId || invoice.invoiceNumber || '-';
+  const studentName = invoice.studentName || invoice.payerName || invoice.student?.name || '-';
+  const studentIdentity = invoice.studentId || invoice.nis || invoice.student?.id || '-';
+  const amountPaid = Number(invoice.amountPaid ?? invoice.amount ?? invoice.paymentAmount ?? 0);
+  const paymentMethod = invoice.paymentMethod || invoice.method || invoice.payment?.method || '-';
+  const status = (invoice.status || '').toLowerCase() === 'paid' ? 'LUNAS' : (invoice.status || 'PENDING').toUpperCase();
+
+  const doc = new jsPDF({ format: 'a5', orientation: 'portrait' });
+
+  // Header gradient bar
+  doc.setFillColor(...NAVY);
+  doc.rect(0, 0, 148, 22, 'F');
+  doc.setFillColor(...TEAL);
+  doc.rect(0, 20, 148, 3, 'F');
+
+  // School info
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.text('NexFinance', 10, 10);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.text('Sekolah Islam Terpadu Al-Musabbihin', 10, 16);
+
+  // Receipt title
+  doc.setTextColor(...NAVY);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text('BUKTI PEMBAYARAN SPP', 74, 34, { align: 'center' });
+
+  // Receipt number + date
+  doc.setFillColor(239, 246, 246);
+  doc.roundedRect(8, 38, 132, 14, 2, 2, 'F');
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text('No. Bukti:', 12, 44);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...NAVY);
+  doc.text(String(invoiceId), 35, 44);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139);
+  doc.text('Tanggal Bayar:', 74, 44);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...NAVY);
+  doc.text(formatDateTimeID(paidDateTime), 139, 44, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139);
+  doc.text('Status:', 12, 50);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(status === 'LUNAS' ? 16 : 245, status === 'LUNAS' ? 185 : 158, status === 'LUNAS' ? 129 : 11);
+  doc.text(status, 30, 50);
+
+  // Details table
+  const rows = [
+    ['ID Invoice', invoiceId],
+    ['Nama Pembayar/Siswa', studentName],
+    ['Identitas Siswa', studentIdentity],
+    ['Kelas', invoice.class || invoice.className || '-'],
+    ['Periode', invoice.month || invoice.period || '-'],
+    ['Metode Bayar', paymentMethod],
+    ['Jatuh Tempo', invoice.dueDate || '-'],
+  ];
+  autoTable(doc, {
+    startY: 58,
+    body: rows,
+    theme: 'plain',
+    styles: { fontSize: 9, cellPadding: 3.5 },
+    columnStyles: {
+      0: { fontStyle: 'bold', textColor: [100, 116, 139], cellWidth: 45 },
+      1: { textColor: [30, 41, 59] },
+    },
+    margin: { left: 8, right: 8 },
+  });
+
+  // Amount box
+  const y2 = doc.lastAutoTable.finalY + 6;
+  doc.setFillColor(...TEAL);
+  doc.roundedRect(8, y2, 132, 22, 3, 3, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text('JUMLAH DIBAYAR', 74, y2 + 8, { align: 'center' });
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.text(IDR(amountPaid), 74, y2 + 17, { align: 'center' });
+
+  // Footer
+  const y3 = y2 + 30;
+  doc.setTextColor(100, 116, 139);
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(7.5);
+  doc.text('Terima kasih atas pembayaran Anda. Simpan bukti ini sebagai tanda pembayaran yang sah.', 74, y3, { align: 'center', maxWidth: 130 });
+  doc.setFont('helvetica', 'normal');
+  doc.text('SIT Al-Musabbihin · finance.almusabbihin.sch.id', 74, y3 + 8, { align: 'center' });
+
+  // Stamp circle
+  doc.setDrawColor(...TEAL);
+  doc.setLineWidth(1.5);
+  doc.circle(120, y2 + 11, 14);
+  doc.setFontSize(6);
+  doc.setTextColor(...TEAL);
+  doc.text(status, 120, y2 + 9, { align: 'center' });
+  doc.setFontSize(5);
+  doc.text(formatDateTimeID(paidDateTime), 120, y2 + 13, { align: 'center' });
+
+  doc.save(`Bukti_SPP_${invoiceId}_${String(studentName).replace(/\s/g, '_')}.pdf`);
 };
 
 export const exportExpenseReport = (expenses) => {

@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const rbac = require('../middleware/rbac');
 const { sppInvoices, employees, payrollRuns, expenses, purchaseRequests } = require('../db');
 
-router.get('/kpi', auth, (req, res) => {
+router.get('/kpi', auth, rbac('dashboard'), (req, res) => {
   const paidSPP = sppInvoices.filter(i => i.status === 'paid');
   const totalSPP = sppInvoices.length;
   const monthRevenue = paidSPP.reduce((s, i) => s + i.amount, 0);
@@ -25,7 +26,7 @@ router.get('/kpi', auth, (req, res) => {
   });
 });
 
-router.get('/monthly-report', auth, (req, res) => {
+router.get('/monthly-report', auth, rbac('dashboard'), (req, res) => {
   const paidSPP = sppInvoices.filter(i => i.status === 'paid');
   const revenue = paidSPP.reduce((s, i) => s + i.amount, 0) + 8500000;
   const expenseTotal = expenses.filter(e => e.status === 'approved').reduce((s, e) => s + e.amount, 0);

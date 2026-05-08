@@ -9,11 +9,16 @@ import ExpenseManagement from './pages/ExpenseManagement';
 import ProcurementManagement from './pages/ProcurementManagement';
 import AccountingModule from './pages/AccountingModule';
 import FinancialReports from './pages/FinancialReports';
+import MasterStudents from './pages/MasterStudents';
+import MasterEmployees from './pages/MasterEmployees';
+import MasterAccessControl from './pages/MasterAccessControl';
+import ActivityLogs from './pages/ActivityLogs';
+import Notifications from './pages/Notifications';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 
-const Protected = ({ children }) => (
-  <ProtectedRoute>
+const Protected = ({ children, requiredModule, adminOnly }) => (
+  <ProtectedRoute requiredModule={requiredModule} adminOnly={adminOnly}>
     <Navbar />
     {children}
   </ProtectedRoute>
@@ -25,13 +30,18 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
-          <Route path="/spp" element={<Protected><SPPManagement /></Protected>} />
-          <Route path="/payroll" element={<Protected><PayrollManagement /></Protected>} />
-          <Route path="/expenses" element={<Protected><ExpenseManagement /></Protected>} />
-          <Route path="/procurement" element={<Protected><ProcurementManagement /></Protected>} />
-          <Route path="/accounting" element={<Protected><AccountingModule /></Protected>} />
-          <Route path="/reports" element={<Protected><FinancialReports /></Protected>} />
+          <Route path="/dashboard" element={<Protected requiredModule="dashboard"><Dashboard /></Protected>} />
+          <Route path="/spp" element={<Protected requiredModule="spp"><SPPManagement /></Protected>} />
+          <Route path="/payroll" element={<Protected requiredModule="payroll"><PayrollManagement /></Protected>} />
+          <Route path="/expenses" element={<Protected requiredModule="expenses"><ExpenseManagement /></Protected>} />
+          <Route path="/procurement" element={<Protected requiredModule="procurement"><ProcurementManagement /></Protected>} />
+          <Route path="/accounting" element={<Protected requiredModule="accounting"><AccountingModule /></Protected>} />
+          <Route path="/reports" element={<Protected requiredModule="reports"><FinancialReports /></Protected>} />
+          <Route path="/master/students" element={<Protected requiredModule="master"><MasterStudents /></Protected>} />
+          <Route path="/master/employees" element={<Protected requiredModule="master"><MasterEmployees /></Protected>} />
+          <Route path="/master/access" element={<Protected adminOnly><MasterAccessControl /></Protected>} />
+          <Route path="/activity-logs" element={<Protected requiredModule="activity"><ActivityLogs /></Protected>} />
+          <Route path="/notifications" element={<Protected requiredModule="notifications"><Notifications /></Protected>} />
           <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>

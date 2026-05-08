@@ -1,9 +1,16 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { sppService } from '../services/api';
 import { DollarSign, TrendingUp, CheckCircle, Clock, AlertCircle, Plus, CreditCard, X, Printer } from 'lucide-react';
+import { exportReceiptPDF } from '../utils/exportPDF';
 
 const fmt = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
 const fmtShort = (n) => `Rp ${(n / 1000000).toFixed(1)}M`;
+const fmtDateTime = (v) => {
+  if (!v) return '-';
+  const dt = new Date(v);
+  if (Number.isNaN(dt.getTime())) return v;
+  return dt.toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
 
 const S = {
   container: { minHeight: '100vh', background: 'linear-gradient(135deg, #F8FAFC 0%, #EFF6F6 100%)', padding: '32px 20px' },
@@ -43,12 +50,17 @@ const SPPManagement = () => {
   const [form, setForm] = useState({ studentId: '', studentName: '', class: '7A', amount: '1200000', month: MONTHS[4] });
   const [payMethod, setPayMethod] = useState('Transfer');
   const [toast, setToast] = useState(null);
+  const [error, setError] = useState('');
 
   const load = useCallback(async () => {
     try {
       const res = await sppService.getInvoices();
       setInvoices(res.data.invoices || []);
-    } catch { setInvoices([]); }
+      setError('');
+    } catch (e) {
+      setInvoices([]);
+      setError(e.response?.data?.error || 'Gagal memuat data invoice SPP.');
+    }
     finally { setLoading(false); }
   }, []);
 
@@ -116,6 +128,11 @@ const SPPManagement = () => {
             <Plus size={16} /> Buat Invoice
           </button>
         </div>
+        {error && (
+          <div style={{ marginBottom: 16, padding: '12px 14px', borderRadius: 8, background: '#FEE2E2', color: '#991B1B', border: '1px solid #FECACA', fontSize: 13, fontWeight: 600 }}>
+            ❌ {error}
+          </div>
+        )}
 
         {/* Stats */}
         <div style={S.statsGrid}>
@@ -169,7 +186,7 @@ const SPPManagement = () => {
                         <span style={S.badge(inv.status)}>
                           {inv.status === 'paid' ? <><CheckCircle size={12} /> Lunas</> : <><Clock size={12} /> Belum Bayar</>}
                         </span>
-                        {inv.status === 'paid' && inv.paymentMethod && <div style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '3px' }}>{inv.paymentMethod} · {inv.paidAt}</div>}
+                        {inv.status === 'paid' && inv.paymentMethod && <div style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '3px' }}>{inv.paymentMethod} · {fmtDateTime(inv.paidAt)}</div>}
                       </td>
                       <td style={S.td}>
                         {inv.status === 'unpaid' && (
@@ -178,7 +195,7 @@ const SPPManagement = () => {
                           </button>
                         )}
                         {inv.status === 'paid' && (
-                          <button onClick={() => window.print()} style={S.btn('white', '#41A9A9')}>
+                          <button onClick={() => exportReceiptPDF(inv)} style={S.btn('white', '#41A9A9')}>
                             <Printer size={14} /> Bukti
                           </button>
                         )}

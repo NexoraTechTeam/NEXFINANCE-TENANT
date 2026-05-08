@@ -1,17 +1,25 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const { chartOfAccounts, journals } = require('../db');
+const rbac = require('../middleware/rbac');
+const { chartOfAccounts, journals, logActivity } = require('../db');
 
-router.get('/chart-of-accounts', auth, (req, res) => {
+const getRequestIp = (req) => (
+  req.headers['x-forwarded-for']?.split(',')[0]?.trim()
+  || req.socket?.remoteAddress
+  || '127.0.0.1'
+);
+
+router.get('/chart-of-accounts', auth, rbac('accounting'), (req, res) => {
   res.json({ accounts: chartOfAccounts });
 });
 
-router.get('/journals', auth, (req, res) => {
+router.get('/journals', auth, rbac('accounting'), (req, res) => {
   res.json({ journals: [...journals].reverse() });
 });
 
-router.post('/journals', auth, (req, res) => {
+router.post('/journals', auth, rbac('accounting'), (req, res) => {
+  const ipAddress = getRequestIp(req);
   const { date, description, debit, credit } = req.body;
   if (!date || !description || !debit || !credit) {
     return res.status(400).json({ error: 'date, description, debit, credit are required' });
@@ -25,10 +33,11 @@ router.post('/journals', auth, (req, res) => {
     createdAt: new Date().toISOString().split('T')[0],
   };
   journals.push(journal);
+  logActivity(req.user.id, req.user.email, 'create_journal', 'accounting', `Created journal ${journal.id}`, { journalId: journal.id, date: journal.date, debit, credit }, { ipAddress });
   res.status(201).json(journal);
 });
 
-router.get('/reports/balance-sheet', auth, (req, res) => {
+router.get('/reports/balance-sheet', auth, rbac('accounting'), (req, res) => {
   const assets = 650000000;
   const liabilities = 85000000;
   const equity = assets - liabilities;
@@ -50,7 +59,7 @@ router.get('/reports/balance-sheet', auth, (req, res) => {
   });
 });
 
-router.get('/reports/income-statement', auth, (req, res) => {
+router.get('/reports/income-statement', auth, rbac('accounting'), (req, res) => {
   res.json({
     date: new Date().toISOString().split('T')[0],
     revenue: 375000000,

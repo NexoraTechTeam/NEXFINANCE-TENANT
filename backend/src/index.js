@@ -18,6 +18,9 @@ app.use('/api/v1/payroll', require('./routes/payroll'));
 app.use('/api/v1/expenses', require('./routes/expenses'));
 app.use('/api/v1/procurement', require('./routes/procurement'));
 app.use('/api/v1/dashboard', require('./routes/dashboard'));
+app.use('/api/v1/master', require('./routes/master'));
+app.use('/api/v1/activity', require('./routes/activity'));
+app.use('/api/v1/notifications', require('./routes/notifications'));
 
 // Health check
 app.get('/health', (req, res) => {

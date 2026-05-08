@@ -109,4 +109,70 @@ const journals = [
   { id: 'JRN008', date: m(4,15), description: 'Penerimaan PO meja kursi — CV Mebel Jaya', debit: { account: '1300', name: 'Persediaan ATK', amount: 23500000 }, credit: { account: '2000', name: 'Hutang Usaha', amount: 23500000 }, createdAt: m(4,15) },
 ];
 
-module.exports = { sppInvoices, employees, payrollRuns, expenses, purchaseRequests, purchaseOrders, chartOfAccounts, journals, calcPayroll };
+// ── Students ─────────────────────────────────────────────────────────────────
+const students = [
+  { id: 'STU001', nis: '2026001', name: 'Ahmad Pratama',    class: '7A', parentName: 'Prasetyo',        phone: '08111000001', email: 'pratama@mail.com',   address: 'Jl. Merdeka No.1, Bandung',      status: 'active',   enrolledAt: '2024-07-15' },
+  { id: 'STU002', nis: '2026002', name: 'Siti Rahayu',      class: '7A', parentName: 'Rahayu Sr.',      phone: '08111000002', email: 'rahayu@mail.com',    address: 'Jl. Sudirman No.12, Bandung',    status: 'active',   enrolledAt: '2024-07-15' },
+  { id: 'STU003', nis: '2026003', name: 'Budi Santoso',     class: '7B', parentName: 'Santoso Sr.',     phone: '08111000003', email: 'bsantoso@mail.com',  address: 'Jl. Diponegoro No.7, Bandung',   status: 'active',   enrolledAt: '2024-07-16' },
+  { id: 'STU004', nis: '2025001', name: 'Dewi Lestari',     class: '8A', parentName: 'Lestari Sr.',     phone: '08111000004', email: 'dewi@mail.com',      address: 'Jl. Ahmad Yani No.3, Bandung',   status: 'active',   enrolledAt: '2023-07-14' },
+  { id: 'STU005', nis: '2025002', name: 'Eko Prasetyo',     class: '8A', parentName: 'Prasetyo Sr.',    phone: '08111000005', email: 'eko@mail.com',       address: 'Jl. Gatot Subroto No.9, Bandung', status: 'active',  enrolledAt: '2023-07-14' },
+  { id: 'STU006', nis: '2025003', name: 'Fitri Handayani',  class: '8B', parentName: 'Handayani Sr.',   phone: '08111000006', email: 'fitri@mail.com',     address: 'Jl. Imam Bonjol No.22, Bandung', status: 'active',   enrolledAt: '2023-07-15' },
+  { id: 'STU007', nis: '2024001', name: 'Galang Ramadhan',  class: '9A', parentName: 'Ramadhan Sr.',    phone: '08111000007', email: 'galang@mail.com',    address: 'Jl. Veteran No.5, Bandung',      status: 'active',   enrolledAt: '2022-07-13' },
+  { id: 'STU008', nis: '2024002', name: 'Hana Safitri',     class: '9A', parentName: 'Safitri Sr.',     phone: '08111000008', email: 'hana@mail.com',      address: 'Jl. Cihampelas No.18, Bandung',  status: 'active',   enrolledAt: '2022-07-13' },
+  { id: 'STU009', nis: '2024003', name: 'Irfan Maulana',    class: '9B', parentName: 'Maulana Sr.',     phone: '08111000009', email: 'irfan@mail.com',     address: 'Jl. Setiabudi No.44, Bandung',   status: 'active',   enrolledAt: '2022-07-14' },
+  { id: 'STU010', nis: '2026004', name: 'Juwita Sari',      class: '7B', parentName: 'Sari Sr.',        phone: '08111000010', email: 'juwita@mail.com',    address: 'Jl. Riau No.11, Bandung',        status: 'active',   enrolledAt: '2024-07-16' },
+  { id: 'STU011', nis: '2025004', name: 'Kevin Hidayat',    class: '8A', parentName: 'Hidayat Sr.',     phone: '08111000011', email: 'kevin@mail.com',     address: 'Jl. Braga No.6, Bandung',        status: 'active',   enrolledAt: '2023-07-15' },
+  { id: 'STU012', nis: '2024004', name: 'Laila Nurhaliza',  class: '9A', parentName: 'Nurhaliza Sr.',   phone: '08111000012', email: 'laila@mail.com',     address: 'Jl. Asia Afrika No.30, Bandung', status: 'active',   enrolledAt: '2022-07-13' },
+  { id: 'STU013', nis: '2026005', name: 'Muhammad Rizki',   class: '7A', parentName: 'Rizki Sr.',       phone: '08111000013', email: 'mrizki@mail.com',    address: 'Jl. Dago No.15, Bandung',        status: 'active',   enrolledAt: '2024-07-17' },
+  { id: 'STU014', nis: '2025005', name: 'Nadia Putri',      class: '8B', parentName: 'Putri Sr.',       phone: '08111000014', email: 'nadia@mail.com',     address: 'Jl. Buah Batu No.8, Bandung',    status: 'active',   enrolledAt: '2023-07-16' },
+  { id: 'STU015', nis: '2024005', name: 'Omar Abdullah',    class: '9B', parentName: 'Abdullah Sr.',    phone: '08111000015', email: 'omar@mail.com',      address: 'Jl. Cibiru No.20, Bandung',      status: 'inactive', enrolledAt: '2022-07-14' },
+];
+
+// ── Users ────────────────────────────────────────────────────────────────────
+const users = [
+  { id: 'USR001', email: 'admin@nexfinance.com',     password: 'admin123',     role: 'admin',     name: 'Administrator',      status: 'active' },
+  { id: 'USR002', email: 'bendahara@nexfinance.com', password: 'bendahara123', role: 'bendahara', name: 'Bendahara Sekolah',   status: 'active' },
+  { id: 'USR003', email: 'kabag@nexfinance.com',     password: 'kabag123',     role: 'kabag',     name: 'Kepala Bagian',       status: 'active' },
+  { id: 'USR004', email: 'staff@nexfinance.com',     password: 'staff123',     role: 'staff',     name: 'Staff TU',            status: 'active' },
+  { id: 'USR005', email: 'auditor@nexfinance.com',   password: 'auditor123',   role: 'auditor',   name: 'Auditor Eksternal',   status: 'active' },
+];
+
+// ── Activity Logs ────────────────────────────────────────────────────────────
+const activityLogs = [
+  { id: 'LOG0000000001aaa', userId: 'USR001', userEmail: 'admin@nexfinance.com',     action: 'login',             module: 'auth',          description: 'User admin@nexfinance.com logged in',                    metadata: { role: 'admin' },                    ipAddress: '192.168.1.10', timestamp: '2026-05-01T07:55:00.000Z', level: 'info' },
+  { id: 'LOG0000000002bbb', userId: 'USR002', userEmail: 'bendahara@nexfinance.com', action: 'create_invoice',    module: 'spp',           description: 'Created SPP invoice INV013 for Maret 2026',              metadata: { invoiceId: 'INV013' },              ipAddress: '192.168.1.11', timestamp: '2026-05-01T08:10:00.000Z', level: 'info' },
+  { id: 'LOG0000000003ccc', userId: 'USR002', userEmail: 'bendahara@nexfinance.com', action: 'record_payment',    module: 'spp',           description: 'Recorded payment for Ahmad Pratama — Maret 2026',        metadata: { studentId: 'STU001', amount: 1200000 }, ipAddress: '192.168.1.11', timestamp: '2026-05-01T08:25:00.000Z', level: 'info' },
+  { id: 'LOG0000000004ddd', userId: 'USR004', userEmail: 'staff@nexfinance.com',     action: 'submit_expense',    module: 'expenses',      description: 'Submitted expense EXP008 — Pengadaan seragam staf TU', metadata: { expenseId: 'EXP008', amount: 2100000 }, ipAddress: '192.168.1.14', timestamp: '2026-05-07T09:00:00.000Z', level: 'info' },
+  { id: 'LOG0000000005eee', userId: 'USR003', userEmail: 'kabag@nexfinance.com',     action: 'approve_expense',   module: 'expenses',      description: 'Approved expense EXP005 — Transportasi kunjungan',       metadata: { expenseId: 'EXP005' },              ipAddress: '192.168.1.13', timestamp: '2026-05-04T10:15:00.000Z', level: 'info' },
+  { id: 'LOG0000000006fff', userId: 'USR002', userEmail: 'bendahara@nexfinance.com', action: 'calculate_payroll', module: 'payroll',       description: 'Calculated payroll for April 2026 — 4 employees',        metadata: { month: 'April 2026', count: 4 },    ipAddress: '192.168.1.11', timestamp: '2026-05-02T14:00:00.000Z', level: 'info' },
+  { id: 'LOG0000000007ggg', userId: 'USR003', userEmail: 'kabag@nexfinance.com',     action: 'create_pr',         module: 'procurement',   description: 'Created PR20260503 — Sound system aula serbaguna',       metadata: { prId: 'PR20260503' },               ipAddress: '192.168.1.13', timestamp: '2026-05-07T11:30:00.000Z', level: 'info' },
+  { id: 'LOG0000000008hhh', userId: 'USR002', userEmail: 'bendahara@nexfinance.com', action: 'create_journal',    module: 'accounting',    description: 'Created journal entry JRN008 — PO meja kursi',           metadata: { journalId: 'JRN008' },              ipAddress: '192.168.1.11', timestamp: '2026-04-15T13:45:00.000Z', level: 'info' },
+  { id: 'LOG0000000009iii', userId: 'USR005', userEmail: 'auditor@nexfinance.com',   action: 'view_reports',      module: 'reports',       description: 'Auditor viewed financial summary report April 2026',     metadata: { reportType: 'financial_summary' },  ipAddress: '192.168.1.15', timestamp: '2026-05-06T09:00:00.000Z', level: 'info' },
+  { id: 'LOG0000000010jjj', userId: 'USR001', userEmail: 'admin@nexfinance.com',     action: 'logout',            module: 'auth',          description: 'User admin@nexfinance.com logged out',                   metadata: {},                                   ipAddress: '192.168.1.10', timestamp: '2026-05-01T17:00:00.000Z', level: 'info' },
+  { id: 'LOG0000000011kkk', userId: 'USR003', userEmail: 'kabag@nexfinance.com',     action: 'reject_expense',    module: 'expenses',      description: 'Rejected expense EXP007 — anggaran sudah tercakup',      metadata: { expenseId: 'EXP007', reason: 'Sudah tercover anggaran bulanan' }, ipAddress: '192.168.1.13', timestamp: '2026-04-21T10:00:00.000Z', level: 'warning' },
+  { id: 'LOG0000000012lll', userId: 'USR002', userEmail: 'bendahara@nexfinance.com', action: 'record_payment',    module: 'spp',           description: 'Recorded payment for Juwita Sari — Mei 2026',           metadata: { studentId: 'STU010', amount: 1200000 }, ipAddress: '192.168.1.11', timestamp: '2026-05-05T08:30:00.000Z', level: 'info' },
+  { id: 'LOG0000000013mmm', userId: 'USR004', userEmail: 'staff@nexfinance.com',     action: 'submit_expense',    module: 'expenses',      description: 'Submitted expense EXP004 — Perbaikan AC kelas 8A',      metadata: { expenseId: 'EXP004', amount: 1500000 }, ipAddress: '192.168.1.14', timestamp: '2026-05-02T09:30:00.000Z', level: 'info' },
+  { id: 'LOG0000000014nnn', userId: 'USR001', userEmail: 'admin@nexfinance.com',     action: 'login',             module: 'auth',          description: 'User admin@nexfinance.com logged in',                    metadata: { role: 'admin' },                    ipAddress: '192.168.1.10', timestamp: '2026-05-07T08:00:00.000Z', level: 'info' },
+  { id: 'LOG0000000015ooo', userId: 'USR002', userEmail: 'bendahara@nexfinance.com', action: 'approve_payment',   module: 'spp',           description: 'Approved batch SPP payment for 5 students Mei 2026',    metadata: { count: 5, month: 'Mei 2026' },      ipAddress: '192.168.1.11', timestamp: '2026-05-08T07:50:00.000Z', level: 'info' },
+];
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+const getUserByEmail = (email) => users.find(u => u.email === email) || null;
+
+const logActivity = (userId, userEmail, action, module, description, metadata = {}, options = {}) => {
+  activityLogs.unshift({
+    id: `LOG${Date.now()}${Math.random().toString(36).slice(2, 5)}`,
+    userId,
+    userEmail,
+    action,
+    module,
+    description,
+    metadata,
+    ipAddress: options.ipAddress || '127.0.0.1',
+    timestamp: new Date().toISOString(),
+    level: options.level || 'info',
+  });
+  if (activityLogs.length > 500) activityLogs.splice(500);
+};
+
+module.exports = { sppInvoices, employees, payrollRuns, expenses, purchaseRequests, purchaseOrders, chartOfAccounts, journals, calcPayroll, students, users, activityLogs, getUserByEmail, logActivity };

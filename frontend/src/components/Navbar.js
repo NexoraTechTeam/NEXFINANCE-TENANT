@@ -1,27 +1,39 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { LogOut, Menu, X, LayoutDashboard, DollarSign, Users, FileText, ShoppingCart, BookOpen, BarChart2 } from 'lucide-react';
+import {
+  LogOut, Menu, X, LayoutDashboard, DollarSign, Users, FileText,
+  ShoppingCart, BookOpen, BarChart2, ClipboardList, Bell, ShieldCheck,
+} from 'lucide-react';
 
 const NAV_ITEMS = [
-  { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-  { name: 'SPP', path: '/spp', icon: DollarSign },
-  { name: 'Penggajian', path: '/payroll', icon: Users },
-  { name: 'Pengeluaran', path: '/expenses', icon: FileText },
-  { name: 'Pengadaan', path: '/procurement', icon: ShoppingCart },
-  { name: 'Akuntansi', path: '/accounting', icon: BookOpen },
-  { name: 'Laporan', path: '/reports', icon: BarChart2 },
+  { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, module: 'dashboard' },
+  { name: 'SPP', path: '/spp', icon: DollarSign, module: 'spp' },
+  { name: 'Penggajian', path: '/payroll', icon: Users, module: 'payroll' },
+  { name: 'Pengeluaran', path: '/expenses', icon: FileText, module: 'expenses' },
+  { name: 'Pengadaan', path: '/procurement', icon: ShoppingCart, module: 'procurement' },
+  { name: 'Akuntansi', path: '/accounting', icon: BookOpen, module: 'accounting' },
+  { name: 'Laporan', path: '/reports', icon: BarChart2, module: 'reports' },
+  { name: 'Master Siswa', path: '/master/students', icon: Users, module: 'master' },
+  { name: 'Master Karyawan', path: '/master/employees', icon: Users, module: 'master' },
+  { name: 'Hak Akses Role', path: '/master/access', icon: ShieldCheck, module: 'master', adminOnly: true },
+  { name: 'Activity Logs', path: '/activity-logs', icon: ClipboardList, module: 'activity' },
+  { name: 'Notifikasi', path: '/notifications', icon: Bell, module: 'notifications' },
 ];
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, canAccess } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = React.useState(false);
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => location.pathname === path || location.pathname.startsWith(`${path}/`);
+  const filteredNavItems = NAV_ITEMS.filter((item) => {
+    if (item.adminOnly && user?.role !== 'admin') return false;
+    return canAccess(item.module);
+  });
 
   const navLinkStyle = (path) => ({
     color: isActive(path) ? 'white' : 'rgba(255, 255, 255, 0.75)',
@@ -54,7 +66,7 @@ const Navbar = () => {
               <span>NexFinance</span>
             </Link>
             <div style={{ display: 'flex', gap: '2px', overflowX: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
-              {NAV_ITEMS.map((item) => {
+              {filteredNavItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link
@@ -96,7 +108,7 @@ const Navbar = () => {
 
       {menuOpen && (
         <div style={{ position: 'fixed', top: '64px', left: 0, right: 0, background: 'rgba(44,62,80,0.97)', backdropFilter: 'blur(10px)', padding: '16px 20px', zIndex: 99, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-          {NAV_ITEMS.map((item) => {
+          {filteredNavItems.map((item) => {
             const Icon = item.icon;
             return (
               <Link key={item.path} to={item.path} style={{ display: 'flex', alignItems: 'center', gap: '10px', color: isActive(item.path) ? 'white' : 'rgba(255,255,255,0.75)', textDecoration: 'none', fontSize: '14px', fontWeight: isActive(item.path) ? '700' : '500', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.08)' }} onClick={() => setMenuOpen(false)}>
