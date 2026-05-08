@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import {
   LogOut, Menu, X, LayoutDashboard, DollarSign, Users, FileText,
-  ShoppingCart, BookOpen, BarChart2, ClipboardList, Bell, ShieldCheck,
+  ShoppingCart, BookOpen, BarChart2, ClipboardList, Bell, ShieldCheck, ChevronDown,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -14,9 +14,16 @@ const NAV_ITEMS = [
   { name: 'Pengadaan', path: '/procurement', icon: ShoppingCart, module: 'procurement' },
   { name: 'Akuntansi', path: '/accounting', icon: BookOpen, module: 'accounting' },
   { name: 'Laporan', path: '/reports', icon: BarChart2, module: 'reports' },
-  { name: 'Master Siswa', path: '/master/students', icon: Users, module: 'master' },
-  { name: 'Master Karyawan', path: '/master/employees', icon: Users, module: 'master' },
-  { name: 'Hak Akses Role', path: '/master/access', icon: ShieldCheck, module: 'master', adminOnly: true },
+  {
+    name: 'Master',
+    icon: Users,
+    module: 'master',
+    children: [
+      { name: 'Siswa', path: '/master/students', icon: Users, module: 'master' },
+      { name: 'Karyawan', path: '/master/employees', icon: Users, module: 'master' },
+      { name: 'Hak Akses Role', path: '/master/access', icon: ShieldCheck, module: 'master', adminOnly: true },
+    ],
+  },
   { name: 'Activity Logs', path: '/activity-logs', icon: ClipboardList, module: 'activity' },
   { name: 'Notifikasi', path: '/notifications', icon: Bell, module: 'notifications' },
 ];
@@ -30,10 +37,15 @@ const Navbar = () => {
   const handleLogout = () => { logout(); navigate('/login'); };
 
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(`${path}/`);
-  const filteredNavItems = NAV_ITEMS.filter((item) => {
+  const canShowItem = (item) => {
     if (item.adminOnly && user?.role !== 'admin') return false;
+    if (item.children?.length) {
+      return canAccess(item.module) && item.children.some(canShowItem);
+    }
     return canAccess(item.module);
-  });
+  };
+
+  const filteredNavItems = NAV_ITEMS.filter(canShowItem);
 
   const navLinkStyle = (path) => ({
     color: isActive(path) ? 'white' : 'rgba(255, 255, 255, 0.75)',
@@ -68,6 +80,49 @@ const Navbar = () => {
             <div style={{ display: 'flex', gap: '2px', overflowX: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
               {filteredNavItems.map((item) => {
                 const Icon = item.icon;
+                if (item.children?.length) {
+                  const subItems = item.children.filter(canShowItem);
+                  const isMasterActive = subItems.some((sub) => isActive(sub.path));
+                  return (
+                    <details key={item.name} style={{ position: 'relative' }}>
+                      <summary
+                        style={{
+                          listStyle: 'none',
+                          color: isMasterActive ? 'white' : 'rgba(255, 255, 255, 0.75)',
+                          fontSize: '13px',
+                          fontWeight: isMasterActive ? '700' : '500',
+                          padding: '7px 12px',
+                          borderRadius: '6px',
+                          background: isMasterActive ? 'rgba(255,255,255,0.2)' : 'transparent',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        <Icon size={14} />
+                        {item.name}
+                        <ChevronDown size={12} />
+                      </summary>
+                      <div style={{ position: 'absolute', top: '100%', left: 0, minWidth: 190, marginTop: 6, background: '#fff', borderRadius: 8, border: '1px solid #E5E7EB', boxShadow: '0 10px 24px rgba(0,0,0,0.12)', zIndex: 120, overflow: 'hidden' }}>
+                        {subItems.map((sub) => {
+                          const SubIcon = sub.icon;
+                          return (
+                            <Link
+                              key={sub.path}
+                              to={sub.path}
+                              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', textDecoration: 'none', color: isActive(sub.path) ? '#2C3E50' : '#334155', fontSize: 13, fontWeight: isActive(sub.path) ? 700 : 500, background: isActive(sub.path) ? '#EFF6F6' : '#fff' }}
+                            >
+                              <SubIcon size={14} />
+                              {sub.name}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </details>
+                  );
+                }
                 return (
                   <Link
                     key={item.path}
@@ -110,6 +165,29 @@ const Navbar = () => {
         <div style={{ position: 'fixed', top: '64px', left: 0, right: 0, background: 'rgba(44,62,80,0.97)', backdropFilter: 'blur(10px)', padding: '16px 20px', zIndex: 99, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
           {filteredNavItems.map((item) => {
             const Icon = item.icon;
+            if (item.children?.length) {
+              const subItems = item.children.filter(canShowItem);
+              return (
+                <div key={item.name} style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '8px 0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'white', fontSize: '14px', fontWeight: 700, padding: '8px 0' }}>
+                    <Icon size={16} /> {item.name}
+                  </div>
+                  {subItems.map((sub) => {
+                    const SubIcon = sub.icon;
+                    return (
+                      <Link
+                        key={sub.path}
+                        to={sub.path}
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px', color: isActive(sub.path) ? 'white' : 'rgba(255,255,255,0.75)', textDecoration: 'none', fontSize: '13px', fontWeight: isActive(sub.path) ? '700' : '500', padding: '10px 0 10px 24px' }}
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        <SubIcon size={14} /> {sub.name}
+                      </Link>
+                    );
+                  })}
+                </div>
+              );
+            }
             return (
               <Link key={item.path} to={item.path} style={{ display: 'flex', alignItems: 'center', gap: '10px', color: isActive(item.path) ? 'white' : 'rgba(255,255,255,0.75)', textDecoration: 'none', fontSize: '14px', fontWeight: isActive(item.path) ? '700' : '500', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.08)' }} onClick={() => setMenuOpen(false)}>
                 <Icon size={16} /> {item.name}
