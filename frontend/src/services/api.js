@@ -88,6 +88,8 @@ export const masterService = {
   createUser: (data) => api.post('/master/users', data),
   updateUser: (id, data) => api.put(`/master/users/${id}`, data),
   updateUserRole: (id, role) => api.patch(`/master/users/${id}/role`, { role }),
+  getRolePermissions: () => api.get('/master/role-permissions'),
+  updateRolePermissions: (role, permissions) => api.patch(`/master/role-permissions/${role}`, { permissions }),
 };
 
 export const activityService = {

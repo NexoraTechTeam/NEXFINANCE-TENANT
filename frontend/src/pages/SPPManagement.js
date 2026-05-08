@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { sppService } from '../services/api';
-import { DollarSign, TrendingUp, CheckCircle, Clock, AlertCircle, Plus, CreditCard, X, Printer } from 'lucide-react';
+import { DollarSign, TrendingUp, CheckCircle, Clock, AlertCircle, Plus, CreditCard, X, Printer, Search, ArrowUpDown } from 'lucide-react';
 import { exportReceiptPDF } from '../utils/exportPDF';
 
 const fmt = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
@@ -20,9 +20,6 @@ const S = {
   statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '24px' },
   statCard: (c) => ({ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', border: '1px solid #E5E7EB', borderLeft: `4px solid ${c}` }),
   card: { background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', border: '1px solid #E5E7EB' },
-  table: { width: '100%', borderCollapse: 'collapse' },
-  th: { background: 'linear-gradient(135deg, #41A9A9 0%, #2C3E50 100%)', color: 'white', padding: '13px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' },
-  td: { padding: '14px 16px', fontSize: '14px', color: '#2C3E50', borderBottom: '1px solid #F3F4F6' },
   badge: (s) => {
     const map = { paid: ['#10B981', '#D1FAE5'], unpaid: ['#F59E0B', '#FEF3C7'], overdue: ['#EF4444', '#FEE2E2'] };
     const [c, bg] = map[s] || ['#9CA3AF', '#F3F4F6'];
@@ -51,6 +48,11 @@ const SPPManagement = () => {
   const [payMethod, setPayMethod] = useState('Transfer');
   const [toast, setToast] = useState(null);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [sortKey, setSortKey] = useState('dueDate');
+  const [sortDir, setSortDir] = useState('asc');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const load = useCallback(async () => {
     try {
@@ -106,7 +108,38 @@ const SPPManagement = () => {
   const totalCollected = paid.reduce((s, i) => s + i.amount, 0);
   const rate = invoices.length > 0 ? ((paid.length / invoices.length) * 100).toFixed(1) : '0';
 
-  const filtered = filter === 'all' ? invoices : invoices.filter(i => i.status === filter);
+  const filtered = (filter === 'all' ? invoices : invoices.filter((i) => i.status === filter))
+    .filter((i) => {
+      const q = search.toLowerCase().trim();
+      if (!q) return true;
+      return [
+        i.id, i.studentName, i.class, i.month, i.paymentMethod, i.status,
+      ].some((v) => String(v || '').toLowerCase().includes(q));
+    });
+
+  const sorted = [...filtered].sort((a, b) => {
+    const va = a[sortKey];
+    const vb = b[sortKey];
+    if (sortKey === 'amount') return sortDir === 'asc' ? Number(va) - Number(vb) : Number(vb) - Number(va);
+    const sa = String(va || '').toLowerCase();
+    const sb = String(vb || '').toLowerCase();
+    if (sa < sb) return sortDir === 'asc' ? -1 : 1;
+    if (sa > sb) return sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const paged = sorted.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const toggleSort = (key) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+      return;
+    }
+    setSortKey(key);
+    setSortDir('asc');
+  };
 
   if (loading) return <div style={{ ...S.container, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: '#9CA3AF' }}>⏳ Memuat data SPP...</div>;
 
@@ -156,39 +189,63 @@ const SPPManagement = () => {
 
         {/* Filter + Table */}
         <div style={S.card}>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
             {[['all', `Semua (${invoices.length})`], ['paid', `Lunas (${paid.length})`], ['unpaid', `Belum Bayar (${unpaid.length})`]].map(([val, label]) => (
-              <button key={val} style={S.filterBtn(filter === val)} onClick={() => setFilter(val)}>{label}</button>
+              <button key={val} style={S.filterBtn(filter === val)} onClick={() => { setFilter(val); setPage(1); }}>{label}</button>
             ))}
           </div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: '16px', alignItems: 'center' }}>
+            <div style={{ position: 'relative', flex: '1 1 260px', minWidth: 220 }}>
+              <Search size={15} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+              <input
+                className="input"
+                style={{ paddingLeft: 34 }}
+                placeholder="Cari invoice, nama siswa, kelas, bulan..."
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              />
+            </div>
+            <select className="input" style={{ flex: '0 0 140px' }} value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}>
+              {[5, 10, 20, 50].map((n) => <option key={n} value={n}>{n}/halaman</option>)}
+            </select>
+          </div>
 
-          {filtered.length === 0 ? (
+          {sorted.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '48px 0', color: '#9CA3AF' }}>
               <AlertCircle size={40} style={{ margin: '0 auto 12px', display: 'block', opacity: 0.3 }} />
               Tidak ada invoice.
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
-              <table style={S.table}>
+              <table className="table">
                 <thead>
-                  <tr>{['ID Invoice', 'Nama Siswa', 'Kelas', 'Bulan', 'Jumlah', 'Jatuh Tempo', 'Status', 'Aksi'].map(h => <th key={h} style={S.th}>{h}</th>)}</tr>
+                  <tr>
+                    <th style={{ cursor: 'pointer' }} onClick={() => toggleSort('id')}>ID Invoice <ArrowUpDown size={12} style={{ verticalAlign: 'middle', marginLeft: 4 }} /></th>
+                    <th style={{ cursor: 'pointer' }} onClick={() => toggleSort('studentName')}>Nama Siswa <ArrowUpDown size={12} style={{ verticalAlign: 'middle', marginLeft: 4 }} /></th>
+                    <th style={{ cursor: 'pointer' }} onClick={() => toggleSort('class')}>Kelas <ArrowUpDown size={12} style={{ verticalAlign: 'middle', marginLeft: 4 }} /></th>
+                    <th style={{ cursor: 'pointer' }} onClick={() => toggleSort('month')}>Bulan <ArrowUpDown size={12} style={{ verticalAlign: 'middle', marginLeft: 4 }} /></th>
+                    <th style={{ cursor: 'pointer' }} onClick={() => toggleSort('amount')}>Jumlah <ArrowUpDown size={12} style={{ verticalAlign: 'middle', marginLeft: 4 }} /></th>
+                    <th style={{ cursor: 'pointer' }} onClick={() => toggleSort('dueDate')}>Jatuh Tempo <ArrowUpDown size={12} style={{ verticalAlign: 'middle', marginLeft: 4 }} /></th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((inv, i) => (
-                    <tr key={inv.id} style={{ background: i % 2 === 0 ? 'white' : '#FAFAFA' }}>
-                      <td style={S.td}><span style={{ background: '#EFF6F6', color: '#41A9A9', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700', fontFamily: 'monospace' }}>{inv.id}</span></td>
-                      <td style={{ ...S.td, fontWeight: '600' }}>{inv.studentName}</td>
-                      <td style={S.td}>{inv.class}</td>
-                      <td style={S.td}>{inv.month}</td>
-                      <td style={{ ...S.td, fontWeight: '700', color: '#41A9A9' }}>{fmt(inv.amount)}</td>
-                      <td style={{ ...S.td, fontSize: '12px', color: '#6B7280' }}>{inv.dueDate}</td>
-                      <td style={S.td}>
+                  {paged.map((inv) => (
+                    <tr key={inv.id}>
+                      <td><span style={{ background: '#EFF6F6', color: '#41A9A9', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700', fontFamily: 'monospace' }}>{inv.id}</span></td>
+                      <td style={{ fontWeight: '600' }}>{inv.studentName}</td>
+                      <td>{inv.class}</td>
+                      <td>{inv.month}</td>
+                      <td style={{ fontWeight: '700', color: '#41A9A9' }}>{fmt(inv.amount)}</td>
+                      <td style={{ fontSize: '12px', color: '#6B7280' }}>{inv.dueDate}</td>
+                      <td>
                         <span style={S.badge(inv.status)}>
                           {inv.status === 'paid' ? <><CheckCircle size={12} /> Lunas</> : <><Clock size={12} /> Belum Bayar</>}
                         </span>
                         {inv.status === 'paid' && inv.paymentMethod && <div style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '3px' }}>{inv.paymentMethod} · {fmtDateTime(inv.paidAt)}</div>}
                       </td>
-                      <td style={S.td}>
+                      <td>
                         {inv.status === 'unpaid' && (
                           <button onClick={() => openPay(inv)} style={S.btn('#10B981')}>
                             <CreditCard size={14} /> Bayar
@@ -204,6 +261,15 @@ const SPPManagement = () => {
                   ))}
                 </tbody>
               </table>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, flexWrap: 'wrap', gap: 8 }}>
+                <div style={{ fontSize: 12, color: '#64748B' }}>
+                  Menampilkan {(currentPage - 1) * pageSize + 1}-{Math.min(currentPage * pageSize, sorted.length)} dari {sorted.length} data
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button className="btn btn-sm btn-ghost" disabled={currentPage <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Sebelumnya</button>
+                  <button className="btn btn-sm btn-ghost" disabled={currentPage >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Berikutnya</button>
+                </div>
+              </div>
             </div>
           )}
         </div>

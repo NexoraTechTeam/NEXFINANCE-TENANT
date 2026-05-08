@@ -4,6 +4,7 @@ const auth = require('../middleware/auth');
 const rbac = require('../middleware/rbac');
 const { students, employees, users, logActivity } = require('../db');
 const VALID_ROLES = ['super_admin', 'admin', 'bendahara', 'kabag', 'staff', 'auditor'];
+const VALID_MODULES = ['dashboard', 'spp', 'payroll', 'expenses', 'procurement', 'accounting', 'reports', 'master', 'activity', 'notifications'];
 
 const normalizeStudentInput = (payload = {}) => ({
   ...payload,
@@ -308,6 +309,56 @@ router.patch('/users/:id/role', auth, superAdminOnly, (req, res) => {
     users[idx].role = role;
     logActivity(req.user.id, req.user.email, 'update_user_role', 'master', `Updated role for ${users[idx].email} to ${role}`, { userId: users[idx].id, role });
     return res.json({ data: maskUser(users[idx]) });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/v1/master/role-permissions
+router.get('/role-permissions', auth, adminOrSuperAdmin, (req, res) => {
+  try {
+    return res.json({ data: rbac.PERMISSIONS });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH /api/v1/master/role-permissions/:role
+router.patch('/role-permissions/:role', auth, superAdminOnly, (req, res) => {
+  try {
+    const { role } = req.params;
+    const { permissions } = req.body;
+
+    if (!VALID_ROLES.includes(role)) {
+      return res.status(400).json({ error: `Invalid role. Must be one of: ${VALID_ROLES.join(', ')}` });
+    }
+
+    if (!Array.isArray(permissions)) {
+      return res.status(400).json({ error: 'permissions must be an array' });
+    }
+
+    const uniquePermissions = [...new Set(permissions)];
+    const hasInvalid = uniquePermissions.some((module) => module !== '*' && !VALID_MODULES.includes(module));
+    if (hasInvalid) {
+      return res.status(400).json({ error: `Invalid permissions. Allowed modules: ${VALID_MODULES.join(', ')} or '*'` });
+    }
+
+    const normalizedPermissions = uniquePermissions.includes('*')
+      ? ['*']
+      : uniquePermissions.filter((module) => VALID_MODULES.includes(module));
+
+    rbac.PERMISSIONS[role] = normalizedPermissions;
+
+    logActivity(
+      req.user.id,
+      req.user.email,
+      'update_role_permissions',
+      'master',
+      `Updated role-permission matrix for ${role}`,
+      { role, permissions: normalizedPermissions },
+    );
+
+    return res.json({ data: { role, permissions: normalizedPermissions } });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

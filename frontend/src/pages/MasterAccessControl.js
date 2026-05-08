@@ -22,15 +22,22 @@ export default function MasterAccessControl() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [submittingRole, setSubmittingRole] = useState('');
+  const [permissionMatrix, setPermissionMatrix] = useState(ROLE_PERMISSIONS);
+  const [submittingPermissionRole, setSubmittingPermissionRole] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await masterService.getUsers();
-      setUsers(res.data?.data || []);
+      const [usersRes, permissionsRes] = await Promise.all([
+        masterService.getUsers(),
+        masterService.getRolePermissions(),
+      ]);
+      setUsers(usersRes.data?.data || []);
+      setPermissionMatrix(permissionsRes.data?.data || ROLE_PERMISSIONS);
       setError('');
     } catch (e) {
       setUsers([]);
+      setPermissionMatrix(ROLE_PERMISSIONS);
       setError(e.response?.data?.error || 'Gagal memuat data user.');
     } finally {
       setLoading(false);
@@ -48,6 +55,33 @@ export default function MasterAccessControl() {
       setError(e.response?.data?.error || 'Gagal memperbarui role user.');
     } finally {
       setSubmittingRole('');
+    }
+  };
+
+  const hasAccess = (role, module) => {
+    const rolePermissions = permissionMatrix?.[role] || [];
+    return rolePermissions.includes('*') || rolePermissions.includes(module);
+  };
+
+  const handlePermissionToggle = async (role, module) => {
+    if (!isSuperAdmin) return;
+    const current = permissionMatrix?.[role] || [];
+    const expanded = current.includes('*') ? [...ALL_MODULES] : [...current];
+    const next = expanded.includes(module)
+      ? expanded.filter((item) => item !== module)
+      : [...expanded, module];
+    const normalized = [...new Set(next)];
+    const payload = normalized.length === ALL_MODULES.length ? ['*'] : normalized;
+
+    setSubmittingPermissionRole(role);
+    try {
+      await masterService.updateRolePermissions(role, payload);
+      setPermissionMatrix((prev) => ({ ...prev, [role]: payload }));
+      setError('');
+    } catch (e) {
+      setError(e.response?.data?.error || 'Gagal memperbarui matriks akses role.');
+    } finally {
+      setSubmittingPermissionRole('');
     }
   };
 
@@ -128,6 +162,11 @@ export default function MasterAccessControl() {
             <ShieldCheck size={18} color="var(--teal)" />
             <h3 style={{ margin: 0, fontSize: 16 }}>Matriks Akses Role → Menu</h3>
           </div>
+          {!isSuperAdmin && (
+            <p style={{ color: '#92400E', fontSize: 12, marginBottom: 10 }}>
+              Mode saat ini: <strong>read-only</strong>. Edit matriks akses hanya untuk Super Admin.
+            </p>
+          )}
           <div style={{ overflowX: 'auto' }}>
             <table className="table">
               <thead>
@@ -137,18 +176,21 @@ export default function MasterAccessControl() {
                 </tr>
               </thead>
               <tbody>
-                {Object.keys(ROLE_PERMISSIONS).map((role) => {
-                  const perms = ROLE_PERMISSIONS[role];
+                {Object.keys(ROLE_LABELS).map((role) => {
                   return (
                     <tr key={role}>
                       <td style={{ fontWeight: 700 }}>{ROLE_LABELS[role] || role}</td>
                       {ALL_MODULES.map((module) => (
                         <td key={module}>
-                          {perms.includes('*') || perms.includes(module) ? (
-                            <span className="badge badge-green">Bisa</span>
-                          ) : (
-                            <span className="badge badge-red">Tidak</span>
-                          )}
+                          <button
+                            type="button"
+                            className={`badge ${hasAccess(role, module) ? 'badge-green' : 'badge-red'}`}
+                            style={{ border: 'none', cursor: isSuperAdmin ? 'pointer' : 'default', opacity: submittingPermissionRole === role ? 0.7 : 1 }}
+                            disabled={!isSuperAdmin || submittingPermissionRole === role}
+                            onClick={() => handlePermissionToggle(role, module)}
+                          >
+                            {hasAccess(role, module) ? 'Bisa' : 'Tidak'}
+                          </button>
                         </td>
                       ))}
                     </tr>

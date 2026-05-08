@@ -34,12 +34,28 @@ const Navbar = () => {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 1024);
+  const [masterOpen, setMasterOpen] = React.useState(false);
+  const [userMenuOpen, setUserMenuOpen] = React.useState(false);
+  const masterRef = React.useRef(null);
+  const userRef = React.useRef(null);
 
   React.useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 1024);
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
+  React.useEffect(() => {
+    const closeOnOutside = (e) => {
+      if (!masterRef.current?.contains(e.target)) setMasterOpen(false);
+      if (!userRef.current?.contains(e.target)) setUserMenuOpen(false);
+    };
+    document.addEventListener('mousedown', closeOnOutside);
+    return () => document.removeEventListener('mousedown', closeOnOutside);
+  }, []);
+  React.useEffect(() => {
+    setMasterOpen(false);
+    setUserMenuOpen(false);
+  }, [location.pathname]);
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
@@ -80,23 +96,26 @@ const Navbar = () => {
         zIndex: 100,
       }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '64px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flex: 1, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '32px', flex: 1, minWidth: 0 }}>
             <Link to="/dashboard" style={{ color: 'white', fontSize: '20px', fontWeight: '800', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
               <span style={{ fontSize: '22px' }}>💼</span>
               <span>NexFinance</span>
             </Link>
             {!isMobile && (
-              <div style={{ display: 'flex', gap: '2px', overflowX: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+              <div style={{ display: 'flex', gap: '2px', position: 'relative' }}>
               {filteredNavItems.map((item) => {
                 const Icon = item.icon;
                 if (item.children?.length) {
                   const subItems = item.children.filter(canShowItem);
                   const isMasterActive = subItems.some((sub) => isActive(sub.path));
                   return (
-                    <details key={item.name} style={{ position: 'relative' }}>
-                      <summary
+                    <div key={item.name} ref={masterRef} style={{ position: 'relative' }}>
+                      <button
+                        type="button"
+                        onClick={() => setMasterOpen((v) => !v)}
                         style={{
-                          listStyle: 'none',
+                          border: 'none',
+                          background: 'transparent',
                           color: isMasterActive ? 'white' : 'rgba(255, 255, 255, 0.75)',
                           fontSize: '13px',
                           fontWeight: isMasterActive ? '700' : '500',
@@ -112,24 +131,26 @@ const Navbar = () => {
                       >
                         <Icon size={14} />
                         {item.name}
-                        <ChevronDown size={12} />
-                      </summary>
-                      <div style={{ position: 'absolute', top: '100%', left: 0, minWidth: 190, marginTop: 6, background: '#fff', borderRadius: 8, border: '1px solid #E5E7EB', boxShadow: '0 10px 24px rgba(0,0,0,0.12)', zIndex: 120, overflow: 'hidden' }}>
-                        {subItems.map((sub) => {
-                          const SubIcon = sub.icon;
-                          return (
-                            <Link
-                              key={sub.path}
-                              to={sub.path}
-                              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', textDecoration: 'none', color: isActive(sub.path) ? '#2C3E50' : '#334155', fontSize: 13, fontWeight: isActive(sub.path) ? 700 : 500, background: isActive(sub.path) ? '#EFF6F6' : '#fff' }}
-                            >
-                              <SubIcon size={14} />
-                              {sub.name}
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    </details>
+                        <ChevronDown size={12} style={{ transform: masterOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .2s' }} />
+                      </button>
+                      {masterOpen && (
+                        <div style={{ position: 'absolute', top: '100%', left: 0, minWidth: 190, marginTop: 6, background: '#fff', borderRadius: 8, border: '1px solid #E5E7EB', boxShadow: '0 10px 24px rgba(0,0,0,0.12)', zIndex: 120, overflow: 'hidden' }}>
+                          {subItems.map((sub) => {
+                            const SubIcon = sub.icon;
+                            return (
+                              <Link
+                                key={sub.path}
+                                to={sub.path}
+                                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', textDecoration: 'none', color: isActive(sub.path) ? '#2C3E50' : '#334155', fontSize: 13, fontWeight: isActive(sub.path) ? 700 : 500, background: isActive(sub.path) ? '#EFF6F6' : '#fff' }}
+                              >
+                                <SubIcon size={14} />
+                                {sub.name}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   );
                 }
                 return (
@@ -150,20 +171,32 @@ const Navbar = () => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0, marginLeft: '16px' }}>
-            <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '20px', padding: '5px 12px', display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '7px' }}>
-              <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '700', color: 'white' }}>
-                {user?.email?.[0]?.toUpperCase() || 'A'}
+            {!isMobile && (
+              <div ref={userRef} style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  onClick={() => setUserMenuOpen((v) => !v)}
+                  style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '20px', padding: '5px 12px', border: 'none', color: 'white', display: 'flex', alignItems: 'center', gap: '7px', cursor: 'pointer' }}
+                >
+                  <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '700', color: 'white' }}>
+                    {user?.email?.[0]?.toUpperCase() || 'A'}
+                  </div>
+                  <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: '12px', fontWeight: '500', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email || 'Admin'}</span>
+                  <ChevronDown size={12} style={{ transform: userMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .2s' }} />
+                </button>
+                {userMenuOpen && (
+                  <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: 8, minWidth: 180, background: '#fff', borderRadius: 8, border: '1px solid #E5E7EB', boxShadow: '0 10px 24px rgba(0,0,0,0.12)', overflow: 'hidden', zIndex: 130 }}>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      style={{ width: '100%', border: 'none', background: '#fff', color: '#DC2626', padding: '10px 12px', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left' }}
+                    >
+                      <LogOut size={14} /> Keluar
+                    </button>
+                  </div>
+                )}
               </div>
-              <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: '12px', fontWeight: '500', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email || 'Admin'}</span>
-            </div>
-            <button
-              onClick={handleLogout}
-              style={{ background: 'rgba(239,68,68,0.85)', color: 'white', border: 'none', padding: '7px 14px', borderRadius: '6px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '5px' }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(220,38,38,0.95)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.85)'}
-            >
-              <LogOut size={14} /> Keluar
-            </button>
+            )}
             <button style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', display: isMobile ? 'block' : 'none' }} onClick={() => setMenuOpen(!menuOpen)}>
               {menuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
