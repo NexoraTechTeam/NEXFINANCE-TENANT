@@ -21,7 +21,7 @@ const NAV_ITEMS = [
     children: [
       { name: 'Siswa', path: '/master/students', icon: Users, module: 'master' },
       { name: 'Karyawan', path: '/master/employees', icon: Users, module: 'master' },
-      { name: 'Hak Akses Role', path: '/master/access', icon: ShieldCheck, module: 'master', adminOnly: true },
+      { name: 'Hak Akses Role', path: '/master/access', icon: ShieldCheck, module: 'master' },
     ],
   },
   { name: 'Activity Logs', path: '/activity-logs', icon: ClipboardList, module: 'activity' },
@@ -33,12 +33,20 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 1024);
+
+  React.useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(`${path}/`);
   const canShowItem = (item) => {
-    if (item.adminOnly && user?.role !== 'admin') return false;
+    if (item.superAdminOnly && user?.role !== 'super_admin') return false;
+    if (item.adminOnly && !['admin', 'super_admin'].includes(user?.role)) return false;
     if (item.children?.length) {
       return canAccess(item.module) && item.children.some(canShowItem);
     }
@@ -77,7 +85,8 @@ const Navbar = () => {
               <span style={{ fontSize: '22px' }}>💼</span>
               <span>NexFinance</span>
             </Link>
-            <div style={{ display: 'flex', gap: '2px', overflowX: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+            {!isMobile && (
+              <div style={{ display: 'flex', gap: '2px', overflowX: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
               {filteredNavItems.map((item) => {
                 const Icon = item.icon;
                 if (item.children?.length) {
@@ -136,11 +145,12 @@ const Navbar = () => {
                   </Link>
                 );
               })}
-            </div>
+              </div>
+            )}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0, marginLeft: '16px' }}>
-            <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '20px', padding: '5px 12px', display: 'flex', alignItems: 'center', gap: '7px' }}>
+            <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '20px', padding: '5px 12px', display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '7px' }}>
               <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '700', color: 'white' }}>
                 {user?.email?.[0]?.toUpperCase() || 'A'}
               </div>
@@ -148,21 +158,27 @@ const Navbar = () => {
             </div>
             <button
               onClick={handleLogout}
-              style={{ background: 'rgba(239,68,68,0.85)', color: 'white', border: 'none', padding: '7px 14px', borderRadius: '6px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+              style={{ background: 'rgba(239,68,68,0.85)', color: 'white', border: 'none', padding: '7px 14px', borderRadius: '6px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '5px' }}
               onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(220,38,38,0.95)'}
               onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.85)'}
             >
               <LogOut size={14} /> Keluar
             </button>
-            <button style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', display: 'none' }} onClick={() => setMenuOpen(!menuOpen)}>
+            <button style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', display: isMobile ? 'block' : 'none' }} onClick={() => setMenuOpen(!menuOpen)}>
               {menuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
         </div>
       </nav>
 
-      {menuOpen && (
+      {menuOpen && isMobile && (
         <div style={{ position: 'fixed', top: '64px', left: 0, right: 0, background: 'rgba(44,62,80,0.97)', backdropFilter: 'blur(10px)', padding: '16px 20px', zIndex: 99, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={{ color: 'white', fontWeight: 700, fontSize: 13 }}>{user?.email}</span>
+            <button onClick={handleLogout} style={{ background: 'rgba(239,68,68,0.85)', color: 'white', border: 'none', padding: '6px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600 }}>
+              Keluar
+            </button>
+          </div>
           {filteredNavItems.map((item) => {
             const Icon = item.icon;
             if (item.children?.length) {

@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { masterService } from '../services/api';
 import { ROLE_PERMISSIONS } from '../config/permissions';
+import { useAuth } from '../hooks/useAuth';
 import { ShieldCheck, Users } from 'lucide-react';
 
 const ROLE_LABELS = {
+  super_admin: 'Super Admin',
   admin: 'Administrator',
   bendahara: 'Bendahara',
   kabag: 'Kepala Bagian',
@@ -14,9 +16,12 @@ const ROLE_LABELS = {
 const ALL_MODULES = ['dashboard', 'spp', 'payroll', 'expenses', 'procurement', 'accounting', 'reports', 'master', 'activity', 'notifications'];
 
 export default function MasterAccessControl() {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'super_admin';
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [submittingRole, setSubmittingRole] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -34,12 +39,29 @@ export default function MasterAccessControl() {
 
   useEffect(() => { load(); }, [load]);
 
+  const handleRoleChange = async (userId, role) => {
+    setSubmittingRole(userId);
+    try {
+      await masterService.updateUserRole(userId, role);
+      await load();
+    } catch (e) {
+      setError(e.response?.data?.error || 'Gagal memperbarui role user.');
+    } finally {
+      setSubmittingRole('');
+    }
+  };
+
   return (
     <div className="page" style={{ minHeight: '100vh', background: 'var(--bg)', padding: '28px 20px' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <div style={{ marginBottom: 24 }}>
           <h1 className="grad-text" style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>Manajemen User & Hak Akses</h1>
           <p style={{ color: 'var(--text-2)', fontSize: 13 }}>Visibilitas role ke modul-menu untuk administrator</p>
+          {!isSuperAdmin && (
+            <p style={{ color: '#92400E', fontSize: 12, marginTop: 6 }}>
+              Mode saat ini: <strong>read-only</strong>. Edit role hanya untuk Super Admin.
+            </p>
+          )}
         </div>
 
         {error && (
@@ -66,6 +88,7 @@ export default function MasterAccessControl() {
                     <th>Nama</th>
                     <th>Email</th>
                     <th>Role</th>
+                    {isSuperAdmin && <th>Edit Role</th>}
                     <th>Status</th>
                   </tr>
                 </thead>
@@ -76,6 +99,21 @@ export default function MasterAccessControl() {
                       <td style={{ fontWeight: 700 }}>{u.name || '-'}</td>
                       <td>{u.email}</td>
                       <td><span className="badge badge-teal">{ROLE_LABELS[u.role] || u.role}</span></td>
+                      {isSuperAdmin && (
+                        <td>
+                          <select
+                            className="input"
+                            style={{ minWidth: 160, padding: '6px 10px', fontSize: 12 }}
+                            value={u.role}
+                            disabled={submittingRole === u.id || u.id === user?.id}
+                            onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                          >
+                            {Object.keys(ROLE_LABELS).map((role) => (
+                              <option key={role} value={role}>{ROLE_LABELS[role]}</option>
+                            ))}
+                          </select>
+                        </td>
+                      )}
                       <td><span className={u.status === 'active' ? 'badge badge-green' : 'badge badge-red'}>{u.status || '-'}</span></td>
                     </tr>
                   ))}

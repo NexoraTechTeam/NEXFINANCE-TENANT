@@ -3,7 +3,7 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const rbac = require('../middleware/rbac');
 const { students, employees, users, logActivity } = require('../db');
-const VALID_ROLES = ['admin', 'bendahara', 'kabag', 'staff', 'auditor'];
+const VALID_ROLES = ['super_admin', 'admin', 'bendahara', 'kabag', 'staff', 'auditor'];
 
 const normalizeStudentInput = (payload = {}) => ({
   ...payload,
@@ -210,9 +210,16 @@ router.delete('/employees/:id', auth, rbac('master'), (req, res) => {
 // USERS  (admin only)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const adminOnly = (req, res, next) => {
-  if (req.user?.role !== 'admin') {
-    return res.status(403).json({ error: 'Access denied: admin only' });
+const adminOrSuperAdmin = (req, res, next) => {
+  if (!['admin', 'super_admin'].includes(req.user?.role)) {
+    return res.status(403).json({ error: 'Access denied: admin/super_admin only' });
+  }
+  return next();
+};
+
+const superAdminOnly = (req, res, next) => {
+  if (req.user?.role !== 'super_admin') {
+    return res.status(403).json({ error: 'Access denied: super_admin only' });
   }
   return next();
 };
@@ -223,7 +230,7 @@ const maskUser = (u) => {
 };
 
 // GET /api/v1/master/users
-router.get('/users', auth, adminOnly, (req, res) => {
+router.get('/users', auth, adminOrSuperAdmin, (req, res) => {
   try {
     res.json({ data: users.map(maskUser), users: users.map(maskUser), total: users.length });
   } catch (err) {
@@ -232,7 +239,7 @@ router.get('/users', auth, adminOnly, (req, res) => {
 });
 
 // POST /api/v1/master/users
-router.post('/users', auth, adminOnly, (req, res) => {
+router.post('/users', auth, adminOrSuperAdmin, (req, res) => {
   try {
     const { email, password, role, name } = req.body;
 
@@ -267,7 +274,7 @@ router.post('/users', auth, adminOnly, (req, res) => {
 });
 
 // PUT /api/v1/master/users/:id
-router.put('/users/:id', auth, adminOnly, (req, res) => {
+router.put('/users/:id', auth, adminOrSuperAdmin, (req, res) => {
   try {
     const idx = users.findIndex(u => u.id === req.params.id);
     if (idx === -1) return res.status(404).json({ error: 'User not found' });
@@ -288,7 +295,7 @@ router.put('/users/:id', auth, adminOnly, (req, res) => {
 });
 
 // PATCH /api/v1/master/users/:id/role
-router.patch('/users/:id/role', auth, adminOnly, (req, res) => {
+router.patch('/users/:id/role', auth, superAdminOnly, (req, res) => {
   try {
     const idx = users.findIndex((u) => u.id === req.params.id);
     if (idx === -1) return res.status(404).json({ error: 'User not found' });

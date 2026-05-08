@@ -130,6 +130,7 @@ const students = [
 
 // ── Users ────────────────────────────────────────────────────────────────────
 const users = [
+  { id: 'USR000', email: 'superadmin@nexfinance.com', password: 'superadmin123', role: 'super_admin', name: 'Super Administrator', status: 'active' },
   { id: 'USR001', email: 'admin@nexfinance.com',     password: 'admin123',     role: 'admin',     name: 'Administrator',      status: 'active' },
   { id: 'USR002', email: 'bendahara@nexfinance.com', password: 'bendahara123', role: 'bendahara', name: 'Bendahara Sekolah',   status: 'active' },
   { id: 'USR003', email: 'kabag@nexfinance.com',     password: 'kabag123',     role: 'kabag',     name: 'Kepala Bagian',       status: 'active' },

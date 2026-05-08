@@ -17,8 +17,8 @@ import Notifications from './pages/Notifications';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 
-const Protected = ({ children, requiredModule, adminOnly }) => (
-  <ProtectedRoute requiredModule={requiredModule} adminOnly={adminOnly}>
+const Protected = ({ children, requiredModule, adminOnly, superAdminOnly }) => (
+  <ProtectedRoute requiredModule={requiredModule} adminOnly={adminOnly} superAdminOnly={superAdminOnly}>
     <Navbar />
     {children}
   </ProtectedRoute>
@@ -39,7 +39,7 @@ function App() {
           <Route path="/reports" element={<Protected requiredModule="reports"><FinancialReports /></Protected>} />
           <Route path="/master/students" element={<Protected requiredModule="master"><MasterStudents /></Protected>} />
           <Route path="/master/employees" element={<Protected requiredModule="master"><MasterEmployees /></Protected>} />
-          <Route path="/master/access" element={<Protected adminOnly><MasterAccessControl /></Protected>} />
+          <Route path="/master/access" element={<Protected requiredModule="master"><MasterAccessControl /></Protected>} />
           <Route path="/activity-logs" element={<Protected requiredModule="activity"><ActivityLogs /></Protected>} />
           <Route path="/notifications" element={<Protected requiredModule="notifications"><Notifications /></Protected>} />
           <Route path="/" element={<Navigate to="/dashboard" />} />

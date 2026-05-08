@@ -16,6 +16,7 @@ const IDR = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency:
 export default function MasterEmployees() {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -109,9 +110,10 @@ export default function MasterEmployees() {
   };
 
   const filtered = employees.filter((e) => {
+    const matchStatus = statusFilter === 'all' || e.status === statusFilter;
     const q = search.toLowerCase();
-    if (!q) return true;
-    return e.name?.toLowerCase().includes(q) || e.position?.toLowerCase().includes(q) || e.id?.toLowerCase().includes(q);
+    const matchSearch = !q || e.name?.toLowerCase().includes(q) || e.position?.toLowerCase().includes(q) || e.id?.toLowerCase().includes(q);
+    return matchStatus && matchSearch;
   });
 
   const activeCount = employees.filter((e) => e.status === 'active').length;
@@ -142,14 +144,14 @@ export default function MasterEmployees() {
 
         <div className="stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 20 }}>
           {[
-            { label: 'Total Karyawan', value: employees.length, icon: Users, color: 'var(--teal)', bg: '#EFF6F6' },
-            { label: 'Aktif', value: activeCount, icon: UserCheck, color: 'var(--green)', bg: '#D1FAE5' },
-            { label: 'Tidak Aktif', value: inactiveCount, icon: UserX, color: 'var(--red)', bg: '#FEE2E2' },
-            { label: 'Total Payroll Dasar', value: IDR(employees.reduce((s, e) => s + Number(e.baseSalary || 0), 0)), icon: Briefcase, color: 'var(--blue)', bg: '#DBEAFE' },
+            { label: 'Total Karyawan', value: employees.length, icon: Users, color: 'var(--teal)', bg: '#EFF6F6', filter: 'all' },
+            { label: 'Aktif', value: activeCount, icon: UserCheck, color: 'var(--green)', bg: '#D1FAE5', filter: 'active' },
+            { label: 'Tidak Aktif', value: inactiveCount, icon: UserX, color: 'var(--red)', bg: '#FEE2E2', filter: 'inactive' },
+            { label: 'Total Payroll Dasar', value: IDR(employees.reduce((s, e) => s + Number(e.baseSalary || 0), 0)), icon: Briefcase, color: 'var(--blue)', bg: '#DBEAFE', filter: 'all' },
           ].map((c) => {
             const Icon = c.icon;
             return (
-              <div key={c.label} className="card anim-fadeup" style={{ padding: 20 }}>
+              <div key={c.label} className="card anim-fadeup card-hover" style={{ padding: 20, cursor: 'pointer' }} onClick={() => setStatusFilter(c.filter)}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ width: 42, height: 42, borderRadius: 10, background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon size={20} color={c.color} />
@@ -165,7 +167,14 @@ export default function MasterEmployees() {
         </div>
 
         <div className="card" style={{ padding: 16, marginBottom: 16 }}>
-          <div style={{ position: 'relative', maxWidth: 320 }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {[['all', 'Semua Status'], ['active', 'Aktif'], ['inactive', 'Tidak Aktif']].map(([val, label]) => (
+              <button key={val} className={`btn btn-sm ${statusFilter === val ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setStatusFilter(val)}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <div style={{ position: 'relative', maxWidth: 320, marginTop: 10 }}>
             <Search size={15} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)' }} />
             <input className="input" style={{ paddingLeft: 34 }} placeholder="Cari nama/jabatan/ID..." value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>

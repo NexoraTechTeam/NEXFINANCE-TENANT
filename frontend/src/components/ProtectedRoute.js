@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
-const ProtectedRoute = ({ children, requiredModule, adminOnly = false }) => {
+const ProtectedRoute = ({ children, requiredModule, adminOnly = false, superAdminOnly = false }) => {
   const { user, loading, canAccess } = useAuth();
 
   if (loading) {
@@ -20,7 +20,18 @@ const ProtectedRoute = ({ children, requiredModule, adminOnly = false }) => {
     return <Navigate to="/login" />;
   }
 
-  if (adminOnly && user?.role !== 'admin') {
+  if (superAdminOnly && user?.role !== 'super_admin') {
+    return (
+      <div className="page" style={{ minHeight: 'calc(100vh - 64px)', padding: '32px 20px' }}>
+        <div className="card" style={{ maxWidth: 640, margin: '0 auto', padding: 28, textAlign: 'center' }}>
+          <h2 style={{ marginBottom: 8, color: 'var(--text)' }}>Akses Ditolak</h2>
+          <p style={{ color: 'var(--text-2)', fontSize: 14 }}>Halaman ini hanya dapat diakses oleh Super Admin.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!superAdminOnly && adminOnly && !['admin', 'super_admin'].includes(user?.role)) {
     return (
       <div className="page" style={{ minHeight: 'calc(100vh - 64px)', padding: '32px 20px' }}>
         <div className="card" style={{ maxWidth: 640, margin: '0 auto', padding: 28, textAlign: 'center' }}>
@@ -31,7 +42,7 @@ const ProtectedRoute = ({ children, requiredModule, adminOnly = false }) => {
     );
   }
 
-  if (!adminOnly && requiredModule && !canAccess(requiredModule)) {
+  if (!superAdminOnly && !adminOnly && requiredModule && !canAccess(requiredModule)) {
     return (
       <div className="page" style={{ minHeight: 'calc(100vh - 64px)', padding: '32px 20px' }}>
         <div className="card" style={{ maxWidth: 640, margin: '0 auto', padding: 28, textAlign: 'center' }}>

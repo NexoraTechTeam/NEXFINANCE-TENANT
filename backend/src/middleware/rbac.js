@@ -1,4 +1,5 @@
 const PERMISSIONS = {
+  super_admin: ['*'],
   admin:     ['*'],
   bendahara: ['dashboard', 'spp', 'payroll', 'expenses', 'accounting', 'reports', 'master', 'activity', 'notifications'],
   kabag:     ['dashboard', 'expenses', 'procurement', 'activity', 'notifications'],

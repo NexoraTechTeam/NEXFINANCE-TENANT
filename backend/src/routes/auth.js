@@ -6,7 +6,7 @@ const rbac = require('../middleware/rbac');
 const { users, getUserByEmail, logActivity } = require('../db');
 const router = express.Router();
 
-const VALID_ROLES = ['admin', 'bendahara', 'kabag', 'staff', 'auditor'];
+const VALID_ROLES = ['super_admin', 'admin', 'bendahara', 'kabag', 'staff', 'auditor'];
 
 const getRequestIp = (req) => (
   req.headers['x-forwarded-for']?.split(',')[0]?.trim()

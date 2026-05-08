@@ -12,6 +12,7 @@ export default function MasterStudents() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterClass, setFilterClass] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState(null); // 'create' | 'edit' | null
   const [editTarget, setEditTarget] = useState(null);
@@ -105,8 +106,9 @@ export default function MasterStudents() {
 
   const filtered = students.filter(s => {
     const matchClass = filterClass === 'all' || s.class === filterClass;
+    const matchStatus = statusFilter === 'all' || s.status === statusFilter;
     const matchSearch = !search || s.name?.toLowerCase().includes(search.toLowerCase()) || s.nis?.includes(search);
-    return matchClass && matchSearch;
+    return matchClass && matchStatus && matchSearch;
   });
 
   const classCounts = CLASSES.reduce((acc, cls) => {
@@ -115,10 +117,10 @@ export default function MasterStudents() {
   }, {});
 
   const statCards = [
-    { label: 'Total Siswa', value: students.length, icon: Users, color: 'var(--teal)', bg: '#EFF6F6' },
-    { label: 'Aktif', value: activeCount, icon: UserCheck, color: 'var(--green)', bg: '#D1FAE5' },
-    { label: 'Tidak Aktif', value: inactiveCount, icon: UserX, color: 'var(--red)', bg: '#FEE2E2' },
-    { label: 'Jumlah Kelas', value: CLASSES.length, icon: LayoutGrid, color: 'var(--blue)', bg: '#DBEAFE' },
+    { label: 'Total Siswa', value: students.length, icon: Users, color: 'var(--teal)', bg: '#EFF6F6', filter: 'all' },
+    { label: 'Aktif', value: activeCount, icon: UserCheck, color: 'var(--green)', bg: '#D1FAE5', filter: 'active' },
+    { label: 'Tidak Aktif', value: inactiveCount, icon: UserX, color: 'var(--red)', bg: '#FEE2E2', filter: 'inactive' },
+    { label: 'Jumlah Kelas', value: CLASSES.length, icon: LayoutGrid, color: 'var(--blue)', bg: '#DBEAFE', filter: 'all' },
   ];
 
   return (
@@ -159,7 +161,7 @@ export default function MasterStudents() {
           {statCards.map((c, i) => {
             const Icon = c.icon;
             return (
-              <div key={i} className="card anim-fadeup" style={{ padding: 20 }}>
+              <div key={i} className="card anim-fadeup card-hover" style={{ padding: 20, cursor: 'pointer' }} onClick={() => setStatusFilter(c.filter)}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ width: 42, height: 42, borderRadius: 10, background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Icon size={20} color={c.color} />
@@ -198,6 +200,17 @@ export default function MasterStudents() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
+            </div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {[['all', 'Semua Status'], ['active', 'Aktif'], ['inactive', 'Tidak Aktif']].map(([val, label]) => (
+                <button
+                  key={val}
+                  className={`btn btn-sm ${statusFilter === val ? 'btn-primary' : 'btn-ghost'}`}
+                  onClick={() => setStatusFilter(val)}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {[['all', 'Semua Kelas'], ...CLASSES.map(c => [c, `Kelas ${c}`])].map(([val, label]) => (

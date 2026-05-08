@@ -137,15 +137,15 @@ const SPPManagement = () => {
         {/* Stats */}
         <div style={S.statsGrid}>
           {[
-            { label: 'Total Invoice', value: invoices.length, color: '#41A9A9', icon: DollarSign },
-            { label: 'Sudah Lunas', value: paid.length, color: '#10B981', icon: CheckCircle },
-            { label: 'Belum Bayar', value: unpaid.length, color: '#F59E0B', icon: Clock },
-            { label: 'Collection Rate', value: rate + '%', color: '#3B82F6', icon: TrendingUp },
-            { label: 'Total Terkumpul', value: fmtShort(totalCollected), color: '#8B5CF6', icon: DollarSign },
+            { label: 'Total Invoice', value: invoices.length, color: '#41A9A9', icon: DollarSign, toFilter: 'all' },
+            { label: 'Sudah Lunas', value: paid.length, color: '#10B981', icon: CheckCircle, toFilter: 'paid' },
+            { label: 'Belum Bayar', value: unpaid.length, color: '#F59E0B', icon: Clock, toFilter: 'unpaid' },
+            { label: 'Collection Rate', value: rate + '%', color: '#3B82F6', icon: TrendingUp, toFilter: 'all' },
+            { label: 'Total Terkumpul', value: fmtShort(totalCollected), color: '#8B5CF6', icon: DollarSign, toFilter: 'paid' },
           ].map((s, i) => {
             const Icon = s.icon;
             return (
-              <div key={i} style={S.statCard(s.color)}>
+              <div key={i} style={{ ...S.statCard(s.color), cursor: 'pointer' }} onClick={() => setFilter(s.toFilter)}>
                 <div style={{ fontSize: '11px', fontWeight: '700', color: '#9CA3AF', textTransform: 'uppercase', marginBottom: '6px' }}>{s.label}</div>
                 <div style={{ fontSize: '22px', fontWeight: '800', color: '#2C3E50', marginBottom: '6px' }}>{s.value}</div>
                 <Icon size={18} color={s.color} style={{ opacity: 0.5 }} />

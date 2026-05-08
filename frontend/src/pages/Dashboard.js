@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -69,12 +70,14 @@ const Skeleton = ({ h = 20, w = '100%', r = 8 }) => (
 );
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [kpi, setKpi] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeBar, setActiveBar] = useState(null);
   const [activePie, setActivePie] = useState(null);
   const [chartMode, setChartMode] = useState('area'); // area | bar
   const [refreshing, setRefreshing] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -91,19 +94,24 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 992);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const kpiCards = kpi ? [
-    { label: 'Pendapatan Bulan Ini', value: IDR(kpi.monthRevenue), icon: DollarSign, color: '#41A9A9', bg: '#EFF6F6', trend: '+12%', up: true, sub: 'vs bulan lalu' },
-    { label: 'Collection SPP', value: kpi.collectionRate, icon: TrendingUp, color: '#10B981', bg: '#D1FAE5', trend: '+3.2%', up: true, sub: `${kpi.paidInvoices}/${kpi.totalInvoices} invoice lunas` },
-    { label: 'Saldo Kas & Bank', value: IDR(kpi.cashBalance), icon: Wallet, color: '#3B82F6', bg: '#DBEAFE', trend: '+8.4%', up: true, sub: 'Total aset likuid' },
-    { label: 'Item Perlu Aksi', value: kpi.pendingItems, icon: AlertCircle, color: '#F59E0B', bg: '#FEF3C7', trend: `-${kpi.pendingItems}`, up: false, sub: `${kpi.pendingExpenses} pengeluaran + ${kpi.pendingPR} PR` },
+    { label: 'Pendapatan Bulan Ini', value: IDR(kpi.monthRevenue), icon: DollarSign, color: '#41A9A9', bg: '#EFF6F6', trend: '+12%', up: true, sub: 'vs bulan lalu', to: '/reports' },
+    { label: 'Collection SPP', value: kpi.collectionRate, icon: TrendingUp, color: '#10B981', bg: '#D1FAE5', trend: '+3.2%', up: true, sub: `${kpi.paidInvoices}/${kpi.totalInvoices} invoice lunas`, to: '/spp' },
+    { label: 'Saldo Kas & Bank', value: IDR(kpi.cashBalance), icon: Wallet, color: '#3B82F6', bg: '#DBEAFE', trend: '+8.4%', up: true, sub: 'Total aset likuid', to: '/accounting' },
+    { label: 'Item Perlu Aksi', value: kpi.pendingItems, icon: AlertCircle, color: '#F59E0B', bg: '#FEF3C7', trend: `-${kpi.pendingItems}`, up: false, sub: `${kpi.pendingExpenses} pengeluaran + ${kpi.pendingPR} PR`, to: '/activity-logs' },
   ] : [];
 
   const infoCards = kpi ? [
-    { label: 'Total Siswa', value: kpi.totalStudents || 450, icon: Users, color: '#8B5CF6' },
-    { label: 'Total Karyawan', value: kpi.totalEmployees, icon: Users, color: '#41A9A9' },
-    { label: 'Total Invoice SPP', value: kpi.totalInvoices, icon: ClipboardList, color: '#10B981' },
-    { label: 'Pengeluaran Pending', value: kpi.pendingExpenses, icon: Activity, color: '#F59E0B' },
+    { label: 'Total Siswa', value: kpi.totalStudents || 450, icon: Users, color: '#8B5CF6', to: '/master/students' },
+    { label: 'Total Karyawan', value: kpi.totalEmployees, icon: Users, color: '#41A9A9', to: '/master/employees' },
+    { label: 'Total Invoice SPP', value: kpi.totalInvoices, icon: ClipboardList, color: '#10B981', to: '/spp' },
+    { label: 'Pengeluaran Pending', value: kpi.pendingExpenses, icon: Activity, color: '#F59E0B', to: '/expenses' },
   ] : [];
 
   const totalPend = monthly.reduce((s, m) => s + m.pendapatan, 0);
@@ -163,7 +171,7 @@ export default function Dashboard() {
             const Icon = c.icon;
             const Arrow = c.up ? ArrowUpRight : ArrowDownRight;
             return (
-              <div key={i} className="card card-hover anim-fadeup" style={{ padding: 22, cursor: 'default' }}>
+              <div key={i} className="card card-hover anim-fadeup" style={{ padding: 22, cursor: 'pointer' }} onClick={() => c.to && navigate(c.to)}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
                   <div style={{ background: c.bg, borderRadius: 10, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon size={18} color={c.color} />
@@ -186,7 +194,7 @@ export default function Dashboard() {
             {infoCards.map((c, i) => {
               const Icon = c.icon;
               return (
-                <div key={i} className="anim-fadeup" style={{ animationDelay: `${i * .05}s`, background: 'var(--card)', borderRadius: 10, padding: '12px 16px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div key={i} className="anim-fadeup card-hover" style={{ animationDelay: `${i * .05}s`, background: 'var(--card)', borderRadius: 10, padding: '12px 16px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }} onClick={() => c.to && navigate(c.to)}>
                   <div style={{ width: 32, height: 32, borderRadius: 8, background: c.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Icon size={15} color={c.color} />
                   </div>
@@ -201,7 +209,7 @@ export default function Dashboard() {
         )}
 
         {/* ── Charts Row 1 ───────────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: 16, marginBottom: 16 }}>
 
           {/* Revenue vs Beban — switchable */}
           <div className="card anim-fadeup" style={{ padding: 22 }}>
@@ -308,12 +316,12 @@ export default function Dashboard() {
           <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 14 }}>Ringkasan Keuangan YTD</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
             {[
-              ['Total Pendapatan', totalPend, '#10B981', '#D1FAE5'],
-              ['Total Beban', totalBeban, '#EF4444', '#FEE2E2'],
-              ['Surplus Bersih', totalLaba, '#41A9A9', '#EFF6F6'],
-              ['Margin Bersih', ((totalLaba / totalPend) * 100).toFixed(1) + '%', '#3B82F6', '#DBEAFE'],
-            ].map(([label, val, color, bg]) => (
-              <div key={label} style={{ background: bg, borderRadius: 10, padding: '14px 16px' }}>
+              ['Total Pendapatan', totalPend, '#10B981', '#D1FAE5', '/reports'],
+              ['Total Beban', totalBeban, '#EF4444', '#FEE2E2', '/expenses'],
+              ['Surplus Bersih', totalLaba, '#41A9A9', '#EFF6F6', '/accounting'],
+              ['Margin Bersih', ((totalLaba / totalPend) * 100).toFixed(1) + '%', '#3B82F6', '#DBEAFE', '/reports'],
+            ].map(([label, val, color, bg, to]) => (
+              <div key={label} className="card-hover" onClick={() => navigate(to)} style={{ background: bg, borderRadius: 10, padding: '14px 16px', cursor: 'pointer' }}>
                 <div style={{ fontSize: 10, fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '.4px', marginBottom: 6 }}>{label}</div>
                 <div style={{ fontSize: 18, fontWeight: 800, color }}>{typeof val === 'string' ? val : short(val)}</div>
               </div>
