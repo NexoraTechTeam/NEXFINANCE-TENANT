@@ -25,44 +25,193 @@ const Login = () => {
     }
   };
 
+  const styles = {
+    container: {
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #41A9A9 0%, #2C3E50 100%)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '20px',
+      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif'
+    },
+    wrapper: {
+      width: '100%',
+      maxWidth: '420px',
+    },
+    card: {
+      background: 'white',
+      borderRadius: '16px',
+      boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+      padding: '48px 32px',
+      position: 'relative',
+      overflow: 'hidden'
+    },
+    cardBefore: {
+      content: '""',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: '4px',
+      background: 'linear-gradient(90deg, #41A9A9 0%, #2C3E50 100%)',
+    },
+    header: {
+      textAlign: 'center',
+      marginBottom: '32px'
+    },
+    logo: {
+      fontSize: '32px',
+      fontWeight: '800',
+      background: 'linear-gradient(135deg, #41A9A9 0%, #2C3E50 100%)',
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+      backgroundClip: 'text',
+      margin: '0 0 8px 0'
+    },
+    subtitle: {
+      fontSize: '14px',
+      color: '#6B7280',
+      margin: '8px 0 0 0',
+      fontWeight: '500'
+    },
+    institution: {
+      fontSize: '12px',
+      color: '#41A9A9',
+      marginTop: '4px',
+      fontWeight: '600',
+      letterSpacing: '0.5px'
+    },
+    errorBox: {
+      background: '#FEE2E2',
+      color: '#991B1B',
+      padding: '12px 16px',
+      borderRadius: '8px',
+      marginBottom: '24px',
+      fontSize: '13px',
+      lineHeight: '1.5',
+      border: '1px solid #FECACA'
+    },
+    form: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '20px'
+    },
+    formGroup: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '8px'
+    },
+    label: {
+      fontSize: '13px',
+      fontWeight: '600',
+      color: '#2C3E50',
+      textTransform: 'uppercase',
+      letterSpacing: '0.3px'
+    },
+    input: {
+      padding: '12px 16px',
+      border: '2px solid #E5E7EB',
+      borderRadius: '8px',
+      fontSize: '14px',
+      fontFamily: 'inherit',
+      transition: 'all 0.3s ease',
+      outline: 'none',
+    },
+    inputFocus: {
+      borderColor: '#41A9A9',
+      boxShadow: '0 0 0 3px rgba(65, 169, 169, 0.1)',
+    },
+    button: {
+      padding: '13px 20px',
+      background: 'linear-gradient(135deg, #41A9A9 0%, #2C3E50 100%)',
+      color: 'white',
+      border: 'none',
+      borderRadius: '8px',
+      fontSize: '14px',
+      fontWeight: '700',
+      cursor: 'pointer',
+      transition: 'all 0.3s ease',
+      marginTop: '8px',
+      boxShadow: '0 4px 12px rgba(65, 169, 169, 0.3)',
+      textTransform: 'uppercase',
+      letterSpacing: '0.5px'
+    },
+    buttonHover: {
+      transform: 'translateY(-2px)',
+      boxShadow: '0 6px 20px rgba(65, 169, 169, 0.4)',
+    },
+    buttonDisabled: {
+      opacity: 0.6,
+      cursor: 'not-allowed',
+      transform: 'none'
+    },
+    footer: {
+      textAlign: 'center',
+      marginTop: '24px',
+      fontSize: '12px',
+      color: '#6B7280',
+      lineHeight: '1.6'
+    },
+    demoBox: {
+      background: '#F0FDFA',
+      border: '1px solid #CCFBF1',
+      borderRadius: '8px',
+      padding: '12px 16px',
+      marginTop: '16px',
+      fontSize: '12px',
+      color: '#0F766E',
+    }
+  };
+
+  const [inputFocus, setInputFocus] = useState({ email: false, password: false });
+
+  const getInputStyle = (field) => ({
+    ...styles.input,
+    ...(inputFocus[field] ? styles.inputFocus : {})
+  });
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-500 via-blue-500 to-blue-600 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-lg shadow-2xl p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">NexFinance</h1>
-            <p className="text-gray-600 text-sm mt-2">Al-Musabbihin Finance System</p>
+    <div style={styles.container}>
+      <div style={styles.wrapper}>
+        <div style={styles.card}>
+          <div style={{...styles.card, ...styles.cardBefore, padding: 0, boxShadow: 'none', background: 'linear-gradient(90deg, #41A9A9 0%, #2C3E50 100%)', height: '4px'}}></div>
+          
+          <div style={styles.header}>
+            <div style={styles.logo}>NexFinance</div>
+            <div style={styles.subtitle}>Al-Musabbihin Finance System</div>
+            <div style={styles.institution}>Sekolah Islam Terpadu Al-Musabbihin</div>
           </div>
 
           {error && (
-            <div className="bg-red-50 text-red-700 p-3 rounded mb-6 text-sm">
-              {error}
+            <div style={styles.errorBox}>
+              ⚠️ {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
-              </label>
+          <form onSubmit={handleSubmit} style={styles.form}>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>📧 Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                onFocus={() => setInputFocus({ ...inputFocus, email: true })}
+                onBlur={() => setInputFocus({ ...inputFocus, email: false })}
+                style={getInputStyle('email')}
                 placeholder="admin@nexfinance.com"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>🔐 Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                onFocus={() => setInputFocus({ ...inputFocus, password: true })}
+                onBlur={() => setInputFocus({ ...inputFocus, password: false })}
+                style={getInputStyle('password')}
                 placeholder="••••••••"
               />
             </div>
@@ -70,15 +219,24 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-teal-600 hover:bg-teal-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition"
+              onMouseEnter={(e) => !loading && Object.assign(e.target.style, styles.buttonHover)}
+              onMouseLeave={(e) => !loading && Object.assign(e.target.style, {transform: 'none'})}
+              style={{...styles.button, ...(loading ? styles.buttonDisabled : {})}}
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? '⏳ Signing in...' : '✓ Sign In'}
             </button>
           </form>
 
-          <p className="text-center text-gray-600 text-xs mt-6">
-            Demo: admin@nexfinance.com / admin123
-          </p>
+          <div style={styles.footer}>
+            <div style={styles.demoBox}>
+              <strong>Demo Account:</strong><br/>
+              Email: admin@nexfinance.com<br/>
+              Password: admin123
+            </div>
+            <div style={{marginTop: '16px', fontSize: '11px', color: '#9CA3AF'}}>
+              © 2026 NexFinance. All rights reserved.
+            </div>
+          </div>
         </div>
       </div>
     </div>
