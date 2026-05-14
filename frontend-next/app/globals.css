@@ -1,0 +1,201 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Teal accent */
+    --teal-500: #319ea9;
+    --teal-600: #278a94;
+    --teal-50:  #f0fafb;
+    --teal-100: #d5f0f3;
+
+    /* Layout */
+    --bg:      #f4f6f8;
+    --bg-2:    #eaecf0;
+    --card:    #ffffff;
+    --border:  #dde1e7;
+    --border-2:#c5cad3;
+
+    /* Text — kontras tinggi */
+    --text:    #111827;
+    --text-2:  #374151;
+    --text-3:  #4b5563;
+    --text-4:  #6b7280;
+
+    /* Sidebar */
+    --sidebar-bg:     #1e3a47;
+    --sidebar-text:   rgba(255,255,255,0.80);
+    --sidebar-active: rgba(49,158,169,0.28);
+    --sidebar-hover:  rgba(255,255,255,0.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    font-family: 'Inter', Arial, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    min-height: 100vh;
+    font-size: 15px;           /* naik dari 14px */
+    line-height: 1.65;         /* lebih longgar */
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar { width: 7px; height: 7px; }
+  ::-webkit-scrollbar-track { background: var(--bg-2); }
+  ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 99px; }
+}
+
+@layer components {
+  /* ── Card ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .card-hover {
+    transition: transform 200ms ease, box-shadow 200ms ease;
+    cursor: pointer;
+  }
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+  }
+
+  /* ── Sidebar nav link ── */
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 11px 16px;          /* lebih tinggi — mudah diklik */
+    border-radius: 10px;
+    font-size: 14.5px;           /* naik dari 13.5px */
+    color: var(--sidebar-text);
+    cursor: pointer;
+    transition: background-color 160ms ease, color 160ms ease;
+    text-decoration: none;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    font-weight: 500;
+    min-height: 44px;            /* touch target minimum */
+  }
+  .nav-link:hover { background: var(--sidebar-hover); color: #fff; }
+  .nav-link-active {
+    background: var(--sidebar-active) !important;
+    color: #fff !important;
+    border-left: 3px solid var(--teal-500);
+    padding-left: 13px;
+  }
+
+  /* ── Stat strip ── */
+  .stat-strip {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;          /* lebih longgar */
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: transform 200ms ease, box-shadow 200ms ease;
+    cursor: pointer;
+    min-height: 72px;
+  }
+  .stat-strip:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.09);
+  }
+
+  /* ── Glass input (login) ── */
+  .glass-input {
+    width: 100%;
+    padding: 13px 18px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 12px;
+    color: #fff;
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    min-height: 48px;
+  }
+  .glass-input::placeholder { color: rgba(255,255,255,0.4); }
+  .glass-input:focus {
+    border-color: rgba(255,255,255,0.65);
+    box-shadow: 0 0 0 4px rgba(49,158,169,0.22);
+    background: rgba(255,255,255,0.12);
+  }
+
+  /* ── Glass card (login) ── */
+  .glass-card {
+    background: rgba(255,255,255,0.11);
+    border: 1px solid rgba(255,255,255,0.20);
+    border-radius: 18px;
+    box-shadow: inset 0 0 40px rgba(255,255,255,0.04);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  /* ── Button teal (login) ── */
+  .btn-teal {
+    width: 100%;
+    padding: 14px 20px;
+    background: var(--teal-500);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    min-height: 48px;
+    transition: background-color 180ms ease, transform 180ms ease;
+  }
+  .btn-teal:hover:not(:disabled) { background: var(--teal-600); transform: translateY(-1px); }
+  .btn-teal:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  /* ── Chart tooltip ── */
+  .chart-tooltip {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;             /* naik dari 12px */
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    line-height: 1.6;
+  }
+  .chart-tooltip-title { font-weight: 700; color: var(--text); margin-bottom: 8px; font-size: 13px; }
+  .chart-tooltip-row { display: flex; justify-content: space-between; gap: 20px; margin-top: 4px; }
+  .chart-tooltip-label { color: var(--text-3); }
+  .chart-tooltip-value { font-weight: 700; color: var(--text); }
+
+  /* ── Skeleton ── */
+  .skeleton {
+    background: var(--bg-2);
+    border-radius: 6px;
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.45; }
+  }
+
+  /* ── Animations ── */
+  .anim-fadeup { animation: fadeUp 0.32s ease both; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .anim-scalein { animation: scaleIn 0.18s ease both; }
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+}
