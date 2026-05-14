@@ -79,7 +79,7 @@ export default function SPPPage() {
   ];
 
   return (
-    <div style={{ maxWidth: 1300, margin: '0 auto' }}>
+    <div style={{ maxWidth: 1300, margin: '0 auto', width: '100%' }}>
       {/* Toast */}
       {toast && (
         <div className={`toast ${toast.ok ? 'toast-success' : 'toast-error'}`}>
@@ -176,13 +176,13 @@ export default function SPPPage() {
           </div>
         ) : (
           <div className="table-wrapper">
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 560 }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
                   {['ID Invoice', 'Nama Siswa', 'Kelas', 'Bulan', 'Jumlah', 'Jatuh Tempo', 'Status', 'Aksi'].map(h => (
                     <th
                       key={h}
-                      className={h === 'Kelas' || h === 'Jatuh Tempo' ? 'spp-col-hide' : ''}
+                      className={h === 'Kelas' || h === 'Jatuh Tempo' || h === 'ID Invoice' ? 'spp-col-hide' : ''}
                       style={{ padding: '12px 16px', textAlign: 'left', fontSize: 13, fontWeight: 600, color: 'var(--text-3)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap' }}
                     >{h}</th>
                   ))}
@@ -195,7 +195,7 @@ export default function SPPPage() {
                     className="spp-table-row"
                     style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? '#fff' : '#fafbfc', transition: 'background 150ms' }}
                   >
-                    <td style={{ padding: '14px 16px' }}>
+                    <td className="spp-col-hide" style={{ padding: '14px 16px' }}>
                       <span style={{ background: '#f0fafb', color: '#319ea9', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, fontFamily: 'monospace' }}>{inv.id}</span>
                     </td>
                     <td style={{ padding: '14px 16px', fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{inv.studentName}</td>
@@ -362,6 +362,16 @@ export default function SPPPage() {
         /* ── SPP: Stat grid — 5 cards, auto-fill min 150px ── */
         .spp-stat-grid {
           grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+        @media (max-width: 900px) {
+          .spp-stat-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
+        @media (max-width: 480px) {
+          .spp-stat-grid {
+            grid-template-columns: 1fr;
+          }
         }
 
         /* ── SPP: Filter scroll bar ── */

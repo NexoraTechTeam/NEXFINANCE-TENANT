@@ -142,15 +142,6 @@ export default function LoginPage() {
         </section>
 
         <section className="glass-card auth-panel anim-fadeup">
-          {/* Compact brand header — visible only on mobile ≤560px */}
-          <div className="auth-mobile-brand" aria-hidden="true">
-            <div className="auth-brand-mark auth-brand-mark-small">NF</div>
-            <div>
-              <div className="auth-panel-brand-name">NexFinance</div>
-              <div className="auth-panel-brand-subtitle">Al-Musabbihin • SIT</div>
-            </div>
-          </div>
-
           <div className="auth-panel-top">
             <div className="auth-panel-brand">
               <div className="auth-brand-mark auth-brand-mark-small">NF</div>
@@ -351,16 +342,6 @@ export default function LoginPage() {
           position: relative;
           z-index: 1;
           max-width: 760px;
-        }
-
-        /* ── Compact mobile brand header (≤560px) ── */
-        .auth-mobile-brand {
-          display: none;
-          align-items: center;
-          gap: 12px;
-          padding: 20px 0 16px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-          margin-bottom: 20px;
         }
 
         /* ── Badge ── */
@@ -844,14 +825,10 @@ export default function LoginPage() {
           }
         }
 
-        /* ── Breakpoint: mobile (≤560px) — compact brand header instead of hiding showcase ── */
+        /* ── Breakpoint: mobile (≤560px) ── */
         @media (max-width: 560px) {
           .auth-showcase {
             display: none;
-          }
-
-          .auth-mobile-brand {
-            display: flex;
           }
 
           .auth-panel {

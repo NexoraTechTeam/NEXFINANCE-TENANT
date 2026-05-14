@@ -195,7 +195,7 @@ export default function RoleAccessPage() {
                     <td style={{ padding: '11px 14px' }}><span className="badge badge-info">{ROLE_LABELS[u.role] || u.role}</span></td>
                     <td style={{ padding: '11px 14px' }}>
                       <select
-                        className="form-select"
+                        className="form-select access-role-select"
                         style={{ minWidth: 140 }}
                         value={u.role}
                         disabled={!isSuperAdmin || submittingRole === u.id || u.id === currentUserId}
@@ -308,6 +308,15 @@ export default function RoleAccessPage() {
           </div>
         )}
       </div>
+
+      <style jsx global>{`
+        @media (max-width: 640px) {
+          .access-role-select {
+            min-width: 120px !important;
+            width: 100% !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

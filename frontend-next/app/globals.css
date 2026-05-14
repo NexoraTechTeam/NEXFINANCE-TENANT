@@ -61,6 +61,9 @@
     color: var(--text);
     background: var(--bg);
     min-height: 100vh;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
     font-size: 15px;
     line-height: 1.65;
     -webkit-font-smoothing: antialiased;
@@ -103,6 +106,7 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
+    min-width: 0;
     transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
   }
   .card-hover {
@@ -307,6 +311,7 @@
   /* ── Mobile header ── */
   .mobile-header {
     display: none;
+    width: 100%;
     height: var(--header-height);
     background:
       linear-gradient(135deg, rgba(29, 55, 68, 0.98) 0%, rgba(24, 45, 56, 0.98) 100%);
@@ -391,9 +396,15 @@
   .dashboard-main {
     margin-left: var(--sidebar-width);
     flex: 1;
+    width: 100%;
+    min-width: 0;
     padding: 28px;
     min-height: 100vh;
     background: var(--bg);
+  }
+  .dashboard-main > * {
+    max-width: 100%;
+    min-width: 0;
   }
   @media (max-width: 768px) {
     .dashboard-main { margin-left: 0; padding: 18px 14px 28px; }
