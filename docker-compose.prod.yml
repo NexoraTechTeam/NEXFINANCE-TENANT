@@ -18,13 +18,11 @@ services:
       timeout: 10s
       retries: 3
 
-  # ─── Frontend (React → Nginx) ─────────────────────────
+  # ─── Frontend (Next.js) ───────────────────────────────────
   frontend:
     build:
-      context: ./frontend
+      context: ./frontend-next
       dockerfile: Dockerfile
-      args:
-        REACT_APP_API_URL: /api/v1
     container_name: nexfinance-frontend
     restart: unless-stopped
     depends_on:
@@ -37,7 +35,7 @@ services:
       - "traefik.http.routers.nexfinance.rule=Host(`nexfinance.nexoratech.co`)"
       - "traefik.http.routers.nexfinance.entrypoints=websecure"
       - "traefik.http.routers.nexfinance.tls.certresolver=myresolver"
-      - "traefik.http.services.nexfinance.loadbalancer.server.port=80"
+      - "traefik.http.services.nexfinance.loadbalancer.server.port=3000"
       # HTTP → HTTPS redirect
       - "traefik.http.routers.nexfinance-http.rule=Host(`nexfinance.nexoratech.co`)"
       - "traefik.http.routers.nexfinance-http.entrypoints=web"
