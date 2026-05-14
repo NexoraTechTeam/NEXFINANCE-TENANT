@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { FileText, TrendingUp, BarChart2, Download } from 'lucide-react';
+import { FileText, TrendingUp, BarChart2, Download, ExternalLink } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { downloadFinancialReportPdf, type MonthlyFinancialRow } from '@/lib/report-pdf';
 
 const fmt = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n || 0);
 const short = (n: number) => n >= 1e6 ? `Rp ${(n / 1e6).toFixed(1)}Jt` : `Rp ${(n / 1e3).toFixed(0)}K`;
 
-const monthly = [
+const monthly: MonthlyFinancialRow[] = [
   { bulan:'Jan', pendapatan:65_000_000, beban:42_000_000, surplus:23_000_000 },
   { bulan:'Feb', pendapatan:68_000_000, beban:44_000_000, surplus:24_000_000 },
   { bulan:'Mar', pendapatan:72_000_000, beban:43_000_000, surplus:29_000_000 },
@@ -28,15 +29,46 @@ const balanceSheet = {
   ],
 };
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const incomeRows = [
+  { label: 'SPP Siswa', amount: 285_000_000 },
+  { label: 'Donasi & Infaq', amount: 58_000_000 },
+  { label: 'Lain-lain', amount: 15_000_000 },
+];
+
+const expenseRows = [
+  { label: 'Gaji & Honor', amount: 185_000_000 },
+  { label: 'Operasional', amount: 57_000_000 },
+  { label: 'Pemeliharaan', amount: 28_500_000 },
+  { label: 'Utilitas & Lain', amount: 23_500_000 },
+];
+
+const reportTabs = [
+  { value: 'income', label: 'Laba Rugi', icon: FileText },
+  { value: 'balance', label: 'Neraca', icon: BarChart2 },
+  { value: 'cashflow', label: 'Tren Bulanan', icon: TrendingUp },
+] as const;
+
+interface ChartTooltipEntry {
+  color?: string;
+  name?: string;
+  value?: number;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: ChartTooltipEntry[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="chart-tooltip">
       <div className="chart-tooltip-title">{label}</div>
-      {payload.map((p: any, i: number) => (
+      {payload.map((p, i) => (
         <div key={i} className="chart-tooltip-row">
           <span className="chart-tooltip-label" style={{ color: p.color }}>{p.name}</span>
-          <span className="chart-tooltip-value">{short(p.value)}</span>
+          <span className="chart-tooltip-value">{short(p.value || 0)}</span>
         </div>
       ))}
     </div>
@@ -45,6 +77,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState<'income'|'balance'|'cashflow'>('income');
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [exportError, setExportError] = useState('');
 
   const totalPendapatan = monthly.reduce((s, m) => s + m.pendapatan, 0);
   const totalBeban      = monthly.reduce((s, m) => s + m.beban, 0);
@@ -56,6 +90,30 @@ export default function ReportsPage() {
   const equity           = totalAssets - totalLiabilities;
 
   const axisStyle = { fontSize: 13, fill: '#6b7280' };
+  const activeTabLabel = reportTabs.find((tab) => tab.value === activeTab)?.label || 'Laporan';
+
+  const handleDownloadPdf = async () => {
+    setDownloadingPdf(true);
+    setExportError('');
+
+    try {
+      await downloadFinancialReportPdf({
+        year: 2026,
+        schoolName: 'Sekolah Islam Terpadu Al-Musabbihin',
+        reportName: 'Laporan Keuangan NexFinance',
+        activeTabLabel,
+        monthly,
+        income: incomeRows,
+        expenses: expenseRows,
+        balanceSheet,
+      });
+    } catch (error) {
+      console.error(error);
+      setExportError('PDF belum berhasil dibuat. Silakan coba lagi beberapa saat lagi.');
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
 
   return (
     <div style={{ maxWidth: 1300, margin: '0 auto' }}>
@@ -74,17 +132,52 @@ export default function ReportsPage() {
           <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px', marginBottom: 5 }}>Laporan Keuangan</h1>
           <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Laba rugi, neraca, dan arus kas — Tahun 2026</p>
         </div>
-        <button style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8,
-          padding: '11px 20px', borderRadius: 10,
-          background: 'linear-gradient(135deg, #3B82F6, #2563eb)',
-          color: '#fff', border: 'none', fontSize: 14, fontWeight: 600,
-          cursor: 'pointer', minHeight: 44,
-          boxShadow: '0 4px 14px rgba(59,130,246,0.30)',
-        }}>
-          <Download size={16} strokeWidth={1.8} /> Unduh PDF
-        </button>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'flex-end' }}>
+          <a
+            href="/docs/nexfinance-export-guidance.pdf"
+            target="_blank"
+            rel="noreferrer"
+            className="btn-secondary"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <ExternalLink size={16} strokeWidth={1.8} />
+            Panduan PDF
+          </a>
+          <button
+            type="button"
+            onClick={handleDownloadPdf}
+            disabled={downloadingPdf}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '11px 20px', borderRadius: 14,
+              background: 'linear-gradient(135deg, #3B82F6, #2563eb)',
+              color: '#fff', border: 'none', fontSize: 14, fontWeight: 700,
+              cursor: downloadingPdf ? 'wait' : 'pointer', minHeight: 46,
+              boxShadow: '0 18px 30px rgba(59,130,246,0.22)',
+            }}
+          >
+            <Download size={16} strokeWidth={1.8} />
+            {downloadingPdf ? 'Menyusun PDF...' : 'Unduh PDF'}
+          </button>
+        </div>
       </div>
+
+      {exportError && (
+        <div
+          role="alert"
+          style={{
+            marginBottom: 16,
+            padding: '12px 14px',
+            borderRadius: 14,
+            background: 'rgba(239,68,68,0.08)',
+            border: '1px solid rgba(239,68,68,0.18)',
+            color: '#b91c1c',
+            fontSize: 13,
+          }}
+        >
+          {exportError}
+        </div>
+      )}
 
       {/* Summary KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px,1fr))', gap: 14, marginBottom: 24 }}>
@@ -103,15 +196,11 @@ export default function ReportsPage() {
 
       {/* Tab Navigation */}
       <div className="tab-bar">
-        {([
-          ['income',   'Laba Rugi',    FileText],
-          ['balance',  'Neraca',       BarChart2],
-          ['cashflow', 'Tren Bulanan', TrendingUp],
-        ] as [string, string, any][]).map(([val, label, Icon]) => (
+        {reportTabs.map(({ value, label, icon: Icon }) => (
           <button
-            key={val}
-            onClick={() => setActiveTab(val as 'income'|'balance'|'cashflow')}
-            className={`tab-btn${activeTab === val ? ' tab-btn-active' : ''}`}
+            key={value}
+            onClick={() => setActiveTab(value)}
+            className={`tab-btn${activeTab === value ? ' tab-btn-active' : ''}`}
           >
             <Icon size={16} strokeWidth={1.8} /> {label}
           </button>
@@ -127,16 +216,11 @@ export default function ReportsPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
               {([
                 ['PENDAPATAN',      '',               '',        'header'],
-                ['SPP Siswa',        285_000_000,     '#10B981', ''],
-                ['Donasi & Infaq',   58_000_000,      '#10B981', ''],
-                ['Lain-lain',        15_000_000,      '#10B981', ''],
+                ...incomeRows.map((item) => [item.label, item.amount, '#10B981', ''] as [string, number, string, string]),
                 ['Total Pendapatan', totalPendapatan, '#10B981', 'total'],
                 ['',                 '',               '',        'spacer'],
                 ['BEBAN',           '',               '',        'header'],
-                ['Gaji & Honor',     185_000_000,     '#EF4444', ''],
-                ['Operasional',      57_000_000,      '#EF4444', ''],
-                ['Pemeliharaan',     28_500_000,      '#EF4444', ''],
-                ['Utilitas & Lain',  23_500_000,      '#EF4444', ''],
+                ...expenseRows.map((item) => [item.label, item.amount, '#EF4444', ''] as [string, number, string, string]),
                 ['Total Beban',      totalBeban,      '#EF4444', 'total'],
                 ['',                 '',               '',        'spacer'],
                 ['SURPLUS BERSIH',   totalSurplus,    '#319ea9', 'final'],
@@ -180,7 +264,7 @@ export default function ReportsPage() {
           <div className="card" style={{ padding: 24 }}>
             <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 20 }}>Tren Surplus Bulanan</div>
             <div className="reports-chart" style={{ height: 300 }}>
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
                 <LineChart data={monthly}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" />
                   <XAxis dataKey="bulan" tick={axisStyle} axisLine={false} tickLine={false} />
@@ -249,7 +333,7 @@ export default function ReportsPage() {
         <div className="card anim-fadeup" style={{ padding: 24 }}>
           <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 20 }}>Tren Keuangan Bulanan — 2026</div>
           <div className="reports-chart-tall" style={{ height: 340 }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={340}>
               <BarChart data={monthly} barGap={4}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" />
                 <XAxis dataKey="bulan" tick={axisStyle} axisLine={false} tickLine={false} />
