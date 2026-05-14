@@ -3,20 +3,25 @@
 import { useRouter, usePathname } from 'next/navigation';
 import {
   LayoutDashboard, CreditCard, Users, DollarSign,
-  ShoppingCart, BookOpen, FileText, LogOut,
+  ShoppingCart, BookOpen, FileText, LogOut, X,
 } from 'lucide-react';
 
 const NAV = [
-  { label: 'Dashboard',  icon: LayoutDashboard, href: '/dashboard' },
-  { label: 'SPP',        icon: CreditCard,       href: '/dashboard/spp' },
-  { label: 'Penggajian', icon: Users,            href: '/dashboard/payroll' },
-  { label: 'Pengeluaran',icon: DollarSign,       href: '/dashboard/expenses' },
-  { label: 'Pengadaan',  icon: ShoppingCart,     href: '/dashboard/procurement' },
-  { label: 'Akuntansi',  icon: BookOpen,         href: '/dashboard/accounting' },
-  { label: 'Laporan',    icon: FileText,         href: '/dashboard/reports' },
+  { label: 'Dashboard',   icon: LayoutDashboard, href: '/dashboard' },
+  { label: 'SPP',         icon: CreditCard,      href: '/dashboard/spp' },
+  { label: 'Penggajian',  icon: Users,           href: '/dashboard/payroll' },
+  { label: 'Pengeluaran', icon: DollarSign,      href: '/dashboard/expenses' },
+  { label: 'Pengadaan',   icon: ShoppingCart,    href: '/dashboard/procurement' },
+  { label: 'Akuntansi',   icon: BookOpen,        href: '/dashboard/accounting' },
+  { label: 'Laporan',     icon: FileText,        href: '/dashboard/reports' },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const router   = useRouter();
   const pathname = usePathname();
 
@@ -27,27 +32,69 @@ export default function Sidebar() {
     router.push('/login');
   };
 
+  const handleNav = (href: string) => {
+    router.push(href);
+    onClose();
+  };
+
   return (
-    <aside style={{
-      width: 230,
-      minHeight: '100vh',
-      background: 'var(--sidebar-bg)',
-      borderRight: '1px solid rgba(255,255,255,0.07)',
-      display: 'flex',
-      flexDirection: 'column',
-      padding: '22px 12px',
-      position: 'fixed',
-      top: 0, left: 0, bottom: 0,
-      zIndex: 10,
-    }}>
-      {/* Logo */}
-      <div style={{ padding: '4px 8px 22px', borderBottom: '1px solid rgba(255,255,255,0.10)', marginBottom: 16 }}>
-        <div style={{ fontSize: 17, fontWeight: 800, color: '#fff', letterSpacing: '-0.3px' }}>
-          NexFinance
+    <aside
+      className={`sidebar-container ${isOpen ? 'open' : ''}`}
+      style={{
+        background: 'var(--sidebar-bg)',
+        borderRight: '1px solid rgba(255,255,255,0.07)',
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '22px 12px',
+      }}
+    >
+      {/* Logo area */}
+      <div style={{
+        padding: '4px 8px 20px',
+        marginBottom: 14,
+        borderBottom: '1px solid rgba(255,255,255,0.10)',
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        gap: 8,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* NF badge */}
+          <div style={{
+            width: 36,
+            height: 36,
+            borderRadius: 10,
+            background: 'linear-gradient(135deg, var(--teal-500) 0%, #278a94 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 13,
+            fontWeight: 800,
+            color: '#fff',
+            letterSpacing: '0.5px',
+            flexShrink: 0,
+            boxShadow: '0 2px 8px rgba(49,158,169,0.35)',
+          }}>
+            NF
+          </div>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', letterSpacing: '-0.3px', lineHeight: 1.2 }}>
+              NexFinance
+            </div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 3 }}>
+              Al-Musabbihin · SIT
+            </div>
+          </div>
         </div>
-        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginTop: 4 }}>
-          Al-Musabbihin · SIT
-        </div>
+
+        {/* Close button — visible only on mobile via CSS */}
+        <button
+          onClick={onClose}
+          className="sidebar-close-btn"
+          aria-label="Close navigation"
+        >
+          <X size={16} strokeWidth={2} />
+        </button>
       </div>
 
       {/* Nav */}
@@ -57,18 +104,79 @@ export default function Sidebar() {
           return (
             <button
               key={href}
-              onClick={() => router.push(href)}
+              onClick={() => handleNav(href)}
               className={`nav-link ${active ? 'nav-link-active' : ''}`}
+              style={{ position: 'relative' }}
             >
-              <Icon size={18} strokeWidth={1.8} />   {/* naik dari 16 */}
-              {label}
+              <Icon size={18} strokeWidth={1.8} />
+              <span style={{ flex: 1 }}>{label}</span>
+              {/* Active dot indicator */}
+              {active && (
+                <span style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: 'var(--teal-500)',
+                  flexShrink: 0,
+                  boxShadow: '0 0 6px rgba(49,158,169,0.70)',
+                }} />
+              )}
             </button>
           );
         })}
       </nav>
 
-      {/* Logout */}
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 10, marginTop: 8 }}>
+      {/* User profile */}
+      <div style={{
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+        paddingTop: 14,
+        marginTop: 8,
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '8px 10px 12px',
+        }}>
+          {/* Avatar */}
+          <div style={{
+            width: 34,
+            height: 34,
+            borderRadius: 9,
+            background: 'linear-gradient(135deg, rgba(49,158,169,0.55) 0%, rgba(39,138,148,0.55) 100%)',
+            border: '1.5px solid rgba(49,158,169,0.40)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 12,
+            fontWeight: 700,
+            color: '#fff',
+            flexShrink: 0,
+          }}>
+            AD
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{
+              fontSize: 13,
+              fontWeight: 700,
+              color: '#fff',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}>
+              Administrator
+            </div>
+            <div style={{
+              fontSize: 11,
+              color: 'rgba(255,255,255,0.40)',
+              marginTop: 1,
+            }}>
+              Super Admin
+            </div>
+          </div>
+        </div>
+
+        {/* Logout */}
         <button
           onClick={handleLogout}
           className="nav-link"
