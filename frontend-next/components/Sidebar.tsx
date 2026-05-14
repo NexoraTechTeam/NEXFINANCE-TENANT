@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import {
   LayoutDashboard, CreditCard, Users, DollarSign,
-  ShoppingCart, BookOpen, FileText, LogOut, Sparkles, X,
+  ShoppingCart, BookOpen, FileText, LogOut, Sparkles, X, UserCog, UserRound, ClipboardList, History,
 } from 'lucide-react';
 
 const NAV = [
@@ -15,6 +15,10 @@ const NAV = [
   { label: 'Pengadaan',   icon: ShoppingCart,    href: '/dashboard/procurement' },
   { label: 'Akuntansi',   icon: BookOpen,        href: '/dashboard/accounting' },
   { label: 'Laporan',     icon: FileText,        href: '/dashboard/reports' },
+  { label: 'Log Historis', icon: History,        href: '/dashboard/activity-logs' },
+  { label: 'Master Siswa', icon: UserRound,      href: '/dashboard/master/students' },
+  { label: 'Master Karyawan', icon: ClipboardList, href: '/dashboard/master/employees' },
+  { label: 'Role & Akses', icon: UserCog,        href: '/dashboard/master/access' },
 ];
 
 interface SidebarProps {
@@ -158,7 +162,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Nav */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1 }}>
         {NAV.map(({ label, icon: Icon, href }) => {
-          const active = pathname === href;
+          const active = href === '/dashboard' ? pathname === href : pathname.startsWith(href);
           return (
             <button
               key={href}

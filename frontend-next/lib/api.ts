@@ -28,6 +28,7 @@ api.interceptors.response.use(
 export const authService = {
   login: (email: string, password: string) => api.post('/auth/login', { email, password }),
   me: () => api.get('/auth/me'),
+  getPermissions: () => api.get('/auth/permissions'),
 };
 
 export const dashboardService = {
@@ -66,12 +67,36 @@ export const accountingService = {
   getChartOfAccounts: () => api.get('/accounting/chart-of-accounts'),
   createJournal: (data: any) => api.post('/accounting/journals', data),
   getJournals: () => api.get('/accounting/journals'),
+  getBalanceSheet: () => api.get('/accounting/reports/balance-sheet'),
+  getIncomeStatement: () => api.get('/accounting/reports/income-statement'),
 };
 
 export const reportsService = {
   getFinancialReport: () => api.get('/reports/financial'),
   getBalanceSheet: () => api.get('/reports/balance-sheet'),
   getIncomeStatement: () => api.get('/reports/income-statement'),
+};
+
+export const masterService = {
+  getStudents: (params?: Record<string, string>) => api.get('/master/students', { params }),
+  createStudent: (data: any) => api.post('/master/students', data),
+  updateStudent: (id: string, data: any) => api.put(`/master/students/${id}`, data),
+  deleteStudent: (id: string) => api.delete(`/master/students/${id}`),
+  getEmployees: () => api.get('/master/employees'),
+  createEmployee: (data: any) => api.post('/master/employees', data),
+  updateEmployee: (id: string, data: any) => api.put(`/master/employees/${id}`, data),
+  deleteEmployee: (id: string) => api.delete(`/master/employees/${id}`),
+  getUsers: () => api.get('/master/users'),
+  updateUserRole: (id: string, role: string) => api.patch(`/master/users/${id}/role`, { role }),
+  getRolePermissions: () => api.get('/master/role-permissions'),
+  updateRolePermissions: (role: string, permissions: string[]) =>
+    api.patch(`/master/role-permissions/${role}`, { permissions }),
+};
+
+export const activityService = {
+  getLogs: (params?: Record<string, string | number>) => api.get('/activity', { params }),
+  getStats: () => api.get('/activity/stats'),
+  clearOldLogs: () => api.delete('/activity/clear'),
 };
 
 export default api;

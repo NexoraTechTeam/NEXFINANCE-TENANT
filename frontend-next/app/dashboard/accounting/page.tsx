@@ -5,10 +5,27 @@ import { accountingService } from '@/lib/api';
 import { BookOpen, Plus, List, X } from 'lucide-react';
 
 const fmt = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n || 0);
+const normalBalanceByType: Record<string, 'Debit' | 'Kredit'> = {
+  Asset: 'Debit',
+  Expense: 'Debit',
+  Liability: 'Kredit',
+  Equity: 'Kredit',
+  Revenue: 'Kredit',
+};
+
+type AccountItem = { code: string; name: string; type: string; normalBalance: 'Debit' | 'Kredit' };
+type JournalItem = {
+  id: string;
+  date?: string;
+  description?: string;
+  debitAccount: string;
+  creditAccount: string;
+  amount: number;
+};
 
 export default function AccountingPage() {
-  const [accounts, setAccounts]   = useState<any[]>([]);
-  const [journals, setJournals]   = useState<any[]>([]);
+  const [accounts, setAccounts]   = useState<AccountItem[]>([]);
+  const [journals, setJournals]   = useState<JournalItem[]>([]);
   const [loading, setLoading]     = useState(true);
   const [tab, setTab]             = useState<'coa'|'journal'>('journal');
   const [modal, setModal]         = useState(false);
@@ -21,7 +38,36 @@ export default function AccountingPage() {
   const load = useCallback(async () => {
     try {
       const [coaRes, jRes] = await Promise.all([accountingService.getChartOfAccounts(), accountingService.getJournals()]);
-      setAccounts(coaRes.data.accounts || []); setJournals(jRes.data.journals || []);
+
+      const rawAccounts = coaRes.data?.accounts || {};
+      const normalizedAccounts: AccountItem[] = Array.isArray(rawAccounts)
+        ? rawAccounts.map((acc: any) => ({
+            code: String(acc.code || ''),
+            name: String(acc.name || '-'),
+            type: String(acc.type || '-'),
+            normalBalance: acc.normalBalance === 'Debit' ? 'Debit' : 'Kredit',
+          }))
+        : Object.entries(rawAccounts).map(([code, acc]: [string, any]) => ({
+            code,
+            name: String(acc?.name || '-'),
+            type: String(acc?.type || '-'),
+            normalBalance: acc?.normalBalance === 'Debit'
+              ? 'Debit'
+              : (normalBalanceByType[String(acc?.type || '')] || 'Kredit'),
+          }));
+
+      const rawJournals = jRes.data?.journals || [];
+      const normalizedJournals: JournalItem[] = (Array.isArray(rawJournals) ? rawJournals : []).map((j: any) => ({
+        id: String(j.id || '-'),
+        date: j.date,
+        description: j.description || '-',
+        debitAccount: j.debitAccount || `${j.debit?.account || ''}${j.debit?.name ? ` — ${j.debit?.name}` : ''}` || '-',
+        creditAccount: j.creditAccount || `${j.credit?.account || ''}${j.credit?.name ? ` — ${j.credit?.name}` : ''}` || '-',
+        amount: Number(j.amount ?? j.debit?.amount ?? j.credit?.amount ?? 0),
+      }));
+
+      setAccounts(normalizedAccounts);
+      setJournals(normalizedJournals);
     } catch { setAccounts([]); setJournals([]); }
     finally { setLoading(false); }
   }, []);
@@ -31,7 +77,22 @@ export default function AccountingPage() {
   const handleSubmit = async () => {
     if (!form.description || !form.amount || !form.debitAccount || !form.creditAccount) return showToast('Lengkapi semua field.', false);
     setSubmitting(true);
-    try { await accountingService.createJournal({ ...form, amount: Number(form.amount) }); await load(); setModal(false); setForm({ description:'', debitAccount:'', creditAccount:'', amount:'' }); showToast('Jurnal berhasil dibuat!'); }
+    try {
+      const debit = accounts.find((acc) => acc.code === form.debitAccount);
+      const credit = accounts.find((acc) => acc.code === form.creditAccount);
+
+      await accountingService.createJournal({
+        date: new Date().toISOString().split('T')[0],
+        description: form.description,
+        debit: { account: form.debitAccount, name: debit?.name || form.debitAccount, amount: Number(form.amount) },
+        credit: { account: form.creditAccount, name: credit?.name || form.creditAccount, amount: Number(form.amount) },
+      });
+
+      await load();
+      setModal(false);
+      setForm({ description:'', debitAccount:'', creditAccount:'', amount:'' });
+      showToast('Jurnal berhasil dibuat!');
+    }
     catch (e: any) { showToast(e.response?.data?.error || 'Gagal membuat jurnal.', false); }
     finally { setSubmitting(false); }
   };
@@ -131,10 +192,10 @@ export default function AccountingPage() {
                       <td style={{ padding: '13px 16px', color: 'var(--text-3)', fontSize: 13, whiteSpace: 'nowrap' }}>{j.date ? new Date(j.date).toLocaleDateString('id-ID') : '-'}</td>
                       <td style={{ padding: '13px 16px', fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{j.description}</td>
                       <td style={{ padding: '13px 16px' }}>
-                        <span style={{ background: '#f0fdf4', color: '#059669', padding: '4px 10px', borderRadius: 6, fontSize: 13, fontWeight: 600 }}>{j.debitAccount}</span>
+                        <span style={{ background: '#f0fdf4', color: '#059669', padding: '4px 10px', borderRadius: 6, fontSize: 13, fontWeight: 600 }}>{j.debitAccount || '-'}</span>
                       </td>
                       <td style={{ padding: '13px 16px' }}>
-                        <span style={{ background: '#fff5f5', color: '#dc2626', padding: '4px 10px', borderRadius: 6, fontSize: 13, fontWeight: 600 }}>{j.creditAccount}</span>
+                        <span style={{ background: '#fff5f5', color: '#dc2626', padding: '4px 10px', borderRadius: 6, fontSize: 13, fontWeight: 600 }}>{j.creditAccount || '-'}</span>
                       </td>
                       <td style={{ padding: '13px 16px', fontWeight: 700, color: 'var(--text)', fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(j.amount)}</td>
                     </tr>
@@ -202,21 +263,36 @@ export default function AccountingPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
               {([
                 ['Deskripsi',    'description',   'text',   'Pembayaran gaji bulan Mei'],
-                ['Akun Debit',   'debitAccount',  'text',   '1-101 Kas'],
-                ['Akun Kredit',  'creditAccount', 'text',   '2-201 Utang Gaji'],
+                ['Akun Debit',   'debitAccount',  'select', ''],
+                ['Akun Kredit',  'creditAccount', 'select', ''],
                 ['Jumlah (Rp)',  'amount',        'number', ''],
-              ] as [string,string,string,string][]).map(([label, field, type, ph]) => (
+              ] as [string,string,'text'|'select'|'number',string][]).map(([label, field, type, ph]) => (
                 <div key={field}>
                   <label className="form-label">
                     {label} <span style={{ color: '#EF4444' }}>*</span>
                   </label>
-                  <input
-                    type={type}
-                    placeholder={ph}
-                    value={(form as any)[field]}
-                    onChange={e => setForm({ ...form, [field]: e.target.value })}
-                    className="form-input"
-                  />
+                  {type === 'select' ? (
+                    <select
+                      value={(form as any)[field]}
+                      onChange={(e) => setForm({ ...form, [field]: e.target.value })}
+                      className="form-select"
+                    >
+                      <option value="">Pilih akun</option>
+                      {accounts.map((acc) => (
+                        <option key={acc.code} value={acc.code}>
+                          {acc.code} — {acc.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type={type}
+                      placeholder={ph}
+                      value={(form as any)[field]}
+                      onChange={e => setForm({ ...form, [field]: e.target.value })}
+                      className="form-input"
+                    />
+                  )}
                 </div>
               ))}
             </div>
