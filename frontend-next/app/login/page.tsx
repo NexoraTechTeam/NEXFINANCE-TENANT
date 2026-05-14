@@ -121,8 +121,23 @@ export default function LoginPage() {
       {/* ── Right form ── */}
       <div
         className="login-right anim-fadeup glass-card"
-        style={{ padding: 'clamp(28px, 4vw, 44px)', animationDelay: '0.12s' }}
+        style={{ padding: 'clamp(24px, 4vw, 44px)', animationDelay: '0.12s' }}
       >
+        {/* Mobile-only brand header */}
+        <div className="mobile-brand">
+          <div style={{
+            width: 40, height: 40, borderRadius: 12,
+            background: 'linear-gradient(135deg, #319ea9, #1e6e77)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 15, fontWeight: 900, color: '#fff', letterSpacing: '-0.5px',
+            flexShrink: 0,
+          }}>NF</div>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: '#fff', lineHeight: 1.2 }}>NexFinance</div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>Al-Musabbihin · SIT</div>
+          </div>
+        </div>
+
         <div style={{ marginBottom: 8 }}>
           <h2 style={{ fontSize: 23, fontWeight: 700, color: '#fff', marginBottom: 5 }}>
             Masuk ke Sistem
@@ -376,43 +391,51 @@ export default function LoginPage() {
         }
         .trust-sep { color: rgba(255,255,255,0.18); }
 
+        /* Mobile brand shown only on small screens */
+        .mobile-brand {
+          display: none;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 24px;
+          padding-bottom: 20px;
+          border-bottom: 1px solid rgba(255,255,255,0.10);
+        }
+
         @keyframes pulse-dot {
           0%, 100% { opacity: 1; transform: scale(1); }
           50%       { opacity: 0.6; transform: scale(0.85); }
         }
 
-        /* ── Mobile: 760px breakpoint ── */
-        @media (max-width: 760px) {
+        /* ── Mobile: single-column, form always on top ── */
+        @media (max-width: 820px) {
           .login-main {
             grid-template-columns: 1fr !important;
-            grid-template-rows: auto auto;
-            padding: 28px 18px 36px !important;
-            gap: 28px !important;
+            padding: 24px 16px 40px !important;
+            gap: 0 !important;
             align-items: start;
+            justify-items: stretch;
           }
 
-          /* Form (right) comes first on mobile */
-          .login-right { order: -1; }
-          .login-left  { order:  1; }
+          /* Hide the left marketing copy on mobile — show only the form */
+          .login-left { display: none !important; }
 
-          /* Condense left copy on mobile */
-          .login-left p:first-of-type {
-            display: none;
-          }
-          .trust-row {
-            margin-top: 20px;
-            padding-top: 14px;
+          /* Show the in-form brand header on mobile */
+          .mobile-brand { display: flex !important; }
+
+          /* Form takes full width with comfortable padding */
+          .login-right {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
           }
 
-          .bg-circle-1 { width: 260px; height: 260px; top: -80px; right: -60px; }
-          .bg-circle-2 { width: 180px; height: 180px; }
+          .bg-circle-1 { width: 240px; height: 240px; top: -80px; right: -50px; }
+          .bg-circle-2 { width: 160px; height: 160px; bottom: -50px; left: -40px; }
           .bg-circle-3 { display: none; }
         }
 
         @media (max-width: 400px) {
-          .login-main {
-            padding: 20px 14px 28px !important;
-          }
+          .login-main { padding: 16px 12px 32px !important; }
         }
       `}</style>
     </main>
