@@ -1,9 +1,10 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import {
   LayoutDashboard, CreditCard, Users, DollarSign,
-  ShoppingCart, BookOpen, FileText, LogOut, X,
+  ShoppingCart, BookOpen, FileText, LogOut, Sparkles, X,
 } from 'lucide-react';
 
 const NAV = [
@@ -24,6 +25,36 @@ interface SidebarProps {
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const router   = useRouter();
   const pathname = usePathname();
+  const [currentUser, setCurrentUser] = useState({ name: 'Administrator', role: 'Super Admin' });
+
+  useEffect(() => {
+    const rawUser = localStorage.getItem('user');
+    if (!rawUser) return;
+
+    try {
+      const parsed = JSON.parse(rawUser) as { name?: string; email?: string; role?: string };
+      setCurrentUser({
+        name: parsed.name || parsed.email || 'Administrator',
+        role: parsed.role || 'Super Admin',
+      });
+    } catch {
+      setCurrentUser({ name: 'Administrator', role: 'Super Admin' });
+    }
+  }, []);
+
+  const activeSection = useMemo(
+    () => NAV.find(({ href }) => pathname === href)?.label || 'Dashboard',
+    [pathname]
+  );
+  const initials = useMemo(() => {
+    const source = currentUser.name.trim();
+    if (!source) return 'NF';
+    return source
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() || '')
+      .join('') || 'NF';
+  }, [currentUser.name]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -42,59 +73,86 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       className={`sidebar-container ${isOpen ? 'open' : ''}`}
       style={{
         background: 'var(--sidebar-bg)',
-        borderRight: '1px solid rgba(255,255,255,0.07)',
+        borderRight: '1px solid var(--sidebar-border)',
         display: 'flex',
         flexDirection: 'column',
-        padding: '22px 12px',
+        padding: '18px 14px 16px',
       }}
     >
       {/* Logo area */}
       <div style={{
-        padding: '4px 8px 20px',
+        padding: '6px 8px 18px',
         marginBottom: 14,
         borderBottom: '1px solid rgba(255,255,255,0.10)',
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'space-between',
-        gap: 8,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {/* NF badge */}
-          <div style={{
-            width: 36,
-            height: 36,
-            borderRadius: 10,
-            background: 'linear-gradient(135deg, var(--teal-500) 0%, #278a94 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 13,
-            fontWeight: 800,
-            color: '#fff',
-            letterSpacing: '0.5px',
-            flexShrink: 0,
-            boxShadow: '0 2px 8px rgba(49,158,169,0.35)',
-          }}>
-            NF
-          </div>
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', letterSpacing: '-0.3px', lineHeight: 1.2 }}>
-              NexFinance
+            <div style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              background: 'linear-gradient(135deg, var(--teal-500) 0%, #278a94 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 13,
+              fontWeight: 800,
+              color: '#fff',
+              letterSpacing: '0.5px',
+              flexShrink: 0,
+              boxShadow: '0 10px 22px rgba(49,158,169,0.26)',
+            }}>
+              NF
             </div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 3 }}>
-              Al-Musabbihin · SIT
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', letterSpacing: '-0.3px', lineHeight: 1.2 }}>
+                NexFinance
+              </div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 3 }}>
+                Al-Musabbihin · SIT
+              </div>
             </div>
           </div>
+
+          {/* Close button — visible only on mobile via CSS */}
+          <button
+            onClick={onClose}
+            className="sidebar-close-btn"
+            aria-label="Close navigation"
+          >
+            <X size={16} strokeWidth={2} />
+          </button>
         </div>
 
-        {/* Close button — visible only on mobile via CSS */}
-        <button
-          onClick={onClose}
-          className="sidebar-close-btn"
-          aria-label="Close navigation"
-        >
-          <X size={16} strokeWidth={2} />
-        </button>
+        <div style={{
+          marginTop: 16,
+          padding: '12px 12px 14px',
+          borderRadius: 16,
+          background: 'linear-gradient(135deg, rgba(49,158,169,0.16) 0%, rgba(49,158,169,0.04) 100%)',
+          border: '1px solid rgba(91,200,211,0.18)',
+        }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            fontSize: 11,
+            fontWeight: 700,
+            color: '#8fe5ec',
+            letterSpacing: '.35px',
+            textTransform: 'uppercase',
+            marginBottom: 8,
+          }}>
+            <Sparkles size={12} strokeWidth={2} />
+            Active workspace
+          </div>
+          <div style={{ color: '#fff', fontSize: 15, fontWeight: 700, lineHeight: 1.35 }}>
+            {activeSection}
+          </div>
+          <div style={{ color: 'rgba(255,255,255,0.52)', fontSize: 12, marginTop: 4 }}>
+            Ringkas, cepat, dan siap dipakai di desktop maupun mobile.
+          </div>
+        </div>
       </div>
 
       {/* Nav */}
@@ -136,24 +194,27 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           display: 'flex',
           alignItems: 'center',
           gap: 10,
-          padding: '8px 10px 12px',
+          padding: '10px 12px 14px',
+          borderRadius: 16,
+          background: 'rgba(255,255,255,0.04)',
+          marginBottom: 10,
         }}>
           {/* Avatar */}
           <div style={{
-            width: 34,
-            height: 34,
-            borderRadius: 9,
+            width: 40,
+            height: 40,
+            borderRadius: 12,
             background: 'linear-gradient(135deg, rgba(49,158,169,0.55) 0%, rgba(39,138,148,0.55) 100%)',
             border: '1.5px solid rgba(49,158,169,0.40)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 12,
+            fontSize: 13,
             fontWeight: 700,
             color: '#fff',
             flexShrink: 0,
           }}>
-            AD
+            {initials}
           </div>
           <div style={{ minWidth: 0 }}>
             <div style={{
@@ -164,14 +225,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               overflow: 'hidden',
               textOverflow: 'ellipsis',
             }}>
-              Administrator
+              {currentUser.name}
             </div>
             <div style={{
               fontSize: 11,
               color: 'rgba(255,255,255,0.40)',
               marginTop: 1,
             }}>
-              Super Admin
+              {currentUser.role}
             </div>
           </div>
         </div>

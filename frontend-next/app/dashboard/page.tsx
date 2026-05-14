@@ -10,7 +10,7 @@ import {
 import {
   DollarSign, TrendingUp, AlertCircle, RefreshCw,
   Wallet, ClipboardList, Users, Activity,
-  ArrowUpRight, ArrowDownRight,
+  ArrowUpRight, ArrowDownRight, Sparkles,
 } from 'lucide-react';
 import { dashboardService } from '@/lib/api';
 
@@ -38,24 +38,67 @@ const expDist = [
   { name: 'Utilitas',       value:  14_250_000 },
 ];
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface DashboardKpi {
+  monthRevenue: number;
+  collectionRate: string;
+  cashBalance: number;
+  pendingItems: number;
+  totalStudents: number;
+  totalEmployees: number;
+  totalInvoices: number;
+  paidInvoices: number;
+  pendingExpenses: number;
+  pendingPR: number;
+}
+
+interface ChartTooltipEntry {
+  color?: string;
+  name?: string;
+  value?: number;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: ChartTooltipEntry[];
+  label?: string;
+}
+
+interface PieTooltipProps {
+  active?: boolean;
+  payload?: Array<{ name?: string; value?: number }>;
+}
+
+const fallbackKpi: DashboardKpi = {
+  monthRevenue: 10_200_000,
+  collectionRate: '66.7%',
+  cashBalance: 525_000_000,
+  pendingItems: 6,
+  totalStudents: 15,
+  totalEmployees: 7,
+  totalInvoices: 12,
+  paidInvoices: 8,
+  pendingExpenses: 3,
+  pendingPR: 3,
+};
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="chart-tooltip">
       <div className="chart-tooltip-title">{label}</div>
-      {payload.map((p: any, i: number) => (
+      {payload.map((p, i) => (
         <div key={i} className="chart-tooltip-row">
           <span className="chart-tooltip-label" style={{ color: p.color }}>{p.name}</span>
-          <span className="chart-tooltip-value">{short(p.value)}</span>
+          <span className="chart-tooltip-value">{short(p.value || 0)}</span>
         </div>
       ))}
     </div>
   );
 };
 
-const PieTooltip = ({ active, payload }: any) => {
+const PieTooltip = ({ active, payload }: PieTooltipProps) => {
   if (!active || !payload?.length) return null;
-  const { name, value } = payload[0];
+  const { name, value = 0 } = payload[0];
   const total = expDist.reduce((s, e) => s + e.value, 0);
   return (
     <div className="chart-tooltip">
@@ -78,19 +121,11 @@ const Skeleton = ({ h = 20, w = '100%' }: { h?: number; w?: string }) => (
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [kpi, setKpi]           = useState<any>(null);
+  const [kpi, setKpi]           = useState<DashboardKpi | null>(null);
   const [loading, setLoading]   = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [chartMode, setChartMode]   = useState<'area' | 'bar'>('area');
   const [activePie, setActivePie]   = useState<number | null>(null);
-
-  const fallbackKpi = {
-    monthRevenue: 10_200_000, collectionRate: '66.7%',
-    cashBalance: 525_000_000, pendingItems: 6,
-    totalStudents: 15, totalEmployees: 7,
-    totalInvoices: 12, paidInvoices: 8,
-    pendingExpenses: 3, pendingPR: 3,
-  };
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true); else setRefreshing(true);
@@ -156,6 +191,33 @@ export default function DashboardPage() {
         </button>
       </div>
 
+      <section className="card executive-banner anim-fadeup">
+        <div>
+          <div className="executive-kicker">
+            <Sparkles size={14} strokeWidth={2} />
+            Executive snapshot
+          </div>
+          <div className="executive-title">Al-Musabbihin financial control center</div>
+          <p className="executive-copy">
+            Pantau arus kas, koleksi, dan item operasional prioritas dari satu workspace yang lebih tenang dan siap dipakai tim finance.
+          </p>
+        </div>
+        <div className="executive-metrics">
+          <div className="executive-metric">
+            <span>Koleksi saat ini</span>
+            <strong>{kpi ? kpi.collectionRate : '--'}</strong>
+          </div>
+          <div className="executive-metric">
+            <span>Outstanding prioritas</span>
+            <strong>{kpi ? `${kpi.pendingItems} item` : '--'}</strong>
+          </div>
+          <div className="executive-metric">
+            <span>Coverage invoice</span>
+            <strong>{kpi ? `${kpi.paidInvoices}/${kpi.totalInvoices}` : '--'}</strong>
+          </div>
+        </div>
+      </section>
+
       {/* ── KPI Cards ── */}
       <div className="kpi-grid">
         {loading ? Array(4).fill(0).map((_, i) => (
@@ -168,8 +230,9 @@ export default function DashboardPage() {
           const Icon  = c.icon;
           const Arrow = c.up ? ArrowUpRight : ArrowDownRight;
           return (
-            <div
+            <button
               key={i}
+              type="button"
               className="card card-hover anim-fadeup kpi-card"
               style={{
                 padding: 24,
@@ -177,6 +240,7 @@ export default function DashboardPage() {
                 borderTop: `3px solid ${c.color}`,
               }}
               onClick={() => router.push(c.to)}
+              aria-label={`${c.label}: ${c.value}. Buka ${c.label}`}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
                 <div style={{ width: 48, height: 48, borderRadius: 13, background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -198,7 +262,7 @@ export default function DashboardPage() {
                 {c.value}
               </div>
               <div style={{ fontSize: 13, color: 'var(--text-4)' }}>{c.sub}</div>
-            </div>
+            </button>
           );
         })}
       </div>
@@ -209,7 +273,14 @@ export default function DashboardPage() {
           {infoCards.map((c, i) => {
             const Icon = c.icon;
             return (
-              <div key={i} className="stat-strip anim-fadeup" style={{ animationDelay: `${i * 0.05}s` }}>
+              <button
+                key={i}
+                type="button"
+                className="stat-strip anim-fadeup"
+                style={{ animationDelay: `${i * 0.05}s` }}
+                onClick={() => router.push('/dashboard/reports')}
+                aria-label={`${c.label}: ${c.value}`}
+              >
                 <div style={{ width: 42, height: 42, borderRadius: 11, background: `${c.color}16`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Icon size={19} color={c.color} strokeWidth={1.8} />
                 </div>
@@ -217,7 +288,7 @@ export default function DashboardPage() {
                   <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', lineHeight: 1.1 }}>{c.value}</div>
                   <div style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 4, fontWeight: 500 }}>{c.label}</div>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -250,7 +321,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="chart-container-main">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={280}>
               {chartMode === 'area' ? (
                 <AreaChart data={monthly}>
                   <defs>
@@ -294,16 +365,14 @@ export default function DashboardPage() {
           <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 16 }}>Klik segmen untuk detail</div>
 
           <div className="chart-container-pie">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart onClick={(evt: any) => {
-                const idx = evt?.activeTooltipIndex ?? null;
-                if (idx !== null) setActivePie(prev => prev === idx ? null : idx);
-              }}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={190}>
+              <PieChart>
                 <Pie data={expDist} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
                   {expDist.map((_, i) => (
                     <Cell key={i} fill={COLORS[i % COLORS.length]}
                       opacity={activePie === null || activePie === i ? 1 : 0.3}
-                      stroke={activePie === i ? '#fff' : 'none'} strokeWidth={2} />
+                      stroke={activePie === i ? '#fff' : 'none'} strokeWidth={2}
+                      onClick={() => setActivePie((prev) => (prev === i ? null : i))} />
                   ))}
                 </Pie>
                 <Tooltip content={<PieTooltip />} />
@@ -410,18 +479,92 @@ export default function DashboardPage() {
           box-shadow: 0 3px 8px rgba(0,0,0,0.1);
         }
 
+        .executive-banner {
+          display: grid;
+          grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.95fr);
+          gap: 18px;
+          padding: 24px 26px;
+          margin-bottom: 18px;
+          background:
+            linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(240,250,251,0.98) 100%);
+        }
+        .executive-kicker {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 7px 12px;
+          border-radius: 999px;
+          background: rgba(49, 158, 169, 0.12);
+          color: #278a94;
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: .32px;
+          text-transform: uppercase;
+        }
+        .executive-title {
+          margin-top: 16px;
+          font-size: clamp(24px, 3vw, 32px);
+          font-weight: 800;
+          letter-spacing: -0.7px;
+          line-height: 1.1;
+          color: var(--text);
+        }
+        .executive-copy {
+          margin-top: 12px;
+          max-width: 720px;
+          color: var(--text-3);
+          font-size: 14px;
+          line-height: 1.8;
+        }
+        .executive-metrics {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 12px;
+          align-self: end;
+        }
+        .executive-metric {
+          min-height: 92px;
+          border-radius: 18px;
+          border: 1px solid rgba(49, 158, 169, 0.14);
+          background: rgba(255,255,255,0.76);
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+        .executive-metric span {
+          color: var(--text-4);
+          font-size: 12px;
+          font-weight: 600;
+        }
+        .executive-metric strong {
+          color: var(--text);
+          font-size: 20px;
+          font-weight: 800;
+          line-height: 1.2;
+        }
+
         /* ── KPI Grid ── */
         .kpi-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 16px;
           margin-bottom: 16px;
+        }
+
+        .kpi-card {
+          width: 100%;
+          text-align: left;
+          border-left: 0;
+          border-right: 0;
+          border-bottom: 0;
+          background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(248,250,252,1) 100%);
         }
 
         /* ── Info Strip Grid ── */
         .info-strip-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+          grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 12px;
           margin-bottom: 24px;
         }
@@ -469,12 +612,19 @@ export default function DashboardPage() {
           .dashboard-subtitle {
             font-size: 12px;
           }
+          .executive-banner {
+            grid-template-columns: 1fr;
+            padding: 20px 18px;
+          }
+          .executive-metrics {
+            grid-template-columns: 1fr;
+          }
           .kpi-grid {
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 10px;
           }
           .info-strip-grid {
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 8px;
           }
           .charts-row {
@@ -501,6 +651,12 @@ export default function DashboardPage() {
 
         /* ── Tablet: 641px – 900px ── */
         @media (min-width: 641px) and (max-width: 900px) {
+          .executive-banner {
+            grid-template-columns: 1fr;
+          }
+          .executive-metrics {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+          }
           .charts-row {
             grid-template-columns: 1fr;
           }
@@ -510,15 +666,15 @@ export default function DashboardPage() {
           .kpi-grid {
             grid-template-columns: repeat(2, 1fr);
           }
+          .info-strip-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
         }
 
         /* ── Extra small: ≤ 400px ── */
         @media (max-width: 400px) {
-          .kpi-grid {
-            grid-template-columns: 1fr;
-          }
-          .info-strip-grid {
-            grid-template-columns: 1fr 1fr;
+          .executive-title {
+            font-size: 22px;
           }
           .ytd-grid {
             grid-template-columns: 1fr;

@@ -8,6 +8,10 @@ import Sidebar from '@/components/Sidebar';
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const pageLabel =
+    pathname === '/dashboard'
+      ? 'Executive Overview'
+      : pathname.split('/').filter(Boolean).pop()?.replace(/-/g, ' ') || 'Dashboard';
 
   // Close sidebar on route change (mobile navigation)
   useEffect(() => {
@@ -39,7 +43,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)', flexDirection: 'column' }}>
       {/* Mobile top header — hidden on desktop via CSS */}
       <header className="mobile-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
           <button
             className="hamburger-btn"
             onClick={() => setSidebarOpen(true)}
@@ -49,16 +53,43 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <Menu size={20} strokeWidth={2} />
           </button>
           <span style={{
-            fontSize: 15,
-            fontWeight: 800,
-            color: '#fff',
-            letterSpacing: '-0.3px',
+            display: 'flex',
+            flexDirection: 'column',
+            minWidth: 0,
           }}>
-            NexFinance
+            <span style={{
+              fontSize: 14,
+              fontWeight: 800,
+              color: '#fff',
+              letterSpacing: '-0.3px',
+              lineHeight: 1.1,
+            }}>
+              NexFinance
+            </span>
+            <span style={{
+              fontSize: 11,
+              color: 'rgba(255,255,255,0.54)',
+              textTransform: 'capitalize',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}>
+              {pageLabel}
+            </span>
           </span>
         </div>
-        {/* Right side spacer — can be extended with page title / user avatar */}
-        <div />
+        <div style={{
+          padding: '8px 10px',
+          borderRadius: 999,
+          background: 'rgba(255,255,255,0.08)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          fontSize: 11,
+          fontWeight: 700,
+          color: 'rgba(255,255,255,0.74)',
+          whiteSpace: 'nowrap',
+        }}>
+          Live
+        </div>
       </header>
 
       <div style={{ display: 'flex', flex: 1 }}>
