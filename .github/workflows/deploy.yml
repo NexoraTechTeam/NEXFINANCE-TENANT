@@ -11,6 +11,8 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout code
@@ -30,7 +32,7 @@ jobs:
       - name: Run backend tests
         working-directory: backend
         env:
-          JWT_SECRET: test-secret-for-ci
+          JWT_SECRET: test-jwt-secret-do-not-use-in-production
           NODE_ENV: test
         run: npm test
 
@@ -48,6 +50,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     timeout-minutes: 20
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout code
@@ -107,18 +111,37 @@ jobs:
             echo "▶ Restarting containers..."
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
-            echo "▶ Waiting 20s for startup..."
-            sleep 20
+            echo "▶ Waiting for backend to be healthy (up to 60s)..."
+            for i in $(seq 1 12); do
+              if docker exec nexfinance-backend curl -sf http://localhost:5000/health > /dev/null 2>&1; then
+                echo "✓ Backend healthy after $((i * 5))s"
+                break
+              fi
+              if [ "$i" -eq 12 ]; then
+                echo "❌ Backend health check timed out after 60s"
+                docker compose -f docker-compose.prod.yml logs backend --tail=50
+                exit 1
+              fi
+              echo "  Waiting... ($((i * 5))s elapsed)"
+              sleep 5
+            done
+
+            echo "▶ Waiting for frontend to be healthy (up to 60s)..."
+            for i in $(seq 1 12); do
+              if docker exec nexfinance-frontend curl -sf http://localhost:3000 > /dev/null 2>&1; then
+                echo "✓ Frontend healthy after $((i * 5))s"
+                break
+              fi
+              if [ "$i" -eq 12 ]; then
+                echo "❌ Frontend health check timed out after 60s"
+                docker compose -f docker-compose.prod.yml logs frontend --tail=50
+                exit 1
+              fi
+              echo "  Waiting... ($((i * 5))s elapsed)"
+              sleep 5
+            done
 
             echo "▶ Container status:"
             docker compose -f docker-compose.prod.yml ps
-
-            echo "▶ Backend health check..."
-            docker exec nexfinance-backend curl -sf http://localhost:5000/health \
-              || (echo "❌ Backend health check failed" && exit 1)
-
-            echo "▶ Frontend health check..."
-            docker exec nexfinance-frontend curl -sf http://localhost:3000 \
-              || (echo "❌ Frontend health check failed" && exit 1)
 
             echo "✅ NexFinance deployed → https://nexfinance.nexoratech.co"

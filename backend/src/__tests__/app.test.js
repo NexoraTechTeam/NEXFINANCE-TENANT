@@ -1,6 +1,6 @@
 'use strict';
 
-process.env.JWT_SECRET = 'test-secret-for-ci';
+process.env.JWT_SECRET = 'test-jwt-secret-do-not-use-in-production';
 process.env.NODE_ENV = 'test';
 
 const request = require('supertest');
