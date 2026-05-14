@@ -35,7 +35,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       <div className="chart-tooltip-title">{label}</div>
       {payload.map((p: any, i: number) => (
         <div key={i} className="chart-tooltip-row">
-          <span className="chart-tooltip-label" style={{ color:p.color }}>{p.name}</span>
+          <span className="chart-tooltip-label" style={{ color: p.color }}>{p.name}</span>
           <span className="chart-tooltip-value">{short(p.value)}</span>
         </div>
       ))}
@@ -59,125 +59,186 @@ export default function ReportsPage() {
 
   return (
     <div style={{ maxWidth: 1300, margin: '0 auto' }}>
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:24, flexWrap:'wrap', gap:12 }}>
+      {/* Responsive chart styles */}
+      <style jsx global>{`
+        @media (max-width: 768px) {
+          .reports-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+          .reports-chart-tall { height: 260px !important; }
+          .reports-chart { height: 220px !important; }
+        }
+      `}</style>
+
+      {/* Page Header */}
+      <div className="page-header">
         <div>
-          <h1 style={{ fontSize:28, fontWeight:800, color:'var(--text)', letterSpacing:'-0.5px', marginBottom:5 }}>Laporan Keuangan</h1>
-          <p style={{ fontSize:14, color:'var(--text-3)' }}>Laba rugi, neraca, dan arus kas — Tahun 2026</p>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px', marginBottom: 5 }}>Laporan Keuangan</h1>
+          <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Laba rugi, neraca, dan arus kas — Tahun 2026</p>
         </div>
-        <button style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'11px 20px', borderRadius:10, background:'#3B82F6', color:'#fff', border:'none', fontSize:14, fontWeight:600, cursor:'pointer', minHeight:44 }}>
-          <Download size={16} strokeWidth={1.8}/> Unduh PDF
+        <button style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          padding: '11px 20px', borderRadius: 10,
+          background: 'linear-gradient(135deg, #3B82F6, #2563eb)',
+          color: '#fff', border: 'none', fontSize: 14, fontWeight: 600,
+          cursor: 'pointer', minHeight: 44,
+          boxShadow: '0 4px 14px rgba(59,130,246,0.30)',
+        }}>
+          <Download size={16} strokeWidth={1.8} /> Unduh PDF
         </button>
       </div>
 
-      {/* Summary KPI */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px,1fr))', gap:14, marginBottom:24 }}>
+      {/* Summary KPI Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px,1fr))', gap: 14, marginBottom: 24 }}>
         {[
-          { label:'Total Pendapatan YTD', value: fmt(totalPendapatan), color:'#10B981', bg:'#f0fdf6' },
-          { label:'Total Beban YTD',      value: fmt(totalBeban),      color:'#EF4444', bg:'#fff5f5' },
-          { label:'Surplus Bersih YTD',   value: fmt(totalSurplus),    color:'#319ea9', bg:'#f0fafb' },
-          { label:'Margin Bersih',        value: margin + '%',          color:'#3B82F6', bg:'#eff6ff' },
+          { label: 'Total Pendapatan YTD', value: fmt(totalPendapatan), color: '#10B981', bg: '#f0fdf6', border: '#10B98133' },
+          { label: 'Total Beban YTD',      value: fmt(totalBeban),      color: '#EF4444', bg: '#fff5f5', border: '#EF444433' },
+          { label: 'Surplus Bersih YTD',   value: fmt(totalSurplus),    color: '#319ea9', bg: '#f0fafb', border: '#319ea933' },
+          { label: 'Margin Bersih',        value: margin + '%',          color: '#3B82F6', bg: '#eff6ff', border: '#3B82F633' },
         ].map((s, i) => (
-          <div key={i} className="card" style={{ padding:'18px 20px', background: s.bg, border:`1px solid ${s.color}22` }}>
-            <div style={{ fontSize:12, fontWeight:600, color: s.color, textTransform:'uppercase', letterSpacing:'.5px', marginBottom:8 }}>{s.label}</div>
-            <div style={{ fontSize:22, fontWeight:800, color: s.color }}>{s.value}</div>
+          <div key={i} className="card card-hover anim-fadeup" style={{ padding: '18px 20px', background: s.bg, border: `1px solid ${s.border}`, borderTop: `4px solid ${s.color}` }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: s.color, textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>{s.label}</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: s.color }}>{s.value}</div>
           </div>
         ))}
       </div>
 
-      {/* Tabs */}
-      <div style={{ display:'flex', gap:4, marginBottom:20, borderBottom:'2px solid var(--border)' }}>
-        {[['income','Laba Rugi',FileText],['balance','Neraca',BarChart2],['cashflow','Tren Bulanan',TrendingUp]].map(([val,label,Icon]: any) => (
-          <button key={val} onClick={() => setActiveTab(val)} style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'11px 22px', borderRadius:'8px 8px 0 0', fontSize:14, fontWeight:600, cursor:'pointer', fontFamily:'inherit', background:'none', border:'none', borderBottom: activeTab===val ? '3px solid #319ea9' : '3px solid transparent', color: activeTab===val ? '#319ea9' : 'var(--text-3)', marginBottom:-2, minHeight:44 }}>
-            <Icon size={16} strokeWidth={1.8}/> {label}
+      {/* Tab Navigation */}
+      <div className="tab-bar">
+        {([
+          ['income',   'Laba Rugi',    FileText],
+          ['balance',  'Neraca',       BarChart2],
+          ['cashflow', 'Tren Bulanan', TrendingUp],
+        ] as [string, string, any][]).map(([val, label, Icon]) => (
+          <button
+            key={val}
+            onClick={() => setActiveTab(val as 'income'|'balance'|'cashflow')}
+            className={`tab-btn${activeTab === val ? ' tab-btn-active' : ''}`}
+          >
+            <Icon size={16} strokeWidth={1.8} /> {label}
           </button>
         ))}
       </div>
 
       {/* Tab: Laba Rugi */}
       {activeTab === 'income' && (
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
-          <div className="card" style={{ padding:24 }}>
-            <div style={{ fontSize:17, fontWeight:700, color:'var(--text)', marginBottom:20 }}>Laporan Laba Rugi — YTD 2026</div>
-            <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
-              {[
-                ['PENDAPATAN','','','header'],
-                ['SPP Siswa', 285_000_000, '#10B981', ''],
-                ['Donasi & Infaq', 58_000_000, '#10B981', ''],
-                ['Lain-lain', 15_000_000, '#10B981', ''],
+        <div className="reports-grid anim-fadeup" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          {/* Income Statement */}
+          <div className="card" style={{ padding: 24 }}>
+            <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 20 }}>Laporan Laba Rugi — YTD 2026</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+              {([
+                ['PENDAPATAN',      '',               '',        'header'],
+                ['SPP Siswa',        285_000_000,     '#10B981', ''],
+                ['Donasi & Infaq',   58_000_000,      '#10B981', ''],
+                ['Lain-lain',        15_000_000,      '#10B981', ''],
                 ['Total Pendapatan', totalPendapatan, '#10B981', 'total'],
-                ['','','','spacer'],
-                ['BEBAN','','','header'],
-                ['Gaji & Honor', 185_000_000, '#EF4444', ''],
-                ['Operasional', 57_000_000, '#EF4444', ''],
-                ['Pemeliharaan', 28_500_000, '#EF4444', ''],
-                ['Utilitas & Lain', 23_500_000, '#EF4444', ''],
-                ['Total Beban', totalBeban, '#EF4444', 'total'],
-                ['','','','spacer'],
-                ['SURPLUS BERSIH', totalSurplus, '#319ea9', 'final'],
-              ].map(([label, val, color, type], i) => {
-                if (type === 'spacer') return <div key={i} style={{ height:12 }} />;
-                if (type === 'header') return <div key={i} style={{ fontSize:12, fontWeight:700, color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'.6px', padding:'8px 0 4px', borderTop:'1px solid var(--border)', marginTop:4 }}>{label}</div>;
+                ['',                 '',               '',        'spacer'],
+                ['BEBAN',           '',               '',        'header'],
+                ['Gaji & Honor',     185_000_000,     '#EF4444', ''],
+                ['Operasional',      57_000_000,      '#EF4444', ''],
+                ['Pemeliharaan',     28_500_000,      '#EF4444', ''],
+                ['Utilitas & Lain',  23_500_000,      '#EF4444', ''],
+                ['Total Beban',      totalBeban,      '#EF4444', 'total'],
+                ['',                 '',               '',        'spacer'],
+                ['SURPLUS BERSIH',   totalSurplus,    '#319ea9', 'final'],
+              ] as [string, number|string, string, string][]).map(([label, val, color, type], i) => {
+                if (type === 'spacer') return <div key={i} style={{ height: 12 }} />;
+                if (type === 'header') return (
+                  <div key={i} style={{
+                    fontSize: 11, fontWeight: 700, color: '#319ea9',
+                    textTransform: 'uppercase', letterSpacing: '.8px',
+                    padding: '8px 12px', marginTop: 4, marginBottom: 2,
+                    background: '#f0fafb', borderRadius: 6,
+                    borderLeft: '3px solid #319ea9',
+                  }}>{label}</div>
+                );
+                if (type === 'final') return (
+                  <div key={i} style={{
+                    display: 'flex', justifyContent: 'space-between',
+                    padding: '12px 14px', marginTop: 4,
+                    background: 'linear-gradient(90deg, #f0fafb, #e8f7f9)',
+                    borderRadius: 10, border: '1.5px solid #319ea933',
+                  }}>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: '#319ea9' }}>{label}</span>
+                    <span style={{ fontSize: 15, fontWeight: 800, color: '#319ea9' }}>{val ? fmt(val as number) : ''}</span>
+                  </div>
+                );
                 return (
-                  <div key={i} style={{ display:'flex', justifyContent:'space-between', borderBottom: type==='total'||type==='final' ? '2px solid var(--border)' : '1px solid #f0f2f5', background: type==='final' ? '#f0fafb' : 'transparent', borderRadius: type==='final' ? 8 : 0, padding: type==='final' ? '10px 12px' : '9px 4px' }}>
-                    <span style={{ fontSize: type==='total'||type==='final' ? 14 : 14, color: type==='total'||type==='final' ? color as string : 'var(--text-2)', fontWeight: type==='total'||type==='final' ? 700 : 400 }}>{label}</span>
-                    <span style={{ fontSize:14, fontWeight: type==='total'||type==='final' ? 800 : 600, color: color as string }}>{val ? fmt(val as number) : ''}</span>
+                  <div key={i} style={{
+                    display: 'flex', justifyContent: 'space-between',
+                    borderBottom: type === 'total' ? '2px solid var(--border)' : '1px solid #f0f2f5',
+                    padding: type === 'total' ? '10px 4px' : '9px 4px',
+                  }}>
+                    <span style={{ fontSize: 14, color: type === 'total' ? color : 'var(--text-2)', fontWeight: type === 'total' ? 700 : 400 }}>{label}</span>
+                    <span style={{ fontSize: 14, fontWeight: type === 'total' ? 800 : 600, color: color }}>{val ? fmt(val as number) : ''}</span>
                   </div>
                 );
               })}
             </div>
           </div>
 
-          <div className="card" style={{ padding:24 }}>
-            <div style={{ fontSize:17, fontWeight:700, color:'var(--text)', marginBottom:20 }}>Tren Surplus Bulanan</div>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={monthly}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" />
-                <XAxis dataKey="bulan" tick={axisStyle} axisLine={false} tickLine={false} />
-                <YAxis tick={axisStyle} tickFormatter={v => `${v/1e6}Jt`} axisLine={false} tickLine={false} width={44} />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ fontSize:13 }} />
-                <Line type="monotone" dataKey="surplus" name="Surplus" stroke="#319ea9" strokeWidth={2.5} dot={{ r:5, fill:'#319ea9' }} activeDot={{ r:7 }} />
-              </LineChart>
-            </ResponsiveContainer>
+          {/* Surplus Trend Chart */}
+          <div className="card" style={{ padding: 24 }}>
+            <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 20 }}>Tren Surplus Bulanan</div>
+            <div className="reports-chart" style={{ height: 300 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={monthly}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" />
+                  <XAxis dataKey="bulan" tick={axisStyle} axisLine={false} tickLine={false} />
+                  <YAxis tick={axisStyle} tickFormatter={v => `${v/1e6}Jt`} axisLine={false} tickLine={false} width={44} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: 13 }} />
+                  <Line type="monotone" dataKey="surplus" name="Surplus" stroke="#319ea9" strokeWidth={2.5} dot={{ r: 5, fill: '#319ea9' }} activeDot={{ r: 7 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
       )}
 
       {/* Tab: Neraca */}
       {activeTab === 'balance' && (
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
-          <div className="card" style={{ padding:24 }}>
-            <div style={{ fontSize:17, fontWeight:700, color:'var(--text)', marginBottom:20 }}>ASET</div>
+        <div className="reports-grid anim-fadeup" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          {/* Assets */}
+          <div className="card" style={{ padding: 24 }}>
+            <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ width: 4, height: 20, background: '#10B981', borderRadius: 2, display: 'inline-block' }} />
+              ASET
+            </div>
             {balanceSheet.assets.map((a, i) => (
-              <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px solid var(--border)', fontSize:14 }}>
-                <span style={{ color:'var(--text-2)' }}>{a.name}</span>
-                <span style={{ fontWeight:700, color:'#10B981' }}>{fmt(a.value)}</span>
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '11px 0', borderBottom: '1px solid var(--border)', fontSize: 14 }}>
+                <span style={{ color: 'var(--text-2)' }}>{a.name}</span>
+                <span style={{ fontWeight: 700, color: '#10B981' }}>{fmt(a.value)}</span>
               </div>
             ))}
-            <div style={{ display:'flex', justifyContent:'space-between', padding:'12px 0', marginTop:4, borderTop:'2px solid var(--border)', fontSize:15, fontWeight:800 }}>
-              <span style={{ color:'var(--text)' }}>Total Aset</span>
-              <span style={{ color:'#10B981' }}>{fmt(totalAssets)}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '13px 0', marginTop: 4, borderBottom: '3px double #10B981', fontSize: 15, fontWeight: 800 }}>
+              <span style={{ color: 'var(--text)' }}>Total Aset</span>
+              <span style={{ color: '#10B981' }}>{fmt(totalAssets)}</span>
             </div>
           </div>
-          <div className="card" style={{ padding:24 }}>
-            <div style={{ fontSize:17, fontWeight:700, color:'var(--text)', marginBottom:20 }}>KEWAJIBAN & EKUITAS</div>
+
+          {/* Liabilities & Equity */}
+          <div className="card" style={{ padding: 24 }}>
+            <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ width: 4, height: 20, background: '#EF4444', borderRadius: 2, display: 'inline-block' }} />
+              KEWAJIBAN &amp; EKUITAS
+            </div>
             {balanceSheet.liabilities.map((l, i) => (
-              <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px solid var(--border)', fontSize:14 }}>
-                <span style={{ color:'var(--text-2)' }}>{l.name}</span>
-                <span style={{ fontWeight:700, color:'#EF4444' }}>{fmt(l.value)}</span>
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '11px 0', borderBottom: '1px solid var(--border)', fontSize: 14 }}>
+                <span style={{ color: 'var(--text-2)' }}>{l.name}</span>
+                <span style={{ fontWeight: 700, color: '#EF4444' }}>{fmt(l.value)}</span>
               </div>
             ))}
-            <div style={{ display:'flex', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px solid var(--border)', fontSize:14 }}>
-              <span style={{ color:'var(--text-2)' }}>Total Kewajiban</span>
-              <span style={{ fontWeight:700, color:'#EF4444' }}>{fmt(totalLiabilities)}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '11px 0', borderBottom: '1px solid var(--border)', fontSize: 14, fontWeight: 700 }}>
+              <span style={{ color: 'var(--text-2)' }}>Total Kewajiban</span>
+              <span style={{ color: '#EF4444' }}>{fmt(totalLiabilities)}</span>
             </div>
-            <div style={{ display:'flex', justifyContent:'space-between', padding:'10px 0', borderBottom:'1px solid var(--border)', fontSize:14 }}>
-              <span style={{ color:'var(--text-2)' }}>Ekuitas / Modal</span>
-              <span style={{ fontWeight:700, color:'#319ea9' }}>{fmt(equity)}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '11px 0', borderBottom: '1px solid var(--border)', fontSize: 14 }}>
+              <span style={{ color: 'var(--text-2)' }}>Ekuitas / Modal</span>
+              <span style={{ fontWeight: 700, color: '#319ea9' }}>{fmt(equity)}</span>
             </div>
-            <div style={{ display:'flex', justifyContent:'space-between', padding:'12px 0', marginTop:4, borderTop:'2px solid var(--border)', fontSize:15, fontWeight:800 }}>
-              <span style={{ color:'var(--text)' }}>Total Kewajiban + Ekuitas</span>
-              <span style={{ color:'#10B981' }}>{fmt(totalAssets)}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '13px 0', marginTop: 4, borderBottom: '3px double #10B981', fontSize: 15, fontWeight: 800 }}>
+              <span style={{ color: 'var(--text)' }}>Total Kewajiban + Ekuitas</span>
+              <span style={{ color: '#10B981' }}>{fmt(totalAssets)}</span>
             </div>
           </div>
         </div>
@@ -185,20 +246,22 @@ export default function ReportsPage() {
 
       {/* Tab: Tren Bulanan */}
       {activeTab === 'cashflow' && (
-        <div className="card" style={{ padding:24 }}>
-          <div style={{ fontSize:17, fontWeight:700, color:'var(--text)', marginBottom:20 }}>Tren Keuangan Bulanan — 2026</div>
-          <ResponsiveContainer width="100%" height={340}>
-            <BarChart data={monthly} barGap={4}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" />
-              <XAxis dataKey="bulan" tick={axisStyle} axisLine={false} tickLine={false} />
-              <YAxis tick={axisStyle} tickFormatter={v => `${v/1e6}Jt`} axisLine={false} tickLine={false} width={44} />
-              <Tooltip content={<CustomTooltip />} cursor={{ fill:'#f8fafc' }} />
-              <Legend wrapperStyle={{ fontSize:13, paddingTop:8 }} />
-              <Bar dataKey="pendapatan" name="Pendapatan" fill="#319ea9" radius={[5,5,0,0]} />
-              <Bar dataKey="beban"      name="Beban"      fill="#EF4444" radius={[5,5,0,0]} />
-              <Bar dataKey="surplus"    name="Surplus"    fill="#10B981" radius={[5,5,0,0]} />
-            </BarChart>
-          </ResponsiveContainer>
+        <div className="card anim-fadeup" style={{ padding: 24 }}>
+          <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 20 }}>Tren Keuangan Bulanan — 2026</div>
+          <div className="reports-chart-tall" style={{ height: 340 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthly} barGap={4}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" />
+                <XAxis dataKey="bulan" tick={axisStyle} axisLine={false} tickLine={false} />
+                <YAxis tick={axisStyle} tickFormatter={v => `${v/1e6}Jt`} axisLine={false} tickLine={false} width={44} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc' }} />
+                <Legend wrapperStyle={{ fontSize: 13, paddingTop: 8 }} />
+                <Bar dataKey="pendapatan" name="Pendapatan" fill="#319ea9" radius={[5,5,0,0]} />
+                <Bar dataKey="beban"      name="Beban"      fill="#EF4444" radius={[5,5,0,0]} />
+                <Bar dataKey="surplus"    name="Surplus"    fill="#10B981" radius={[5,5,0,0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
     </div>

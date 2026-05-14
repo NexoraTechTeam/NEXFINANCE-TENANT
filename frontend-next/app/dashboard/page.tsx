@@ -136,27 +136,19 @@ export default function DashboardPage() {
     <div style={{ maxWidth: 1400, margin: '0 auto' }}>
 
       {/* ── Header ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
+      <div className="dashboard-header">
         <div>
-          <h1 className="anim-fadeup" style={{ fontSize: 28, fontWeight: 800, color: 'var(--text)', marginBottom: 6, letterSpacing: '-0.5px' }}>
+          <h1 className="anim-fadeup dashboard-title">
             Dashboard Keuangan
           </h1>
-          <p style={{ color: 'var(--text-3)', fontSize: 14 }}>
+          <p className="dashboard-subtitle">
             Sekolah Islam Terpadu Al-Musabbihin &nbsp;·&nbsp; {now}
           </p>
         </div>
         <button
           onClick={() => load(true)}
           disabled={refreshing}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            padding: '11px 20px', borderRadius: 10, fontSize: 14,
-            background: '#fff', border: '1px solid var(--border)',
-            color: 'var(--text-2)', cursor: 'pointer', fontFamily: 'inherit',
-            fontWeight: 500, minHeight: 44,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-            transition: 'box-shadow 180ms ease',
-          }}
+          className="refresh-btn"
         >
           <RefreshCw size={16} strokeWidth={1.8}
             style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none', color: '#319ea9' }} />
@@ -165,7 +157,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── KPI Cards ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 16, marginBottom: 16 }}>
+      <div className="kpi-grid">
         {loading ? Array(4).fill(0).map((_, i) => (
           <div key={i} className="card" style={{ padding: 24 }}>
             <Skeleton h={13} w="55%" />
@@ -178,8 +170,12 @@ export default function DashboardPage() {
           return (
             <div
               key={i}
-              className="card card-hover anim-fadeup"
-              style={{ padding: 24, animationDelay: `${i * 0.07}s` }}
+              className="card card-hover anim-fadeup kpi-card"
+              style={{
+                padding: 24,
+                animationDelay: `${i * 0.07}s`,
+                borderTop: `3px solid ${c.color}`,
+              }}
               onClick={() => router.push(c.to)}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
@@ -195,15 +191,12 @@ export default function DashboardPage() {
                   <Arrow size={13} />{c.trend}
                 </span>
               </div>
-              {/* label — naik ke 13px */}
               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 7 }}>
                 {c.label}
               </div>
-              {/* value */}
               <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--text)', marginBottom: 6, letterSpacing: '-0.5px', lineHeight: 1.1 }}>
                 {c.value}
               </div>
-              {/* sub — naik ke 13px */}
               <div style={{ fontSize: 13, color: 'var(--text-4)' }}>{c.sub}</div>
             </div>
           );
@@ -212,7 +205,7 @@ export default function DashboardPage() {
 
       {/* ── Info strip ── */}
       {!loading && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 24 }}>
+        <div className="info-strip-grid">
           {infoCards.map((c, i) => {
             const Icon = c.icon;
             return (
@@ -231,11 +224,11 @@ export default function DashboardPage() {
       )}
 
       {/* ── Charts Row ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16, marginBottom: 16 }}>
+      <div className="charts-row">
 
         {/* Tren Keuangan */}
         <div className="card anim-fadeup" style={{ padding: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div className="chart-header">
             <div>
               <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>Tren Keuangan Bulanan</div>
               <div style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 3 }}>Pendapatan vs Beban vs Surplus</div>
@@ -256,41 +249,43 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <ResponsiveContainer width="100%" height={280}>
-            {chartMode === 'area' ? (
-              <AreaChart data={monthly}>
-                <defs>
-                  <linearGradient id="gPend" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#319ea9" stopOpacity={.18} />
-                    <stop offset="95%" stopColor="#319ea9" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="gBeban" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#EF4444" stopOpacity={.12} />
-                    <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" />
-                <XAxis dataKey="bulan" tick={axisStyle} axisLine={false} tickLine={false} />
-                <YAxis tick={axisStyle} tickFormatter={v => `${v / 1e6}Jt`} axisLine={false} tickLine={false} width={44} />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ fontSize: 13, color: 'var(--text-3)', paddingTop: 8 }} />
-                <Area type="monotone" dataKey="pendapatan" name="Pendapatan" stroke="#319ea9" strokeWidth={2.5} fill="url(#gPend)"  dot={{ r: 5, fill: '#319ea9' }} activeDot={{ r: 7 }} />
-                <Area type="monotone" dataKey="beban"      name="Beban"      stroke="#EF4444" strokeWidth={2}   fill="url(#gBeban)" dot={{ r: 5, fill: '#EF4444' }} activeDot={{ r: 7 }} />
-                <Area type="monotone" dataKey="laba"       name="Surplus"    stroke="#10B981" strokeWidth={2}   fill="none" strokeDasharray="5 4" dot={{ r: 4, fill: '#10B981' }} />
-              </AreaChart>
-            ) : (
-              <BarChart data={monthly} barGap={4}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" />
-                <XAxis dataKey="bulan" tick={axisStyle} axisLine={false} tickLine={false} />
-                <YAxis tick={axisStyle} tickFormatter={v => `${v / 1e6}Jt`} axisLine={false} tickLine={false} width={44} />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc' }} />
-                <Legend wrapperStyle={{ fontSize: 13, color: 'var(--text-3)', paddingTop: 8 }} />
-                <Bar dataKey="pendapatan" name="Pendapatan" fill="#319ea9" radius={[5,5,0,0]} />
-                <Bar dataKey="beban"      name="Beban"      fill="#EF4444" radius={[5,5,0,0]} />
-                <Bar dataKey="laba"       name="Surplus"    fill="#10B981" radius={[5,5,0,0]} />
-              </BarChart>
-            )}
-          </ResponsiveContainer>
+          <div className="chart-container-main">
+            <ResponsiveContainer width="100%" height="100%">
+              {chartMode === 'area' ? (
+                <AreaChart data={monthly}>
+                  <defs>
+                    <linearGradient id="gPend" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="#319ea9" stopOpacity={.18} />
+                      <stop offset="95%" stopColor="#319ea9" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="gBeban" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="#EF4444" stopOpacity={.12} />
+                      <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" />
+                  <XAxis dataKey="bulan" tick={axisStyle} axisLine={false} tickLine={false} />
+                  <YAxis tick={axisStyle} tickFormatter={v => `${v / 1e6}Jt`} axisLine={false} tickLine={false} width={44} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: 13, color: 'var(--text-3)', paddingTop: 8 }} />
+                  <Area type="monotone" dataKey="pendapatan" name="Pendapatan" stroke="#319ea9" strokeWidth={2.5} fill="url(#gPend)"  dot={{ r: 5, fill: '#319ea9' }} activeDot={{ r: 7 }} />
+                  <Area type="monotone" dataKey="beban"      name="Beban"      stroke="#EF4444" strokeWidth={2}   fill="url(#gBeban)" dot={{ r: 5, fill: '#EF4444' }} activeDot={{ r: 7 }} />
+                  <Area type="monotone" dataKey="laba"       name="Surplus"    stroke="#10B981" strokeWidth={2}   fill="none" strokeDasharray="5 4" dot={{ r: 4, fill: '#10B981' }} />
+                </AreaChart>
+              ) : (
+                <BarChart data={monthly} barGap={4}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" />
+                  <XAxis dataKey="bulan" tick={axisStyle} axisLine={false} tickLine={false} />
+                  <YAxis tick={axisStyle} tickFormatter={v => `${v / 1e6}Jt`} axisLine={false} tickLine={false} width={44} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc' }} />
+                  <Legend wrapperStyle={{ fontSize: 13, color: 'var(--text-3)', paddingTop: 8 }} />
+                  <Bar dataKey="pendapatan" name="Pendapatan" fill="#319ea9" radius={[5,5,0,0]} />
+                  <Bar dataKey="beban"      name="Beban"      fill="#EF4444" radius={[5,5,0,0]} />
+                  <Bar dataKey="laba"       name="Surplus"    fill="#10B981" radius={[5,5,0,0]} />
+                </BarChart>
+              )}
+            </ResponsiveContainer>
+          </div>
         </div>
 
         {/* Distribusi Beban */}
@@ -298,21 +293,23 @@ export default function DashboardPage() {
           <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>Distribusi Beban</div>
           <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 16 }}>Klik segmen untuk detail</div>
 
-          <ResponsiveContainer width="100%" height={190}>
-            <PieChart onClick={(evt: any) => {
-              const idx = evt?.activeTooltipIndex ?? null;
-              if (idx !== null) setActivePie(prev => prev === idx ? null : idx);
-            }}>
-              <Pie data={expDist} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
-                {expDist.map((_, i) => (
-                  <Cell key={i} fill={COLORS[i % COLORS.length]}
-                    opacity={activePie === null || activePie === i ? 1 : 0.3}
-                    stroke={activePie === i ? '#fff' : 'none'} strokeWidth={2} />
-                ))}
-              </Pie>
-              <Tooltip content={<PieTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="chart-container-pie">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart onClick={(evt: any) => {
+                const idx = evt?.activeTooltipIndex ?? null;
+                if (idx !== null) setActivePie(prev => prev === idx ? null : idx);
+              }}>
+                <Pie data={expDist} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+                  {expDist.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]}
+                      opacity={activePie === null || activePie === i ? 1 : 0.3}
+                      stroke={activePie === i ? '#fff' : 'none'} strokeWidth={2} />
+                  ))}
+                </Pie>
+                <Tooltip content={<PieTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
 
           {/* Legend list */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10 }}>
@@ -322,7 +319,7 @@ export default function DashboardPage() {
                 padding: '7px 10px', borderRadius: 8, cursor: 'pointer',
                 background: activePie === i ? `${COLORS[i % COLORS.length]}12` : 'transparent',
                 transition: 'background 150ms',
-                minHeight: 36,               /* klik area lebih besar */
+                minHeight: 36,
               }}>
                 <span style={{ width: 10, height: 10, borderRadius: 3, background: COLORS[i % COLORS.length], flexShrink: 0 }} />
                 <span style={{ fontSize: 13, color: 'var(--text-2)', flex: 1 }}>{e.name}</span>
@@ -346,14 +343,14 @@ export default function DashboardPage() {
       {/* ── Summary YTD ── */}
       <div className="card anim-fadeup" style={{ padding: 24 }}>
         <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>Ringkasan Keuangan YTD</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 14 }}>
+        <div className="ytd-grid">
           {([
             ['Total Pendapatan', totalPend,  '#10B981', '#f0fdf6'],
             ['Total Beban',      totalBeban, '#EF4444', '#fff5f5'],
             ['Surplus Bersih',   totalLaba,  '#319ea9', '#f0fafb'],
             ['Margin Bersih',    ((totalLaba / totalPend) * 100).toFixed(1) + '%', '#3B82F6', '#eff6ff'],
           ] as [string, number | string, string, string][]).map(([label, val, color, bg]) => (
-            <div key={label} className="card-hover" style={{
+            <div key={label} className="card-hover ytd-card" style={{
               background: bg, border: `1px solid ${color}22`,
               borderRadius: 12, padding: '16px 20px', minHeight: 80,
             }}>
@@ -370,6 +367,163 @@ export default function DashboardPage() {
 
       <style jsx global>{`
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Dashboard Header ── */
+        .dashboard-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 28px;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+        .dashboard-title {
+          font-size: 28px;
+          font-weight: 800;
+          color: var(--text);
+          margin-bottom: 6px;
+          letter-spacing: -0.5px;
+        }
+        .dashboard-subtitle {
+          color: var(--text-3);
+          font-size: 14px;
+        }
+        .refresh-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 11px 20px;
+          border-radius: 10px;
+          font-size: 14px;
+          background: #fff;
+          border: 1px solid var(--border);
+          color: var(--text-2);
+          cursor: pointer;
+          font-family: inherit;
+          font-weight: 500;
+          min-height: 44px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+          transition: box-shadow 180ms ease;
+          flex-shrink: 0;
+        }
+        .refresh-btn:hover {
+          box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        }
+
+        /* ── KPI Grid ── */
+        .kpi-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 16px;
+          margin-bottom: 16px;
+        }
+
+        /* ── Info Strip Grid ── */
+        .info-strip-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+          gap: 12px;
+          margin-bottom: 24px;
+        }
+
+        /* ── Charts Row ── */
+        .charts-row {
+          display: grid;
+          grid-template-columns: 2fr 1fr;
+          gap: 16px;
+          margin-bottom: 16px;
+        }
+
+        /* ── Chart header (title + mode toggle) ── */
+        .chart-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+
+        /* ── Chart container heights (desktop) ── */
+        .chart-container-main {
+          width: 100%;
+          height: 280px;
+        }
+        .chart-container-pie {
+          width: 100%;
+          height: 190px;
+        }
+
+        /* ── YTD Grid ── */
+        .ytd-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+          gap: 14px;
+        }
+
+        /* ── Mobile: ≤ 640px ── */
+        @media (max-width: 640px) {
+          .dashboard-title {
+            font-size: 22px;
+          }
+          .dashboard-subtitle {
+            font-size: 12px;
+          }
+          .kpi-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+          }
+          .info-strip-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+          }
+          .charts-row {
+            grid-template-columns: 1fr;
+          }
+          .chart-container-main {
+            height: 200px;
+          }
+          .chart-container-pie {
+            height: 160px;
+          }
+          .ytd-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+          }
+          .ytd-card {
+            padding: 12px 14px !important;
+            min-height: 64px !important;
+          }
+          .ytd-card > div:last-child {
+            font-size: 18px !important;
+          }
+        }
+
+        /* ── Tablet: 641px – 900px ── */
+        @media (min-width: 641px) and (max-width: 900px) {
+          .charts-row {
+            grid-template-columns: 1fr;
+          }
+          .chart-container-main {
+            height: 240px;
+          }
+          .kpi-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+
+        /* ── Extra small: ≤ 400px ── */
+        @media (max-width: 400px) {
+          .kpi-grid {
+            grid-template-columns: 1fr;
+          }
+          .info-strip-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+          .ytd-grid {
+            grid-template-columns: 1fr;
+          }
+        }
       `}</style>
     </div>
   );

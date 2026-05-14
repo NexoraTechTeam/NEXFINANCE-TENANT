@@ -17,6 +17,9 @@ const config: Config = {
           600: '#278a94',
         },
       },
+      screens: {
+        'mobile': { 'max': '768px' },
+      },
     },
   },
   plugins: [],
