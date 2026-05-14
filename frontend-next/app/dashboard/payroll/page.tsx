@@ -117,7 +117,7 @@ export default function PayrollPage() {
 
         {showForm && (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
+            <div className="payroll-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 16 }}>
               <div>
                 <label className="form-label">Pilih Karyawan</label>
                 <select value={form.employeeId} onChange={e => setForm({ ...form, employeeId: e.target.value })} className="form-select">

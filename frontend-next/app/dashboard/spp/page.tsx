@@ -235,7 +235,7 @@ export default function SPPPage() {
                 <X size={20} />
               </button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 20 }}>
               {[['ID Siswa', 'studentId', 'text', 'STU013'], ['Nama Siswa', 'studentName', 'text', 'Ahmad Fauzi']].map(([label, field, type, ph]) => (
                 <div key={field}>
                   <label className="form-label">{label} <span style={{ color: '#EF4444' }}>*</span></label>

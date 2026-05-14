@@ -266,7 +266,7 @@ export default function MasterEmployeesPage() {
               <h3 style={{ margin: 0, fontSize: 20 }}>{modal === 'create' ? 'Tambah Karyawan' : 'Edit Karyawan'}</h3>
               <button className="btn-secondary" style={{ minHeight: 34, padding: 8 }} onClick={() => setModal(null)}><X size={16} /></button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
               <div>
                 <label className="form-label">NIP</label>
                 <input className="form-input" value={form.nip} onChange={(e) => setForm({ ...form, nip: e.target.value })} />

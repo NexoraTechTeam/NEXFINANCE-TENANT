@@ -250,7 +250,7 @@ export default function MasterStudentsPage() {
               <h3 style={{ margin: 0, fontSize: 20 }}>{modal === 'create' ? 'Tambah Siswa' : 'Edit Siswa'}</h3>
               <button className="btn-secondary" style={{ minHeight: 34, padding: 8 }} onClick={() => setModal(null)}><X size={16} /></button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
               <div>
                 <label className="form-label">NIS</label>
                 <input className="form-input" value={form.nis} onChange={(e) => setForm({ ...form, nis: e.target.value })} />
