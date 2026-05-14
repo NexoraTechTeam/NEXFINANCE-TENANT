@@ -56,7 +56,6 @@ export default function ExpensesPage() {
 
   const pending  = expenses.filter(e => e.status === 'pending');
   const approved = expenses.filter(e => e.status === 'approved');
-  const rejected = expenses.filter(e => e.status === 'rejected');
   const totalApproved = approved.reduce((s, e) => s + e.amount, 0);
 
   const filtered = filter === 'all' ? expenses : expenses.filter(e => e.status === filter);
