@@ -93,11 +93,12 @@ export default function SPPPage() {
       {/* Header */}
       <div className="page-header">
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px', marginBottom: 5 }}>Manajemen SPP</h1>
+          <h1 className="spp-page-title" style={{ fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px', marginBottom: 5 }}>Manajemen SPP</h1>
           <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Penagihan &amp; pembayaran SPP siswa Al-Musabbihin</p>
         </div>
         <button
           onClick={() => setModal('create')}
+          className="spp-create-btn"
           style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 20px', borderRadius: 10, background: '#319ea9', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer', minHeight: 44, transition: 'background 180ms ease, transform 180ms ease, box-shadow 180ms ease' }}
           onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#278a94'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 14px rgba(49,158,169,0.35)'; }}
           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#319ea9'; (e.currentTarget as HTMLButtonElement).style.transform = ''; (e.currentTarget as HTMLButtonElement).style.boxShadow = ''; }}
@@ -106,8 +107,8 @@ export default function SPPPage() {
         </button>
       </div>
 
-      {/* Stat Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px,1fr))', gap: 14, marginBottom: 24 }}>
+      {/* Stat Cards — responsive 5-card grid: auto-fill ≥150px, wraps to 2×2+1 on 375px */}
+      <div className="spp-stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px,1fr))', gap: 14, marginBottom: 24 }}>
         {statCards.map((s, i) => {
           const Icon = s.icon;
           return (
@@ -119,11 +120,15 @@ export default function SPPPage() {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.5px' }}>{s.label}</div>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: `${s.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: 8,
+                  background: `linear-gradient(135deg, ${s.color}15, ${s.color}25)`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}>
                   <Icon size={16} color={s.color} strokeWidth={2} />
                 </div>
               </div>
-              <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--text)' }}>{s.value}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)' }}>{s.value}</div>
             </div>
           );
         })}
@@ -131,20 +136,21 @@ export default function SPPPage() {
 
       {/* Table Card */}
       <div className="card" style={{ padding: 24 }}>
-        {/* Filter & Search */}
-        <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+        {/* Filter & Search — filter scrolls horizontally on mobile, search full width below */}
+        <div className="spp-toolbar" style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
           <div className="spp-filter-scroll">
             {[['all', `Semua (${invoices.length})`], ['paid', `Lunas (${paid.length})`], ['unpaid', `Belum Bayar (${unpaid.length})`]].map(([val, label]) => (
               <button
                 key={val}
                 onClick={() => setFilter(val)}
                 className={`filter-btn${filter === val ? ' filter-btn-active' : ''}`}
+                style={{ cursor: 'pointer' }}
               >
                 {label}
               </button>
             ))}
           </div>
-          <div style={{ position: 'relative', flex: '1 1 260px', minWidth: 220 }}>
+          <div className="spp-search-wrap" style={{ position: 'relative', flex: '1 1 260px', minWidth: 220 }}>
             <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-4)', pointerEvents: 'none' }} strokeWidth={1.8} />
             <input
               value={search}
@@ -163,17 +169,22 @@ export default function SPPPage() {
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-4)' }}>
-            <AlertCircle size={40} style={{ margin: '0 auto 12px', display: 'block', opacity: 0.3 }} />
-            <div style={{ fontSize: 15 }}>Tidak ada invoice.</div>
+          <div style={{ textAlign: 'center', padding: '56px 20px', color: 'var(--text-4)' }}>
+            <AlertCircle size={44} style={{ margin: '0 auto 14px', display: 'block', opacity: 0.25 }} strokeWidth={1.4} />
+            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-3)', marginBottom: 4 }}>Tidak ada invoice</div>
+            <div style={{ fontSize: 13 }}>Coba ubah filter atau tambah invoice baru.</div>
           </div>
         ) : (
           <div className="table-wrapper">
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
                   {['ID Invoice', 'Nama Siswa', 'Kelas', 'Bulan', 'Jumlah', 'Jatuh Tempo', 'Status', 'Aksi'].map(h => (
-                    <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 13, fontWeight: 600, color: 'var(--text-3)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap' }}>{h}</th>
+                    <th
+                      key={h}
+                      className={h === 'Kelas' || h === 'Jatuh Tempo' ? 'spp-col-hide' : ''}
+                      style={{ padding: '12px 16px', textAlign: 'left', fontSize: 13, fontWeight: 600, color: 'var(--text-3)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap' }}
+                    >{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -188,10 +199,10 @@ export default function SPPPage() {
                       <span style={{ background: '#f0fafb', color: '#319ea9', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, fontFamily: 'monospace' }}>{inv.id}</span>
                     </td>
                     <td style={{ padding: '14px 16px', fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{inv.studentName}</td>
-                    <td style={{ padding: '14px 16px', color: 'var(--text-2)', fontSize: 14 }}>{inv.class}</td>
+                    <td className="spp-col-hide" style={{ padding: '14px 16px', color: 'var(--text-2)', fontSize: 14 }}>{inv.class}</td>
                     <td style={{ padding: '14px 16px', color: 'var(--text-2)', fontSize: 14, whiteSpace: 'nowrap' }}>{inv.month}</td>
                     <td style={{ padding: '14px 16px', fontWeight: 700, color: '#319ea9', fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(inv.amount)}</td>
-                    <td style={{ padding: '14px 16px', color: 'var(--text-3)', fontSize: 13, whiteSpace: 'nowrap' }}>{fmtDate(inv.dueDate)}</td>
+                    <td className="spp-col-hide" style={{ padding: '14px 16px', color: 'var(--text-3)', fontSize: 13, whiteSpace: 'nowrap' }}>{fmtDate(inv.dueDate)}</td>
                     <td style={{ padding: '14px 16px' }}>
                       <span className={badgeClass(inv.status)}>
                         {inv.status === 'paid'
@@ -228,14 +239,15 @@ export default function SPPPage() {
       {/* Modal: Buat Invoice */}
       {modal === 'create' && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setModal(null)}>
-          <div className="modal-box" style={{ maxWidth: 520 }}>
+          <div className="modal-box spp-modal" style={{ maxWidth: 520 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)' }}>Buat Invoice SPP</div>
               <button onClick={() => setModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: 6, borderRadius: 8, display: 'flex', alignItems: 'center', transition: 'background 160ms' }} onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#f3f4f6'} onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'none'}>
                 <X size={20} />
               </button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 20 }}>
+            {/* Form grid: 2 cols on desktop, 1 col on mobile */}
+            <div className="spp-form-grid" style={{ marginBottom: 20 }}>
               {[['ID Siswa', 'studentId', 'text', 'STU013'], ['Nama Siswa', 'studentName', 'text', 'Ahmad Fauzi']].map(([label, field, type, ph]) => (
                 <div key={field}>
                   <label className="form-label">{label} <span style={{ color: '#EF4444' }}>*</span></label>
@@ -258,7 +270,7 @@ export default function SPPPage() {
                 <label className="form-label">Jumlah SPP (Rp) <span style={{ color: '#EF4444' }}>*</span></label>
                 <input type="number" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} className="form-input" />
               </div>
-              <div style={{ gridColumn: '1/-1' }}>
+              <div className="spp-form-full">
                 <label className="form-label">Bulan</label>
                 <select value={form.month} onChange={e => setForm({ ...form, month: e.target.value })} className="form-select">
                   {MONTHS.map(m => <option key={m}>{m}</option>)}
@@ -288,7 +300,7 @@ export default function SPPPage() {
       {/* Modal: Catat Pembayaran */}
       {modal === 'pay' && selected && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setModal(null)}>
-          <div className="modal-box" style={{ maxWidth: 480 }}>
+          <div className="modal-box spp-modal" style={{ maxWidth: 480 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)' }}>Catat Pembayaran</div>
               <button onClick={() => setModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: 6, borderRadius: 8, display: 'flex', alignItems: 'center', transition: 'background 160ms' }} onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = '#f3f4f6'} onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'none'}>
@@ -342,41 +354,102 @@ export default function SPPPage() {
       )}
 
       <style jsx global>{`
-        /* Mobile: scrollable filter buttons */
+        /* ── SPP: Page title clamp ── */
+        .spp-page-title {
+          font-size: clamp(20px, 5vw, 28px);
+        }
+
+        /* ── SPP: Stat grid — 5 cards, auto-fill min 150px ── */
+        .spp-stat-grid {
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+
+        /* ── SPP: Filter scroll bar ── */
         .spp-filter-scroll {
           display: flex;
           gap: 8px;
           flex-shrink: 0;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          padding-bottom: 2px;
+          scrollbar-width: none;
         }
-        @media (max-width: 768px) {
+        .spp-filter-scroll::-webkit-scrollbar { display: none; }
+
+        /* ── SPP: Toolbar stacks on mobile ── */
+        @media (max-width: 640px) {
+          .spp-toolbar {
+            flex-direction: column;
+            align-items: stretch !important;
+          }
           .spp-filter-scroll {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
+            width: 100%;
             padding-bottom: 4px;
-            scrollbar-width: none;
           }
-          .spp-filter-scroll::-webkit-scrollbar { display: none; }
-
-          /* Modal max-height scroll on small screens */
-          .modal-box {
-            max-height: 90vh;
-            overflow-y: auto;
+          .spp-search-wrap {
+            flex: unset !important;
+            min-width: unset !important;
+            width: 100%;
           }
+        }
 
-          /* Smaller action buttons in table on mobile */
+        /* ── SPP: Hide less-important table columns on mobile ── */
+        @media (max-width: 640px) {
+          .spp-col-hide { display: none; }
+        }
+
+        /* ── SPP: Smaller action buttons in table on mobile ── */
+        @media (max-width: 640px) {
           .spp-pay-btn {
             padding: 6px 10px !important;
             font-size: 12px !important;
             min-height: 30px !important;
           }
+        }
 
-          /* Stack filter + search vertically */
-          .spp-filter-scroll {
+        /* ── SPP: Create button full-width on very small screens ── */
+        @media (max-width: 400px) {
+          .spp-create-btn {
             width: 100%;
+            justify-content: center;
           }
         }
 
-        /* Table row hover */
+        /* ── SPP: Modal — max-height + scroll on all sizes ── */
+        .spp-modal {
+          max-height: 90vh;
+          overflow-y: auto;
+        }
+
+        /* ── SPP: Modal full-screen on 375px ── */
+        @media (max-width: 430px) {
+          .modal-overlay {
+            padding: 0 !important;
+            align-items: flex-end !important;
+          }
+          .spp-modal {
+            border-radius: 18px 18px 0 0 !important;
+            max-height: 95vh;
+            padding: 20px 16px 32px !important;
+          }
+        }
+
+        /* ── SPP: Create form grid — 2 cols desktop, 1 col mobile ── */
+        .spp-form-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 14px;
+        }
+        .spp-form-full {
+          grid-column: 1 / -1;
+        }
+        @media (max-width: 480px) {
+          .spp-form-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        /* ── Table row hover ── */
         .spp-table-row:hover {
           background: #f0fafb !important;
         }

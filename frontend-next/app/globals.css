@@ -5,11 +5,17 @@
 
 @layer base {
   :root {
-    /* Teal accent */
-    --teal-500: #319ea9;
-    --teal-600: #278a94;
+    /* Teal accent — full palette */
     --teal-50:  #f0fafb;
     --teal-100: #d5f0f3;
+    --teal-200: #aee2e8;
+    --teal-300: #78cfd8;
+    --teal-400: #45b5c2;
+    --teal-500: #319ea9;
+    --teal-600: #278a94;
+    --teal-700: #1e6e77;
+    --teal-800: #175660;
+    --teal-900: #124550;
 
     /* Layout */
     --bg:      #f3f5f7;
@@ -111,6 +117,8 @@
 
   /* ── Sidebar nav link ── */
   .nav-link {
+    position: relative;
+    overflow: hidden;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -134,6 +142,18 @@
     background: var(--sidebar-active) !important;
     color: #fff !important;
     box-shadow: inset 0 0 0 1px rgba(91, 200, 211, 0.18);
+  }
+  /* Teal active underline accent */
+  .nav-link-active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 14px;
+    right: 14px;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+    background: linear-gradient(90deg, var(--teal-500), var(--teal-400));
+    opacity: 0.7;
   }
 
   /* ── Stat strip ── */
@@ -257,6 +277,15 @@
   @keyframes shimmer {
     0%, 100% { opacity: 1; }
     50%       { opacity: 0.45; }
+  }
+
+  /* ── NF badge pulse ── */
+  @keyframes nfPulse {
+    0%, 100% { box-shadow: 0 10px 22px rgba(49,158,169,0.26); }
+    50%       { box-shadow: 0 10px 30px rgba(49,158,169,0.52); }
+  }
+  .nf-badge-pulse {
+    animation: nfPulse 2.4s ease-in-out infinite;
   }
 
   /* ── Animations ── */
@@ -403,6 +432,83 @@
     flex-wrap: wrap;
     gap: 12px;
   }
+  @media (max-width: 640px) {
+    .page-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .page-header h1 {
+      font-size: 22px !important;
+    }
+    .page-header .btn-teal,
+    .page-header .btn-secondary {
+      width: 100% !important;
+      justify-content: center;
+    }
+  }
+
+  /* ── Stat cards responsive grid ── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  @media (max-width: 475px) {
+    .stat-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+  }
+
+  /* ── Filter bar responsive ── */
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .filter-bar .search-wrap {
+    position: relative;
+    flex: 1 1 230px;
+    min-width: 0;
+  }
+  @media (max-width: 640px) {
+    .filter-bar {
+      flex-direction: column;
+      gap: 8px;
+    }
+    .filter-bar .search-wrap {
+      flex: 1 1 100%;
+      min-width: 0;
+    }
+    .filter-bar .form-select {
+      width: 100% !important;
+    }
+    .filter-bar .btn-secondary {
+      width: 100% !important;
+    }
+  }
+
+  /* ── Table responsive column hiding ── */
+  @media (max-width: 640px) {
+    .col-hide-mobile { display: none !important; }
+  }
+  @media (max-width: 768px) {
+    .col-hide-tablet { display: none !important; }
+  }
+
+  /* ── Log description word-break ── */
+  .log-desc {
+    word-break: break-word;
+    max-width: 260px;
+  }
+  @media (max-width: 768px) {
+    .log-desc {
+      max-width: 160px;
+    }
+  }
 
   /* ── Form input ── */
   .form-input {
@@ -472,11 +578,24 @@
   .modal-box {
     background: #fff;
     border-radius: 18px;
-    padding: clamp(24px, 4vw, 36px);
+    padding: clamp(20px, 4vw, 36px);
     width: 100%;
     max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
     box-shadow: 0 24px 64px rgba(0,0,0,0.22);
     animation: scaleIn 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @media (max-width: 640px) {
+    .modal-overlay {
+      align-items: flex-end;
+      padding: 0;
+    }
+    .modal-box {
+      border-radius: 18px 18px 0 0;
+      max-height: 92vh;
+      padding: 20px 16px 28px;
+    }
   }
 
   /* ── Toast notifications ── */
@@ -530,6 +649,37 @@
   .tab-btn:hover { color: var(--text-2); }
   .tab-btn-active { border-bottom-color: #319ea9 !important; color: #319ea9 !important; }
 
+  /* ── Tab bar — mobile horizontal scroll ── */
+  @media (max-width: 768px) {
+    .tab-bar {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+      flex-wrap: nowrap;
+    }
+    .tab-bar::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      white-space: nowrap;
+      flex-shrink: 0;
+      padding: 11px 16px;
+    }
+  }
+
+  /* ── ISAK35 section header accent ── */
+  .isak35-section-header {
+    border-left: 3px solid #319ea9;
+    padding-left: 12px;
+  }
+
+  /* ── Page header — stack on mobile ── */
+  @media (max-width: 640px) {
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
   /* ── Filter button ── */
   .filter-btn {
     padding: 9px 18px;
@@ -550,5 +700,139 @@
     background: #f0fafb !important;
     border-color: #319ea9 !important;
     color: #319ea9 !important;
+  }
+
+  /* ═══ Responsive grid utilities ═══ */
+
+  /* Auto-fill stat cards */
+  .grid-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  /* 4-column grid */
+  .grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  /* 3-column grid */
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  /* 2-column grid */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  /* grid-4 → 2 cols at tablet */
+  @media (max-width: 1024px) {
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* grid-4 → 1 col; grid-3 → 2 cols; grid-2 → 1 col; grid-stats → 2 cols at mobile */
+  @media (max-width: 768px) {
+    .grid-4    { grid-template-columns: 1fr; }
+    .grid-3    { grid-template-columns: repeat(2, 1fr); }
+    .grid-2    { grid-template-columns: 1fr; }
+    .grid-stats { grid-template-columns: repeat(2, 1fr); }
+    .dashboard-main { padding: 16px 12px 24px; }
+  }
+
+  /* grid-3 → 1 col; grid-stats → 1 col at small phones */
+  @media (max-width: 480px) {
+    .grid-3    { grid-template-columns: 1fr; }
+    .grid-stats { grid-template-columns: 1fr; }
+  }
+
+  /* ═══ Spacing & typography utilities ═══ */
+
+  .section-gap { margin-bottom: 28px; }
+
+  .page-title {
+    font-size: clamp(22px, 4vw, 28px);
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
+    line-height: 1.15;
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+    color: var(--text-3);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  /* ═══ Responsive table utility ═══ */
+
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+  }
+
+  /* ═══ Primary button alias (full-width on mobile, auto on desktop) ═══ */
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, var(--teal-500) 0%, var(--teal-600) 100%);
+    color: #fff;
+    border: none;
+    border-radius: 16px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    min-height: 48px;
+    transition: background 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+  }
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 32px rgba(49, 158, 169, 0.24);
+  }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  @media (min-width: 641px) {
+    .btn-primary { width: auto; }
+  }
+
+  /* ═══ Search/filter bar ═══ */
+
+  .search-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .search-bar > * { min-width: 0; }
+
+  @media (max-width: 480px) {
+    .search-bar { flex-direction: column; align-items: stretch; }
+  }
+
+  /* ═══ Stat strip text truncation support ═══ */
+
+  .stat-strip { min-width: 0; }
+
+  .stat-strip .stat-label,
+  .stat-strip .stat-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
   }
 }

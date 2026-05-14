@@ -72,24 +72,28 @@ export default function PayrollPage() {
       {/* Header */}
       <div className="page-header">
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px', marginBottom: 5 }}>Manajemen Penggajian</h1>
+          <h1 className="payroll-page-title" style={{ fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px', marginBottom: 5 }}>Manajemen Penggajian</h1>
           <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Kelola gaji karyawan, PPh 21 TER, dan BPJS</p>
         </div>
       </div>
 
-      {/* Stat Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px,1fr))', gap: 14, marginBottom: 24 }}>
+      {/* Stat Cards — responsive auto-fill grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px,1fr))', gap: 14, marginBottom: 24 }}>
         {statCards.map((s, i) => {
           const Icon = s.icon;
           return (
             <div key={i} className="card card-hover anim-fadeup" style={{ padding: '18px 20px', borderTop: `3px solid ${s.color}`, animationDelay: `${i * 60}ms` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.5px' }}>{s.label}</div>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: `${s.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: 8,
+                  background: `linear-gradient(135deg, ${s.color}15, ${s.color}25)`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}>
                   <Icon size={16} color={s.color} strokeWidth={2} />
                 </div>
               </div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)' }}>{s.value}</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)' }}>{s.value}</div>
             </div>
           );
         })}
@@ -99,7 +103,7 @@ export default function PayrollPage() {
       <div className="card" style={{ padding: 24, marginBottom: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: showForm ? 20 : 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 9, background: '#f0fafb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 36, height: 36, borderRadius: 9, background: 'linear-gradient(135deg, #319ea915, #319ea925)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <Calculator size={18} color="#319ea9" strokeWidth={1.8} />
             </div>
             <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>Hitung Gaji</span>
@@ -117,16 +121,26 @@ export default function PayrollPage() {
 
         {showForm && (
           <>
+            {/* Month input + employee selector — 2 cols desktop, 1 col mobile */}
             <div className="payroll-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 16 }}>
               <div>
                 <label className="form-label">Pilih Karyawan</label>
-                <select value={form.employeeId} onChange={e => setForm({ ...form, employeeId: e.target.value })} className="form-select">
+                <select
+                  value={form.employeeId}
+                  onChange={e => setForm({ ...form, employeeId: e.target.value })}
+                  className="form-select"
+                >
                   {employees.map(emp => <option key={emp.id} value={emp.id}>{emp.name} — {emp.position}</option>)}
                 </select>
               </div>
               <div>
                 <label className="form-label">Bulan</label>
-                <input type="month" value={form.month} onChange={e => setForm({ ...form, month: e.target.value })} className="form-input" />
+                <input
+                  type="month"
+                  value={form.month}
+                  onChange={e => setForm({ ...form, month: e.target.value })}
+                  className="form-input payroll-month-input"
+                />
               </div>
             </div>
             <button
@@ -142,8 +156,11 @@ export default function PayrollPage() {
         {/* Pay Slip Result */}
         {payrollResult && (
           <div style={{ marginTop: 28 }} className="anim-fadeup">
-            {/* Slip header */}
-            <div style={{ background: 'linear-gradient(135deg, #319ea9 0%, #278a94 100%)', borderRadius: '12px 12px 0 0', padding: '20px 24px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+            {/* Slip header — stacks on mobile via class */}
+            <div
+              className="payroll-slip-header"
+              style={{ background: 'linear-gradient(135deg, #319ea9 0%, #278a94 100%)', borderRadius: '12px 12px 0 0', padding: '20px 24px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}
+            >
               <div>
                 <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.8, marginBottom: 4 }}>Slip Gaji</div>
                 <div style={{ fontSize: 18, fontWeight: 800 }}>{payrollResult.employeeName}</div>
@@ -169,6 +186,8 @@ export default function PayrollPage() {
                     borderBottom: '1px solid var(--border)',
                     background: isBruto ? '#f0fafb' : '#fff',
                     fontWeight: isBruto ? 700 : 400,
+                    flexWrap: 'wrap',
+                    gap: 8,
                   }}
                 >
                   <span style={{ fontSize: 13, color: isBruto ? '#319ea9' : 'var(--text-3)', fontWeight: isBruto ? 700 : 500 }}>{label}</span>
@@ -183,7 +202,7 @@ export default function PayrollPage() {
               {slipRows.slice(4, 7).map(([label, val]) => (
                 <div
                   key={label}
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 20px', borderBottom: '1px solid var(--border)', background: '#fff' }}
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '11px 20px', borderBottom: '1px solid var(--border)', background: '#fff', flexWrap: 'wrap', gap: 8 }}
                 >
                   <span style={{ fontSize: 13, color: 'var(--text-3)', fontWeight: 500 }}>{label}</span>
                   <span style={{ fontSize: 14, fontWeight: 600, color: '#EF4444' }}>- {fmt(Math.abs(val as number))}</span>
@@ -191,7 +210,7 @@ export default function PayrollPage() {
               ))}
 
               {/* Net salary highlight */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 20px', background: 'linear-gradient(90deg, #f0fdf6 0%, #dcfce7 100%)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 20px', background: 'linear-gradient(90deg, #f0fdf6 0%, #dcfce7 100%)', flexWrap: 'wrap', gap: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <CheckCircle size={18} color="#10B981" strokeWidth={2} />
                   <span style={{ fontSize: 15, fontWeight: 800, color: '#059669' }}>Gaji Bersih (Take-Home)</span>
@@ -203,10 +222,10 @@ export default function PayrollPage() {
         )}
       </div>
 
-      {/* Riwayat */}
+      {/* Riwayat Penggajian */}
       <div className="card" style={{ padding: 24, marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 9, background: '#f0fafb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 36, height: 36, borderRadius: 9, background: 'linear-gradient(135deg, #319ea915, #319ea925)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Clock size={18} color="#319ea9" strokeWidth={1.8} />
           </div>
           <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>Riwayat Penggajian</span>
@@ -215,10 +234,14 @@ export default function PayrollPage() {
           )}
         </div>
         {history.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-4)', fontSize: 15 }}>Belum ada riwayat. Hitung gaji untuk memulai.</div>
+          <div style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--text-4)' }}>
+            <Clock size={44} style={{ margin: '0 auto 14px', display: 'block', opacity: 0.2 }} strokeWidth={1.4} />
+            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-3)', marginBottom: 4 }}>Belum ada riwayat</div>
+            <div style={{ fontSize: 13 }}>Hitung gaji untuk memulai.</div>
+          </div>
         ) : (
           <div className="table-wrapper">
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 540 }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
                   {['Karyawan', 'Bulan', 'Gaji Bruto', 'Potongan', 'Take-Home', 'Status'].map(h => (
@@ -254,7 +277,7 @@ export default function PayrollPage() {
       {/* Data Karyawan */}
       <div className="card" style={{ padding: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 9, background: '#f0fafb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: 36, height: 36, borderRadius: 9, background: 'linear-gradient(135deg, #319ea915, #319ea925)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Users size={18} color="#319ea9" strokeWidth={1.8} />
           </div>
           <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>Data Karyawan</span>
@@ -262,53 +285,74 @@ export default function PayrollPage() {
             <span className="badge badge-info" style={{ marginLeft: 4 }}>{employees.length}</span>
           )}
         </div>
-        <div className="table-wrapper">
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ background: '#f8fafc' }}>
-                {['ID', 'Nama', 'Jabatan', 'Gaji Pokok', 'Tunjangan Sertifikasi', 'Tunjangan Keluarga'].map(h => (
-                  <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 13, fontWeight: 600, color: 'var(--text-3)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {employees.map((emp, i) => (
-                <tr key={emp.id} className="payroll-emp-row" style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? '#fff' : '#f5f7fa', transition: 'background 150ms' }}>
-                  <td style={{ padding: '13px 16px' }}>
-                    <span style={{ background: '#f0fafb', color: '#319ea9', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, fontFamily: 'monospace' }}>{emp.id}</span>
-                  </td>
-                  <td style={{ padding: '13px 16px', fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{emp.name}</td>
-                  <td style={{ padding: '13px 16px', fontSize: 14 }}>
-                    <span style={{ background: '#eff6ff', color: '#2563eb', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600 }}>{emp.position}</span>
-                  </td>
-                  <td style={{ padding: '13px 16px', color: 'var(--text)', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap' }}>{fmt(emp.baseSalary)}</td>
-                  <td style={{ padding: '13px 16px', color: 'var(--text)', fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(emp.certificationAllowance)}</td>
-                  <td style={{ padding: '13px 16px', color: 'var(--text)', fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(emp.familyAllowance)}</td>
+        {employees.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--text-4)' }}>
+            <Users size={44} style={{ margin: '0 auto 14px', display: 'block', opacity: 0.2 }} strokeWidth={1.4} />
+            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-3)', marginBottom: 4 }}>Belum ada data karyawan</div>
+            <div style={{ fontSize: 13 }}>Data karyawan akan muncul setelah terhubung ke server.</div>
+          </div>
+        ) : (
+          <div className="table-wrapper">
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 580 }}>
+              <thead>
+                <tr style={{ background: '#f8fafc' }}>
+                  {['ID', 'Nama', 'Jabatan', 'Gaji Pokok', 'Tunjangan Sertifikasi', 'Tunjangan Keluarga'].map(h => (
+                    <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 13, fontWeight: 600, color: 'var(--text-3)', borderBottom: '2px solid var(--border)', whiteSpace: 'nowrap' }}>{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {employees.map((emp, i) => (
+                  <tr key={emp.id} className="payroll-emp-row" style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? '#fff' : '#f5f7fa', transition: 'background 150ms' }}>
+                    <td style={{ padding: '13px 16px' }}>
+                      <span style={{ background: '#f0fafb', color: '#319ea9', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, fontFamily: 'monospace' }}>{emp.id}</span>
+                    </td>
+                    <td style={{ padding: '13px 16px', fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{emp.name}</td>
+                    <td style={{ padding: '13px 16px', fontSize: 14 }}>
+                      <span style={{ background: '#eff6ff', color: '#2563eb', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600 }}>{emp.position}</span>
+                    </td>
+                    <td style={{ padding: '13px 16px', color: 'var(--text)', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap' }}>{fmt(emp.baseSalary)}</td>
+                    <td style={{ padding: '13px 16px', color: 'var(--text)', fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(emp.certificationAllowance)}</td>
+                    <td style={{ padding: '13px 16px', color: 'var(--text)', fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(emp.familyAllowance)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <style jsx global>{`
-        /* Table row hover effects */
+        /* ── Payroll: page title clamp ── */
+        .payroll-page-title {
+          font-size: clamp(20px, 5vw, 28px);
+        }
+
+        /* ── Payroll: table row hover ── */
         .payroll-history-row:hover,
         .payroll-emp-row:hover {
           background: #f0fafb !important;
         }
 
-        /* Mobile adjustments */
-        @media (max-width: 768px) {
-          /* Stack the Hitung Gaji form grid to single column */
+        /* ── Payroll: form grid — 1 col on mobile ── */
+        @media (max-width: 640px) {
           .payroll-form-grid {
             grid-template-columns: 1fr !important;
           }
+        }
 
-          /* Payroll slip: stack header items */
+        /* ── Payroll: month input — touch-friendly on mobile ── */
+        .payroll-month-input {
+          cursor: pointer;
+          -webkit-appearance: none;
+          appearance: none;
+        }
+
+        /* ── Payroll: slip header stacks on mobile ── */
+        @media (max-width: 480px) {
           .payroll-slip-header {
             flex-direction: column !important;
-            text-align: left !important;
+            align-items: flex-start !important;
           }
           .payroll-slip-header > div:last-child {
             text-align: left !important;

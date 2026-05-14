@@ -153,12 +153,17 @@ export default function MasterStudentsPage() {
         </div>
       )}
 
+      {/* Page header — stacks on mobile via CSS class */}
       <div className="page-header">
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text)', marginBottom: 6 }}>Master Data Siswa</h1>
           <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Kelola murid aktif/non-aktif, profil, dan pencarian cepat.</p>
         </div>
-        <button className="btn-teal" style={{ width: 'auto', display: 'inline-flex', alignItems: 'center', gap: 8, paddingInline: 18 }} onClick={openCreate}>
+        <button
+          className="btn-teal"
+          style={{ width: 'auto', display: 'inline-flex', alignItems: 'center', gap: 8, paddingInline: 18 }}
+          onClick={openCreate}
+        >
           <Plus size={16} /> Tambah Siswa
         </button>
       </div>
@@ -169,7 +174,8 @@ export default function MasterStudentsPage() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 14 }}>
+      {/* Stat cards — responsive 2-col on mobile via stat-grid class */}
+      <div className="stat-grid">
         <div className="card" style={{ padding: 16 }}>
           <div style={{ fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', fontWeight: 700 }}>Total Siswa</div>
           <div style={{ marginTop: 5, fontSize: 24, fontWeight: 800 }}>{students.length}</div>
@@ -180,11 +186,18 @@ export default function MasterStudentsPage() {
         </div>
       </div>
 
+      {/* Filter bar — stacks on mobile via filter-bar class */}
       <div className="card" style={{ padding: 14, marginBottom: 14 }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          <div style={{ position: 'relative', flex: '1 1 230px', minWidth: 200 }}>
+        <div className="filter-bar">
+          <div className="search-wrap">
             <Search size={15} style={{ position: 'absolute', top: '50%', left: 11, transform: 'translateY(-50%)', color: 'var(--text-4)' }} />
-            <input className="form-input" style={{ paddingLeft: 34 }} placeholder="Cari nama/NIS..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            <input
+              className="form-input"
+              style={{ paddingLeft: 34 }}
+              placeholder="Cari nama/NIS..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
           <select className="form-select" style={{ width: 170 }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="all">Semua Status</option>
@@ -198,6 +211,7 @@ export default function MasterStudentsPage() {
         </div>
       </div>
 
+      {/* Table — overflow-x scroll, columns hide on mobile */}
       <div className="card" style={{ padding: 0 }}>
         {loading ? (
           <div style={{ padding: 50, textAlign: 'center', color: 'var(--text-3)' }}>Memuat data siswa...</div>
@@ -211,9 +225,14 @@ export default function MasterStudentsPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
-                  {['NIS', 'Nama', 'Kelas', 'Wali', 'No. HP', 'Status', 'Aksi'].map((head) => (
-                    <th key={head} style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>{head}</th>
-                  ))}
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>NIS</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>Nama</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>Kelas</th>
+                  {/* Hide Wali and No. HP on mobile */}
+                  <th className="col-hide-mobile" style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>Wali</th>
+                  <th className="col-hide-mobile" style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>No. HP</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>Status</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -222,8 +241,8 @@ export default function MasterStudentsPage() {
                     <td style={{ padding: '11px 14px' }}><span className="badge badge-info">{item.nis}</span></td>
                     <td style={{ padding: '11px 14px', fontWeight: 700 }}>{item.name}</td>
                     <td style={{ padding: '11px 14px' }}>{item.class}</td>
-                    <td style={{ padding: '11px 14px' }}>{item.parentName || item.guardianName || '-'}</td>
-                    <td style={{ padding: '11px 14px' }}>{item.phone || '-'}</td>
+                    <td className="col-hide-mobile" style={{ padding: '11px 14px' }}>{item.parentName || item.guardianName || '-'}</td>
+                    <td className="col-hide-mobile" style={{ padding: '11px 14px' }}>{item.phone || '-'}</td>
                     <td style={{ padding: '11px 14px' }}>
                       <span className={`badge ${(item.status || 'active') === 'active' ? 'badge-success' : 'badge-danger'}`}>
                         {(item.status || 'active') === 'active' ? 'Aktif' : 'Tidak Aktif'}
@@ -231,8 +250,8 @@ export default function MasterStudentsPage() {
                     </td>
                     <td style={{ padding: '11px 14px' }}>
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <button className="btn-secondary" style={{ padding: '7px 10px', minHeight: 36 }} onClick={() => openEdit(item)}><Edit2 size={13} /></button>
-                        <button className="btn-secondary" style={{ padding: '7px 10px', minHeight: 36, color: '#dc2626' }} onClick={() => setDeleteTarget(item)}><Trash2 size={13} /></button>
+                        <button className="btn-secondary" style={{ padding: '7px 10px', minHeight: 36 }} onClick={() => openEdit(item)} aria-label={`Edit siswa ${item.name}`}><Edit2 size={13} /></button>
+                        <button className="btn-secondary" style={{ padding: '7px 10px', minHeight: 36, color: '#dc2626' }} onClick={() => setDeleteTarget(item)} aria-label={`Nonaktifkan siswa ${item.name}`}><Trash2 size={13} /></button>
                       </div>
                     </td>
                   </tr>
@@ -243,6 +262,7 @@ export default function MasterStudentsPage() {
         )}
       </div>
 
+      {/* Create / Edit modal — responsive, max-height 90vh, stacked on mobile */}
       {(modal === 'create' || modal === 'edit') && (
         <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setModal(null)}>
           <div className="modal-box" style={{ maxWidth: 560 }}>
@@ -250,7 +270,8 @@ export default function MasterStudentsPage() {
               <h3 style={{ margin: 0, fontSize: 20 }}>{modal === 'create' ? 'Tambah Siswa' : 'Edit Siswa'}</h3>
               <button className="btn-secondary" style={{ minHeight: 34, padding: 8 }} onClick={() => setModal(null)}><X size={16} /></button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+            {/* Form grid — single col on mobile via minmax */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 12 }}>
               <div>
                 <label className="form-label">NIS</label>
                 <input className="form-input" value={form.nis} onChange={(e) => setForm({ ...form, nis: e.target.value })} />
@@ -289,7 +310,7 @@ export default function MasterStudentsPage() {
                 <input className="form-input" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16 }}>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, flexWrap: 'wrap' }}>
               <button className="btn-secondary" onClick={() => setModal(null)}>Batal</button>
               <button className="btn-teal" style={{ width: 'auto', paddingInline: 18 }} disabled={submitting} onClick={save}>
                 {submitting ? 'Menyimpan...' : 'Simpan'}
@@ -299,12 +320,13 @@ export default function MasterStudentsPage() {
         </div>
       )}
 
+      {/* Deactivate confirm modal */}
       {deleteTarget && (
         <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setDeleteTarget(null)}>
           <div className="modal-box" style={{ maxWidth: 420 }}>
             <h3 style={{ marginTop: 0 }}>Nonaktifkan siswa?</h3>
             <p style={{ color: 'var(--text-3)' }}>{deleteTarget.name} ({deleteTarget.nis}) akan ditandai tidak aktif.</p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
               <button className="btn-secondary" onClick={() => setDeleteTarget(null)}>Batal</button>
               <button className="btn-secondary" style={{ color: '#dc2626' }} disabled={submitting} onClick={deactivate}>
                 {submitting ? 'Memproses...' : 'Ya, Nonaktifkan'}

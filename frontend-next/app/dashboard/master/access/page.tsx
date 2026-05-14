@@ -144,11 +144,13 @@ export default function RoleAccessPage() {
         </div>
       )}
 
+      {/* Page header */}
       <div className="page-header">
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text)', marginBottom: 6 }}>Role & Permission Management</h1>
           <p style={{ fontSize: 14, color: 'var(--text-3)' }}>
-            Kontrol role user dan akses modul. {isSuperAdmin ? 'Mode edit aktif (Super Admin).' : 'Mode read-only (khusus Super Admin untuk edit).'}
+            Kontrol role user dan akses modul.{' '}
+            {isSuperAdmin ? 'Mode edit aktif (Super Admin).' : 'Mode read-only (khusus Super Admin untuk edit).'}
           </p>
         </div>
       </div>
@@ -159,6 +161,7 @@ export default function RoleAccessPage() {
         </div>
       )}
 
+      {/* User list — responsive table with overflow scroll */}
       <div className="card" style={{ padding: 16, marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           <Users size={17} color="var(--teal-500)" />
@@ -174,22 +177,26 @@ export default function RoleAccessPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
-                  {['ID', 'Nama', 'Email', 'Role', 'Edit Role', 'Status'].map((head) => (
-                    <th key={head} style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>{head}</th>
-                  ))}
+                  {/* ID hidden on mobile */}
+                  <th className="col-hide-mobile" style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>ID</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>Nama</th>
+                  <th className="col-hide-tablet" style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>Email</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>Role</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>Edit Role</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((u, idx) => (
                   <tr key={u.id} style={{ background: idx % 2 ? '#fbfcfd' : '#fff', borderBottom: '1px solid var(--border)' }}>
-                    <td style={{ padding: '11px 14px' }}>{u.id}</td>
+                    <td className="col-hide-mobile" style={{ padding: '11px 14px' }}>{u.id}</td>
                     <td style={{ padding: '11px 14px', fontWeight: 700 }}>{u.name || '-'}</td>
-                    <td style={{ padding: '11px 14px' }}>{u.email}</td>
+                    <td className="col-hide-tablet" style={{ padding: '11px 14px' }}>{u.email}</td>
                     <td style={{ padding: '11px 14px' }}><span className="badge badge-info">{ROLE_LABELS[u.role] || u.role}</span></td>
                     <td style={{ padding: '11px 14px' }}>
                       <select
                         className="form-select"
-                        style={{ minWidth: 160 }}
+                        style={{ minWidth: 140 }}
                         value={u.role}
                         disabled={!isSuperAdmin || submittingRole === u.id || u.id === currentUserId}
                         onChange={(e) => handleRoleChange(u.id, e.target.value)}
@@ -212,6 +219,7 @@ export default function RoleAccessPage() {
         )}
       </div>
 
+      {/* Permission matrix — always horizontal scroll, compact module headers */}
       <div className="card" style={{ padding: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           <ShieldCheck size={17} color="var(--teal-500)" />
@@ -219,12 +227,33 @@ export default function RoleAccessPage() {
         </div>
 
         <div className="table-wrapper">
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
             <thead>
               <tr style={{ background: '#f8fafc' }}>
-                <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>Role</th>
+                <th style={{
+                  padding: '12px 14px',
+                  textAlign: 'left',
+                  borderBottom: '1px solid var(--border)',
+                  color: 'var(--text-3)',
+                  fontSize: 13,
+                  whiteSpace: 'nowrap',
+                  position: 'sticky',
+                  left: 0,
+                  background: '#f8fafc',
+                  zIndex: 1,
+                }}>
+                  Role
+                </th>
                 {ALL_MODULES.map((module) => (
-                  <th key={module} style={{ padding: '12px 10px', textAlign: 'center', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 12, textTransform: 'capitalize' }}>
+                  <th key={module} style={{
+                    padding: '12px 8px',
+                    textAlign: 'center',
+                    borderBottom: '1px solid var(--border)',
+                    color: 'var(--text-3)',
+                    fontSize: 11,
+                    textTransform: 'capitalize',
+                    whiteSpace: 'nowrap',
+                  }}>
                     {module}
                   </th>
                 ))}
@@ -233,7 +262,17 @@ export default function RoleAccessPage() {
             <tbody>
               {Object.entries(ROLE_LABELS).map(([role, label], idx) => (
                 <tr key={role} style={{ background: idx % 2 ? '#fbfcfd' : '#fff', borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '11px 14px', fontWeight: 700 }}>{label}</td>
+                  <td style={{
+                    padding: '11px 14px',
+                    fontWeight: 700,
+                    whiteSpace: 'nowrap',
+                    position: 'sticky',
+                    left: 0,
+                    background: idx % 2 ? '#fbfcfd' : '#fff',
+                    zIndex: 1,
+                  }}>
+                    {label}
+                  </td>
                   {ALL_MODULES.map((module) => {
                     const canAccess = hasAccess(role, module);
                     return (
@@ -241,9 +280,15 @@ export default function RoleAccessPage() {
                         <button
                           type="button"
                           className={`badge ${canAccess ? 'badge-success' : 'badge-danger'}`}
-                          style={{ border: 'none', cursor: isSuperAdmin ? 'pointer' : 'default', opacity: submittingPermissionRole === role ? 0.7 : 1 }}
+                          style={{
+                            border: 'none',
+                            cursor: isSuperAdmin ? 'pointer' : 'default',
+                            opacity: submittingPermissionRole === role ? 0.7 : 1,
+                            transition: 'opacity 160ms ease, transform 120ms ease',
+                          }}
                           disabled={!isSuperAdmin || submittingPermissionRole === role}
                           onClick={() => togglePermission(role, module)}
+                          aria-label={`${canAccess ? 'Cabut' : 'Beri'} akses ${label} ke modul ${module}`}
                         >
                           {canAccess ? 'Bisa' : 'Tidak'}
                         </button>

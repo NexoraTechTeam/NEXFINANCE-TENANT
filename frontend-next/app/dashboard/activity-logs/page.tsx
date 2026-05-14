@@ -118,12 +118,18 @@ export default function ActivityLogsPage() {
         </div>
       )}
 
+      {/* Page header — stacks on mobile */}
       <div className="page-header">
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text)', marginBottom: 6 }}>Log Historis</h1>
           <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Audit trail aktivitas user untuk monitoring dan investigasi.</p>
         </div>
-        <button className="btn-secondary" style={{ width: 'auto', display: 'inline-flex', alignItems: 'center', gap: 8 }} disabled={clearing} onClick={clearOldLogs}>
+        <button
+          className="btn-secondary"
+          style={{ width: 'auto', display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          disabled={clearing}
+          onClick={clearOldLogs}
+        >
           <RotateCcw size={15} /> {clearing ? 'Membersihkan...' : 'Bersihkan Log Lama'}
         </button>
       </div>
@@ -134,7 +140,8 @@ export default function ActivityLogsPage() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12, marginBottom: 14 }}>
+      {/* Stat cards — responsive via stat-grid class */}
+      <div className="stat-grid">
         <div className="card" style={{ padding: 16 }}>
           <div style={{ fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', fontWeight: 700 }}>Total Aktivitas</div>
           <div style={{ marginTop: 5, fontSize: 24, fontWeight: 800 }}>{loading ? '—' : (stats?.total || logs.length)}</div>
@@ -153,11 +160,18 @@ export default function ActivityLogsPage() {
         </div>
       </div>
 
+      {/* Filter bar — stacks vertically on mobile via filter-bar class */}
       <div className="card" style={{ padding: 14, marginBottom: 14 }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          <div style={{ position: 'relative', flex: '1 1 250px', minWidth: 200 }}>
+        <div className="filter-bar">
+          <div className="search-wrap">
             <Search size={15} style={{ position: 'absolute', top: '50%', left: 11, transform: 'translateY(-50%)', color: 'var(--text-4)' }} />
-            <input className="form-input" style={{ paddingLeft: 34 }} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari user, aksi, deskripsi..." />
+            <input
+              className="form-input"
+              style={{ paddingLeft: 34 }}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari user, aksi, deskripsi..."
+            />
           </div>
           <select className="form-select" style={{ width: 190 }} value={moduleFilter} onChange={(e) => setModuleFilter(e.target.value)}>
             <option value="">Semua Modul</option>
@@ -171,6 +185,7 @@ export default function ActivityLogsPage() {
         </div>
       </div>
 
+      {/* Log table — overflow-x scroll, description with word-break, secondary cols hide on mobile */}
       <div className="card" style={{ padding: 0 }}>
         {loading ? (
           <div style={{ padding: 52, textAlign: 'center', color: 'var(--text-3)' }}>Memuat activity logs...</div>
@@ -184,17 +199,21 @@ export default function ActivityLogsPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
-                  {['Waktu', 'User', 'Level', 'Modul', 'Aksi', 'Deskripsi'].map((head) => (
-                    <th key={head} style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>{head}</th>
-                  ))}
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13, whiteSpace: 'nowrap' }}>Waktu</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>User</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>Level</th>
+                  {/* Modul and Aksi hidden on mobile */}
+                  <th className="col-hide-mobile" style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>Modul</th>
+                  <th className="col-hide-mobile" style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>Aksi</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>Deskripsi</th>
                 </tr>
               </thead>
               <tbody>
                 {logs.map((log, idx) => (
                   <tr key={log.id || `${log.timestamp}-${idx}`} style={{ background: idx % 2 ? '#fbfcfd' : '#fff', borderBottom: '1px solid var(--border)' }}>
-                    <td style={{ padding: '11px 14px', whiteSpace: 'nowrap' }}>{fmtDateTime(log.timestamp)}</td>
+                    <td style={{ padding: '11px 14px', whiteSpace: 'nowrap', fontSize: 13 }}>{fmtDateTime(log.timestamp)}</td>
                     <td style={{ padding: '11px 14px' }}>
-                      <div style={{ fontWeight: 700 }}>{log.userEmail || '-'}</div>
+                      <div style={{ fontWeight: 700, fontSize: 13 }}>{log.userEmail || '-'}</div>
                       <div style={{ fontSize: 11, color: 'var(--text-4)' }}>{log.userId || '-'}</div>
                     </td>
                     <td style={{ padding: '11px 14px' }}>
@@ -202,9 +221,12 @@ export default function ActivityLogsPage() {
                         {log.level || 'info'}
                       </span>
                     </td>
-                    <td style={{ padding: '11px 14px' }}>{log.module || '-'}</td>
-                    <td style={{ padding: '11px 14px' }}><span className="badge badge-neutral">{log.action || '-'}</span></td>
-                    <td style={{ padding: '11px 14px' }}>{log.description || '-'}</td>
+                    <td className="col-hide-mobile" style={{ padding: '11px 14px' }}>{log.module || '-'}</td>
+                    <td className="col-hide-mobile" style={{ padding: '11px 14px' }}><span className="badge badge-neutral">{log.action || '-'}</span></td>
+                    {/* Description with word-break for long strings */}
+                    <td style={{ padding: '11px 14px' }}>
+                      <span className="log-desc">{log.description || '-'}</span>
+                    </td>
                   </tr>
                 ))}
               </tbody>

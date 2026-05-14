@@ -221,9 +221,9 @@ export default function DashboardPage() {
       {/* ── KPI Cards ── */}
       <div className="kpi-grid">
         {loading ? Array(4).fill(0).map((_, i) => (
-          <div key={i} className="card" style={{ padding: 24 }}>
+          <div key={i} className="card kpi-card-inner">
             <Skeleton h={13} w="55%" />
-            <div style={{ marginTop: 12 }}><Skeleton h={30} w="75%" /></div>
+            <div style={{ marginTop: 12 }}><Skeleton h={28} w="75%" /></div>
             <div style={{ marginTop: 10 }}><Skeleton h={12} w="50%" /></div>
           </div>
         )) : kpiCards.map((c, i) => {
@@ -233,35 +233,35 @@ export default function DashboardPage() {
             <button
               key={i}
               type="button"
-              className="card card-hover anim-fadeup kpi-card"
+              className="card card-hover anim-fadeup kpi-card kpi-card-inner"
               style={{
-                padding: 24,
                 animationDelay: `${i * 0.07}s`,
                 borderTop: `3px solid ${c.color}`,
               }}
               onClick={() => router.push(c.to)}
               aria-label={`${c.label}: ${c.value}. Buka ${c.label}`}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
-                <div style={{ width: 48, height: 48, borderRadius: 13, background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Icon size={22} color={c.color} strokeWidth={1.8} />
+              <div className="kpi-card-top">
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon size={20} color={c.color} strokeWidth={1.8} />
                 </div>
                 <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  display: 'inline-flex', alignItems: 'center', gap: 3,
                   background: c.up ? '#f0fdf4' : '#fffbeb',
                   color: c.up ? '#059669' : '#d97706',
-                  padding: '5px 11px', borderRadius: 999, fontSize: 13, fontWeight: 700,
+                  padding: '4px 9px', borderRadius: 999, fontSize: 12, fontWeight: 700,
+                  whiteSpace: 'nowrap',
                 }}>
-                  <Arrow size={13} />{c.trend}
+                  <Arrow size={12} />{c.trend}
                 </span>
               </div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 7 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 5 }}>
                 {c.label}
               </div>
-              <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--text)', marginBottom: 6, letterSpacing: '-0.5px', lineHeight: 1.1 }}>
+              <div className="kpi-card-value">
                 {c.value}
               </div>
-              <div style={{ fontSize: 13, color: 'var(--text-4)' }}>{c.sub}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 2 }}>{c.sub}</div>
             </button>
           );
         })}
@@ -298,7 +298,7 @@ export default function DashboardPage() {
       <div className="charts-row">
 
         {/* Tren Keuangan */}
-        <div className="card anim-fadeup" style={{ padding: 24 }}>
+        <div className="card anim-fadeup card-p24">
           <div className="chart-header">
             <div>
               <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>Tren Keuangan Bulanan</div>
@@ -321,7 +321,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="chart-container-main">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={280}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
               {chartMode === 'area' ? (
                 <AreaChart data={monthly}>
                   <defs>
@@ -360,12 +360,12 @@ export default function DashboardPage() {
         </div>
 
         {/* Distribusi Beban */}
-        <div className="card anim-fadeup" style={{ padding: 24, animationDelay: '0.1s' }}>
+        <div className="card anim-fadeup card-p24" style={{ animationDelay: '0.1s' }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>Distribusi Beban</div>
           <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 16 }}>Klik segmen untuk detail</div>
 
           <div className="chart-container-pie">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={190}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={160}>
               <PieChart>
                 <Pie data={expDist} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
                   {expDist.map((_, i) => (
@@ -410,7 +410,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Summary YTD ── */}
-      <div className="card anim-fadeup" style={{ padding: 24 }}>
+      <div className="card anim-fadeup card-p24" style={{ marginBottom: 8 }}>
         <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>Ringkasan Keuangan YTD</div>
         <div className="ytd-grid">
           {([
@@ -435,9 +435,12 @@ export default function DashboardPage() {
       </div>
 
       <style jsx global>{`
+        /* ── Spin keyframe (RefreshCw) ── */
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ── Dashboard Header ── */
+        /* ═══════════════════════════════════════
+           DASHBOARD HEADER
+        ═══════════════════════════════════════ */
         .dashboard-header {
           display: flex;
           justify-content: space-between;
@@ -447,7 +450,7 @@ export default function DashboardPage() {
           gap: 12px;
         }
         .dashboard-title {
-          font-size: 28px;
+          font-size: clamp(20px, 5vw, 28px);
           font-weight: 800;
           color: var(--text);
           margin-bottom: 6px;
@@ -472,19 +475,27 @@ export default function DashboardPage() {
           font-weight: 500;
           min-height: 44px;
           box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-          transition: box-shadow 180ms ease;
+          transition: box-shadow 180ms ease, border-color 180ms ease;
           flex-shrink: 0;
         }
         .refresh-btn:hover {
           box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+          border-color: rgba(49, 158, 169, 0.3);
+        }
+        .refresh-btn:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
         }
 
+        /* ═══════════════════════════════════════
+           EXECUTIVE BANNER
+        ═══════════════════════════════════════ */
         .executive-banner {
           display: grid;
           grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.95fr);
-          gap: 18px;
-          padding: 24px 26px;
-          margin-bottom: 18px;
+          gap: 20px;
+          padding: 28px 30px;
+          margin-bottom: 20px;
           background:
             linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(240,250,251,0.98) 100%);
         }
@@ -503,10 +514,10 @@ export default function DashboardPage() {
         }
         .executive-title {
           margin-top: 16px;
-          font-size: clamp(24px, 3vw, 32px);
+          font-size: clamp(20px, 3vw, 32px);
           font-weight: 800;
           letter-spacing: -0.7px;
-          line-height: 1.1;
+          line-height: 1.15;
           color: var(--text);
         }
         .executive-copy {
@@ -523,19 +534,26 @@ export default function DashboardPage() {
           align-self: end;
         }
         .executive-metric {
-          min-height: 92px;
-          border-radius: 18px;
+          min-height: 88px;
+          border-radius: 16px;
           border: 1px solid rgba(49, 158, 169, 0.14);
-          background: rgba(255,255,255,0.76);
-          padding: 16px;
+          background: rgba(255,255,255,0.80);
+          padding: 14px 16px;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
+          transition: box-shadow 200ms ease, border-color 200ms ease;
+        }
+        .executive-metric:hover {
+          border-color: rgba(49, 158, 169, 0.28);
+          box-shadow: 0 4px 16px rgba(49, 158, 169, 0.08);
         }
         .executive-metric span {
           color: var(--text-4);
-          font-size: 12px;
+          font-size: 11px;
           font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
         }
         .executive-metric strong {
           color: var(--text);
@@ -544,14 +562,15 @@ export default function DashboardPage() {
           line-height: 1.2;
         }
 
-        /* ── KPI Grid ── */
+        /* ═══════════════════════════════════════
+           KPI GRID  — auto-fill responsive
+        ═══════════════════════════════════════ */
         .kpi-grid {
           display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
           gap: 16px;
           margin-bottom: 16px;
         }
-
         .kpi-card {
           width: 100%;
           text-align: left;
@@ -559,9 +578,31 @@ export default function DashboardPage() {
           border-right: 0;
           border-bottom: 0;
           background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(248,250,252,1) 100%);
+          min-height: 160px;
+        }
+        .kpi-card-inner {
+          padding: 20px;
+        }
+        .kpi-card-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 16px;
+          gap: 8px;
+        }
+        .kpi-card-value {
+          font-size: 24px;
+          font-weight: 800;
+          color: var(--text);
+          margin-bottom: 4px;
+          letter-spacing: -0.5px;
+          line-height: 1.1;
+          word-break: break-word;
         }
 
-        /* ── Info Strip Grid ── */
+        /* ═══════════════════════════════════════
+           INFO STRIP GRID
+        ═══════════════════════════════════════ */
         .info-strip-grid {
           display: grid;
           grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -569,10 +610,12 @@ export default function DashboardPage() {
           margin-bottom: 24px;
         }
 
-        /* ── Charts Row ── */
+        /* ═══════════════════════════════════════
+           CHARTS ROW  — 60/40 desktop split
+        ═══════════════════════════════════════ */
         .charts-row {
           display: grid;
-          grid-template-columns: 2fr 1fr;
+          grid-template-columns: 3fr 2fr;
           gap: 16px;
           margin-bottom: 16px;
         }
@@ -590,54 +633,142 @@ export default function DashboardPage() {
         /* ── Chart container heights (desktop) ── */
         .chart-container-main {
           width: 100%;
-          height: 280px;
+          height: 300px;
         }
         .chart-container-pie {
           width: 100%;
-          height: 190px;
+          height: 200px;
         }
 
-        /* ── YTD Grid ── */
+        /* ═══════════════════════════════════════
+           YTD GRID
+        ═══════════════════════════════════════ */
         .ytd-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
           gap: 14px;
         }
 
-        /* ── Mobile: ≤ 640px ── */
-        @media (max-width: 640px) {
-          .dashboard-title {
-            font-size: 22px;
-          }
-          .dashboard-subtitle {
-            font-size: 12px;
-          }
+        /* ── Card padding utility ── */
+        .card-p24 { padding: 24px; }
+
+        /* ═══════════════════════════════════════
+           TABLET: 641px – 1023px
+        ═══════════════════════════════════════ */
+        @media (min-width: 641px) and (max-width: 1023px) {
           .executive-banner {
             grid-template-columns: 1fr;
-            padding: 20px 18px;
+            padding: 22px 22px;
           }
           .executive-metrics {
-            grid-template-columns: 1fr;
-          }
-          .kpi-grid {
-            grid-template-columns: 1fr;
-            gap: 10px;
-          }
-          .info-strip-grid {
-            grid-template-columns: 1fr;
-            gap: 8px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin-top: 4px;
           }
           .charts-row {
             grid-template-columns: 1fr;
           }
           .chart-container-main {
-            height: 200px;
+            height: 280px;
           }
           .chart-container-pie {
-            height: 160px;
+            height: 200px;
+          }
+          .kpi-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+          }
+          .info-strip-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
           }
           .ytd-grid {
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
+
+        /* ═══════════════════════════════════════
+           MOBILE: ≤ 640px
+        ═══════════════════════════════════════ */
+        @media (max-width: 640px) {
+          .dashboard-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            margin-bottom: 20px;
+          }
+          .dashboard-subtitle {
+            font-size: 12px;
+          }
+          .refresh-btn {
+            align-self: flex-start;
+          }
+
+          .executive-banner {
+            grid-template-columns: 1fr;
+            padding: 18px 16px;
+            margin-bottom: 14px;
+          }
+          .executive-copy {
+            font-size: 13px;
+          }
+          .executive-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            margin-top: 4px;
+          }
+          .executive-metric {
+            min-height: 72px;
+            padding: 10px 12px;
+            border-radius: 12px;
+          }
+          .executive-metric span {
+            font-size: 10px;
+          }
+          .executive-metric strong {
+            font-size: 15px;
+          }
+
+          /* 2-column KPI on mobile */
+          .kpi-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+          }
+          .kpi-card {
+            min-height: 130px;
+          }
+          .kpi-card-inner {
+            padding: 14px;
+          }
+          .kpi-card-top {
+            margin-bottom: 10px;
+          }
+          .kpi-card-value {
+            font-size: 18px;
+          }
+
+          /* 2x2 info strip on mobile */
+          .info-strip-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            margin-bottom: 16px;
+          }
+
+          .charts-row {
+            grid-template-columns: 1fr;
+            gap: 12px;
+          }
+          .chart-container-main {
+            height: 260px;
+          }
+          .chart-container-pie {
+            height: 170px;
+          }
+          .card-p24 {
+            padding: 16px;
+          }
+
+          .ytd-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 10px;
           }
           .ytd-card {
@@ -645,39 +776,51 @@ export default function DashboardPage() {
             min-height: 64px !important;
           }
           .ytd-card > div:last-child {
-            font-size: 18px !important;
+            font-size: 17px !important;
           }
         }
 
-        /* ── Tablet: 641px – 900px ── */
-        @media (min-width: 641px) and (max-width: 900px) {
-          .executive-banner {
-            grid-template-columns: 1fr;
-          }
+        /* ═══════════════════════════════════════
+           EXTRA SMALL: ≤ 400px  (375px phones)
+        ═══════════════════════════════════════ */
+        @media (max-width: 400px) {
           .executive-metrics {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-          }
-          .charts-row {
             grid-template-columns: 1fr;
           }
-          .chart-container-main {
-            height: 240px;
+          .executive-metric {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 48px;
           }
           .kpi-grid {
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+          }
+          .kpi-card {
+            min-height: 120px;
           }
           .info-strip-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-        }
-
-        /* ── Extra small: ≤ 400px ── */
-        @media (max-width: 400px) {
-          .executive-title {
-            font-size: 22px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px;
           }
           .ytd-grid {
             grid-template-columns: 1fr;
+          }
+          .chart-container-main {
+            height: 220px;
+          }
+        }
+
+        /* ═══════════════════════════════════════
+           LARGE DESKTOP: ≥ 1280px
+        ═══════════════════════════════════════ */
+        @media (min-width: 1280px) {
+          .kpi-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+          }
+          .chart-container-main {
+            height: 320px;
           }
         }
       `}</style>

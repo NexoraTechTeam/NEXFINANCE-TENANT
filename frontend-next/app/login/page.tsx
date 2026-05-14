@@ -142,6 +142,15 @@ export default function LoginPage() {
         </section>
 
         <section className="glass-card auth-panel anim-fadeup">
+          {/* Compact brand header — visible only on mobile ≤560px */}
+          <div className="auth-mobile-brand" aria-hidden="true">
+            <div className="auth-brand-mark auth-brand-mark-small">NF</div>
+            <div>
+              <div className="auth-panel-brand-name">NexFinance</div>
+              <div className="auth-panel-brand-subtitle">Al-Musabbihin • SIT</div>
+            </div>
+          </div>
+
           <div className="auth-panel-top">
             <div className="auth-panel-brand">
               <div className="auth-brand-mark auth-brand-mark-small">NF</div>
@@ -254,15 +263,41 @@ export default function LoginPage() {
       </div>
 
       <style jsx global>{`
+        /* ── Keyframe animations ── */
+        @keyframes orbFloat {
+          0%, 100% { transform: translateY(0px) scale(1); }
+          33%       { transform: translateY(-18px) scale(1.04); }
+          66%       { transform: translateY(10px) scale(0.97); }
+        }
+        @keyframes orbPulse {
+          0%, 100% { opacity: 0.9; transform: translateX(0px) scale(1); }
+          50%       { opacity: 1; transform: translateX(14px) scale(1.05); }
+        }
+        @keyframes orbDrift {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          40%       { transform: translate(-12px, -8px) scale(1.06); }
+          70%       { transform: translate(8px, 6px) scale(0.95); }
+        }
+        @keyframes brandGradient {
+          0%   { background-position: 0% 50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes cardGlowPulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(49, 158, 169, 0); }
+          50%       { box-shadow: 0 0 18px 4px rgba(49, 158, 169, 0.18); }
+        }
+
+        /* ── Shell ── */
         .auth-shell {
           position: relative;
           min-height: 100vh;
           overflow: hidden;
-          background:
-            linear-gradient(135deg, rgba(18, 45, 55, 0.98) 0%, rgba(18, 41, 49, 0.96) 100%);
+          background: linear-gradient(135deg, rgba(18, 45, 55, 0.98) 0%, rgba(18, 41, 49, 0.96) 100%);
           color: #fff;
         }
 
+        /* ── Grid ── */
         .auth-grid {
           position: relative;
           z-index: 1;
@@ -276,6 +311,7 @@ export default function LoginPage() {
           padding: clamp(28px, 4vw, 44px);
         }
 
+        /* ── Animated background orbs ── */
         .auth-orb {
           position: absolute;
           border-radius: 999px;
@@ -284,35 +320,50 @@ export default function LoginPage() {
         }
 
         .auth-orb-primary {
-          width: 520px;
-          height: 520px;
+          width: 560px;
+          height: 560px;
           top: -160px;
           left: -120px;
-          background: radial-gradient(circle, rgba(49, 158, 169, 0.2) 0%, transparent 68%);
+          background: radial-gradient(circle, rgba(49, 158, 169, 0.22) 0%, rgba(39, 138, 148, 0.1) 50%, transparent 72%);
+          animation: orbFloat 14s ease-in-out infinite;
         }
 
         .auth-orb-secondary {
-          width: 460px;
-          height: 460px;
+          width: 500px;
+          height: 500px;
           right: -140px;
           bottom: -180px;
-          background: radial-gradient(circle, rgba(49, 158, 169, 0.16) 0%, transparent 72%);
+          background: radial-gradient(circle, rgba(49, 158, 169, 0.18) 0%, rgba(119, 216, 224, 0.08) 52%, transparent 76%);
+          animation: orbPulse 18s ease-in-out infinite;
         }
 
         .auth-orb-tertiary {
-          width: 240px;
-          height: 240px;
+          width: 280px;
+          height: 280px;
           left: 48%;
           top: 26%;
-          background: radial-gradient(circle, rgba(165, 243, 252, 0.1) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(165, 243, 252, 0.12) 0%, transparent 70%);
+          animation: orbDrift 22s ease-in-out infinite;
         }
 
+        /* ── Showcase (left panel) ── */
         .auth-showcase {
           position: relative;
           z-index: 1;
           max-width: 760px;
         }
 
+        /* ── Compact mobile brand header (≤560px) ── */
+        .auth-mobile-brand {
+          display: none;
+          align-items: center;
+          gap: 12px;
+          padding: 20px 0 16px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          margin-bottom: 20px;
+        }
+
+        /* ── Badge ── */
         .auth-badge {
           display: inline-flex;
           align-items: center;
@@ -336,6 +387,7 @@ export default function LoginPage() {
           margin-bottom: 20px;
         }
 
+        /* ── Animated brand mark ── */
         .auth-brand-mark {
           width: 54px;
           height: 54px;
@@ -343,11 +395,13 @@ export default function LoginPage() {
           align-items: center;
           justify-content: center;
           border-radius: 18px;
-          background: linear-gradient(135deg, #319ea9 0%, #278a94 100%);
+          background: linear-gradient(135deg, #319ea9, #278a94, #4cb8c2, #319ea9);
+          background-size: 300% 300%;
+          animation: brandGradient 6s ease infinite;
           color: #fff;
           font-size: 18px;
           font-weight: 800;
-          box-shadow: 0 20px 34px rgba(49, 158, 169, 0.24);
+          box-shadow: 0 20px 34px rgba(49, 158, 169, 0.3), inset 0 1px 0 rgba(255,255,255,0.2);
           flex-shrink: 0;
         }
 
@@ -356,7 +410,7 @@ export default function LoginPage() {
           height: 42px;
           border-radius: 14px;
           font-size: 15px;
-          box-shadow: 0 14px 24px rgba(49, 158, 169, 0.2);
+          box-shadow: 0 14px 24px rgba(49, 158, 169, 0.22), inset 0 1px 0 rgba(255,255,255,0.18);
         }
 
         .auth-brand-name,
@@ -374,6 +428,7 @@ export default function LoginPage() {
           font-size: 13px;
         }
 
+        /* ── Title ── */
         .auth-title {
           margin-top: 14px;
           font-size: clamp(38px, 5vw, 68px);
@@ -385,7 +440,12 @@ export default function LoginPage() {
 
         .auth-title span {
           display: block;
-          color: #77d8e0;
+          background: linear-gradient(90deg, #77d8e0, #a5f3fc, #5bc8d3);
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation: brandGradient 5s ease infinite;
         }
 
         .auth-copy {
@@ -396,6 +456,7 @@ export default function LoginPage() {
           line-height: 1.85;
         }
 
+        /* ── Highlight cards ── */
         .auth-highlight-list {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -409,6 +470,15 @@ export default function LoginPage() {
           background: rgba(255, 255, 255, 0.05);
           border: 1px solid rgba(255, 255, 255, 0.08);
           backdrop-filter: blur(10px);
+          transition: background 220ms ease, border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+          cursor: default;
+        }
+
+        .auth-highlight-card:hover {
+          background: rgba(49, 158, 169, 0.1);
+          border-color: rgba(91, 200, 211, 0.28);
+          box-shadow: 0 0 20px rgba(49, 158, 169, 0.15), inset 0 1px 0 rgba(255,255,255,0.06);
+          transform: translateY(-2px);
         }
 
         .auth-highlight-label {
@@ -426,6 +496,7 @@ export default function LoginPage() {
           font-weight: 700;
         }
 
+        /* ── Feature cards ── */
         .auth-feature-list {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -441,8 +512,16 @@ export default function LoginPage() {
           border-radius: 22px;
           background: rgba(255, 255, 255, 0.04);
           border: 1px solid rgba(255, 255, 255, 0.08);
+          transition: background 220ms ease, border-color 220ms ease, transform 220ms ease;
         }
 
+        .auth-feature-card:hover {
+          background: rgba(255, 255, 255, 0.07);
+          border-color: rgba(91, 200, 211, 0.2);
+          transform: translateY(-2px);
+        }
+
+        /* ── Feature icon with gradient bg ── */
         .auth-feature-icon {
           width: 40px;
           height: 40px;
@@ -451,9 +530,10 @@ export default function LoginPage() {
           align-items: center;
           justify-content: center;
           border-radius: 14px;
-          background: rgba(49, 158, 169, 0.14);
+          background: linear-gradient(135deg, rgba(49, 158, 169, 0.22) 0%, rgba(91, 200, 211, 0.12) 100%);
           color: #8fe5ec;
-          border: 1px solid rgba(91, 200, 211, 0.18);
+          border: 1px solid rgba(91, 200, 211, 0.22);
+          box-shadow: 0 4px 14px rgba(49, 158, 169, 0.14), inset 0 1px 0 rgba(255,255,255,0.08);
         }
 
         .auth-feature-title {
@@ -470,6 +550,7 @@ export default function LoginPage() {
           line-height: 1.65;
         }
 
+        /* ── Auth panel (right glass card) ── */
         .auth-panel {
           position: relative;
           z-index: 1;
@@ -697,6 +778,8 @@ export default function LoginPage() {
           font-size: 12px;
         }
 
+        /* ── Breakpoint: tablet landscape (768–1080px) ── */
+        /* Show a compact two-column layout: showcase visible but condensed */
         @media (max-width: 1080px) {
           .auth-grid {
             grid-template-columns: 1fr;
@@ -718,10 +801,10 @@ export default function LoginPage() {
           }
         }
 
+        /* ── Breakpoint: tablet portrait / large mobile (820px) ── */
         @media (max-width: 820px) {
           .auth-shell {
-            background:
-              linear-gradient(180deg, rgba(18, 45, 55, 1) 0%, rgba(17, 36, 45, 1) 100%);
+            background: linear-gradient(180deg, rgba(18, 45, 55, 1) 0%, rgba(17, 36, 45, 1) 100%);
           }
 
           .auth-grid {
@@ -735,9 +818,12 @@ export default function LoginPage() {
             align-items: flex-start;
           }
 
-          .auth-highlight-list,
+          .auth-highlight-list {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+          }
+
           .auth-feature-list {
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
           }
 
           .auth-title {
@@ -751,9 +837,21 @@ export default function LoginPage() {
           }
         }
 
+        /* ── Breakpoint: small tablets / large phones (640px) ── */
+        @media (max-width: 640px) {
+          .auth-highlight-list {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
+
+        /* ── Breakpoint: mobile (≤560px) — compact brand header instead of hiding showcase ── */
         @media (max-width: 560px) {
           .auth-showcase {
             display: none;
+          }
+
+          .auth-mobile-brand {
+            display: flex;
           }
 
           .auth-panel {
@@ -771,6 +869,98 @@ export default function LoginPage() {
 
           .auth-footer {
             align-items: flex-start;
+          }
+        }
+
+        /* ── Breakpoint: extra small (≤375px) — prevent overflow ── */
+        @media (max-width: 375px) {
+          .auth-grid {
+            padding: 12px 10px 20px;
+            gap: 14px;
+          }
+
+          .auth-panel {
+            padding: 18px 14px;
+          }
+
+          .auth-panel-copy h2 {
+            font-size: 26px;
+            letter-spacing: -0.5px;
+          }
+
+          .auth-panel-top {
+            gap: 10px;
+            margin-bottom: 18px;
+            padding-bottom: 16px;
+          }
+
+          .auth-brand-mark-small {
+            width: 36px;
+            height: 36px;
+            border-radius: 11px;
+            font-size: 13px;
+          }
+
+          .auth-panel-brand-name {
+            font-size: 15px;
+          }
+
+          .auth-panel-brand-subtitle {
+            font-size: 11px;
+          }
+
+          .auth-status-pill {
+            font-size: 11px;
+            padding: 6px 10px;
+          }
+
+          .auth-footer {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+
+          .auth-demo-content strong {
+            font-size: 12px;
+            word-break: break-all;
+          }
+
+          .glass-input {
+            font-size: 14px;
+          }
+        }
+
+        /* ── Reduced motion: disable all animations for accessibility ── */
+        @media (prefers-reduced-motion: reduce) {
+          .auth-orb-primary,
+          .auth-orb-secondary,
+          .auth-orb-tertiary {
+            animation: none;
+          }
+
+          .auth-brand-mark {
+            animation: none;
+            background: linear-gradient(135deg, #319ea9 0%, #278a94 100%);
+            background-size: 100% 100%;
+          }
+
+          .auth-title span {
+            animation: none;
+            background: linear-gradient(90deg, #77d8e0, #a5f3fc);
+            background-size: 100% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+          }
+
+          .auth-highlight-card:hover,
+          .auth-feature-card:hover {
+            transform: none;
+          }
+
+          .anim-fadeup {
+            animation: none;
+            opacity: 1;
+            transform: none;
           }
         }
       `}</style>
