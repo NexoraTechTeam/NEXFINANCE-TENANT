@@ -118,7 +118,7 @@ export default function ReportsPage() {
                 if (type === 'spacer') return <div key={i} style={{ height:12 }} />;
                 if (type === 'header') return <div key={i} style={{ fontSize:12, fontWeight:700, color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'.6px', padding:'8px 0 4px', borderTop:'1px solid var(--border)', marginTop:4 }}>{label}</div>;
                 return (
-                  <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'9px 0', borderBottom: type==='total'||type==='final' ? '2px solid var(--border)' : '1px solid #f0f2f5', background: type==='final' ? '#f0fafb' : 'transparent', borderRadius: type==='final' ? 8 : 0, padding: type==='final' ? '10px 12px' : '9px 4px' }}>
+                  <div key={i} style={{ display:'flex', justifyContent:'space-between', borderBottom: type==='total'||type==='final' ? '2px solid var(--border)' : '1px solid #f0f2f5', background: type==='final' ? '#f0fafb' : 'transparent', borderRadius: type==='final' ? 8 : 0, padding: type==='final' ? '10px 12px' : '9px 4px' }}>
                     <span style={{ fontSize: type==='total'||type==='final' ? 14 : 14, color: type==='total'||type==='final' ? color as string : 'var(--text-2)', fontWeight: type==='total'||type==='final' ? 700 : 400 }}>{label}</span>
                     <span style={{ fontSize:14, fontWeight: type==='total'||type==='final' ? 800 : 600, color: color as string }}>{val ? fmt(val as number) : ''}</span>
                   </div>
