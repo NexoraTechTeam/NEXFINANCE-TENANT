@@ -145,3 +145,20 @@ jobs:
             docker compose -f docker-compose.prod.yml ps
 
             echo "✅ NexFinance deployed → https://nexfinance.nexoratech.co"
+
+      # ── External smoke test ────────────────────────────────────────────────
+      - name: Smoke test live URL
+        run: |
+          echo "▶ Smoke testing https://nexfinance.nexoratech.co ..."
+          for i in 1 2 3 4 5; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 \
+              https://nexfinance.nexoratech.co)
+            echo "  Attempt $i: HTTP $HTTP_CODE"
+            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "302" ] || [ "$HTTP_CODE" = "301" ]; then
+              echo "✅ Live URL is responding (HTTP $HTTP_CODE)"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "❌ Live URL smoke test failed after 5 attempts"
+          exit 1

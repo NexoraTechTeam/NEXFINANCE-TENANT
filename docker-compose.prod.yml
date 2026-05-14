@@ -23,8 +23,12 @@ services:
     build:
       context: ./frontend-next
       dockerfile: Dockerfile
+      args:
+        BACKEND_URL: http://nexfinance-backend:5000
     container_name: nexfinance-frontend
     restart: unless-stopped
+    environment:
+      BACKEND_URL: http://nexfinance-backend:5000
     depends_on:
       - backend
     networks:
