@@ -57,31 +57,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ── Sync code to VPS via rsync over SSH ────────────────────────────────
-      - name: Install sshpass
-        run: sudo apt-get install -y sshpass rsync
-
-      - name: Sync code to VPS
-        env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
-          VPS_APP_PATH: ${{ secrets.VPS_APP_PATH }}
+      # ── Setup SSH key ───────────────────────────────────────────────────────
+      - name: Setup SSH key
         run: |
-          APP_DIR="$VPS_APP_PATH/nexfinance"
-          # Create app dir if missing
-          sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no \
-            "$VPS_USER@$VPS_HOST" "mkdir -p $APP_DIR"
-          # Rsync all files (exclude .git, node_modules, build artifacts)
-          sshpass -p "$VPS_PASSWORD" rsync -az --delete \
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      # ── Sync code to VPS via rsync over SSH ────────────────────────────────
+      - name: Sync code to VPS
+        run: |
+          APP_DIR="/root/nexora-node/apps/nexfinance"
+          rsync -az --delete \
             --exclude='.git' \
             --exclude='node_modules' \
-            --exclude='frontend/build' \
             --exclude='.next' \
-            --exclude='.env' \
-            --filter='protect .env' \
-            -e "ssh -o StrictHostKeyChecking=no" \
-            ./ "$VPS_USER@$VPS_HOST:$APP_DIR/"
+            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.VPS_PORT }} -o StrictHostKeyChecking=no" \
+            ./ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:$APP_DIR/
 
       # ── Build & restart containers ──────────────────────────────────────────
       - name: Build & restart containers
@@ -89,21 +82,14 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
-          port: 22
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
           command_timeout: 15m
           script_stop: true
           script: |
             set -e
-            APP_DIR="${{ secrets.VPS_APP_PATH }}/nexfinance"
+            APP_DIR="/root/nexora-node/apps/nexfinance"
             cd "$APP_DIR"
-
-            echo "▶ Ensuring .env exists..."
-            if [ ! -f ".env" ]; then
-              cp .env.prod.example .env
-              echo "JWT_SECRET=$(openssl rand -hex 32)" >> .env
-              echo "⚠  .env auto-created with random JWT_SECRET"
-            fi
 
             echo "▶ Building Docker images..."
             docker compose -f docker-compose.prod.yml build --no-cache
