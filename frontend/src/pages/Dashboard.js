@@ -161,7 +161,7 @@ export default function Dashboard() {
           <div>
             <h1 className="grad-text" style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>Dashboard Keuangan</h1>
             <p style={{ color: 'var(--text-2)', fontSize: 13 }}>
-              Sekolah Islam Terpadu Al-Musabbihin &nbsp;·&nbsp; {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              Yayasan ISAk 35 &nbsp;·&nbsp; {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           </div>
           <button className="btn btn-ghost btn-sm" onClick={() => load(true)} disabled={refreshing}>

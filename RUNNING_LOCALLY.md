@@ -1,4 +1,4 @@
-# 🚀 Al-Musabbihin NexFinance - Running Locally
+# 🚀 Yayasan ISAk 35 NexFinance - Running Locally
 
 ## Status: ✅ FULLY OPERATIONAL
 

@@ -1,4 +1,4 @@
-# NexFinance — Al-Musabbihin School Finance System
+# NexFinance — Yayasan ISAk 35 School Finance System
 
 Sistem keuangan sekolah berbasis web dengan fokus operasional harian, kontrol akses berbasis role (RBAC), audit log, dan notifikasi multi-channel (Email + WhatsApp).
 
@@ -134,4 +134,4 @@ npm test
 
 ## Status
 
-Project aktif dan terus dikembangkan untuk kebutuhan operasional keuangan sekolah Al-Musabbihin.
+Project aktif dan terus dikembangkan untuk kebutuhan operasional keuangan sekolah Yayasan ISAk 35.

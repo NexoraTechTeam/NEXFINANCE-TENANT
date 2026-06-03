@@ -70,7 +70,7 @@ function drawHeader(doc: import('jspdf').jsPDF, title: string, subtitle: string)
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
   doc.text('Sistem keuangan terpadu sekolah', 42, 64);
-  doc.text('Sekolah Islam Terpadu Al-Musabbihin', 42, 80);
+  doc.text('Yayasan ISAk 35', 42, 80);
 
   const dateText = new Date().toLocaleDateString('id-ID', {
     weekday: 'long',

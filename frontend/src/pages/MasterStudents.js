@@ -142,7 +142,7 @@ export default function MasterStudents() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
           <div>
             <h1 className="grad-text" style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>Master Data Siswa</h1>
-            <p style={{ color: 'var(--text-2)', fontSize: 13 }}>Kelola data siswa Sekolah Islam Terpadu Al-Musabbihin</p>
+            <p style={{ color: 'var(--text-2)', fontSize: 13 }}>Kelola data siswa Yayasan ISAk 35</p>
           </div>
           <button className="btn btn-primary" onClick={openCreate} style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
             <Plus size={16} /> Tambah Siswa

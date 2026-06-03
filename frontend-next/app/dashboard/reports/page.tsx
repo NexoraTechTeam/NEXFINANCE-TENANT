@@ -186,7 +186,7 @@ export default function ReportsPage() {
     try {
       await downloadFinancialReportPdf({
         year: 2026,
-        schoolName: 'Sekolah Islam Terpadu Al-Musabbihin',
+        schoolName: 'Yayasan ISAk 35',
         reportName: 'Laporan Keuangan NexFinance',
         activeTabLabel,
         monthly,

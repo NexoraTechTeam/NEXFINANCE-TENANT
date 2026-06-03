@@ -183,7 +183,7 @@ al-musabbihin-nexfinance/
 ✅ **Deployment**: Ready
 ✅ **Production**: Green light
 
-**Built for**: Sekolah Islam Terpadu Al-Musabbihin
+**Built for**: Yayasan ISAk 35
 **By**: Nexora Tech Team (Copilot)
 **Date**: 2026-05-08
 **Version**: 1.0.0

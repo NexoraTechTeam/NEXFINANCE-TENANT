@@ -4,7 +4,7 @@
 ## Panduan Penggunaan Aplikasi untuk Pengguna Operasional
 
 > **Versi Dokumen:** 1.0  
-> **Aplikasi:** NexFinance (Al-Musabbihin)  
+> **Aplikasi:** NexFinance (Yayasan ISAk 35)  
 > **Domain Produksi:** `https://nexfinance.nexoratech.co`
 
 Dokumen ini adalah panduan penggunaan harian (non-teknis) untuk seluruh modul NexFinance.  

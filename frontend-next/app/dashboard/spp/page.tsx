@@ -94,7 +94,7 @@ export default function SPPPage() {
       <div className="page-header">
         <div>
           <h1 className="spp-page-title" style={{ fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px', marginBottom: 5 }}>Manajemen SPP</h1>
-          <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Penagihan &amp; pembayaran SPP siswa Al-Musabbihin</p>
+          <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Penagihan &amp; pembayaran SPP siswa Yayasan ISAk 35</p>
         </div>
         <button
           onClick={() => setModal('create')}

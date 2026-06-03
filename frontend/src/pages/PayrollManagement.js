@@ -63,7 +63,7 @@ const PayrollManagement = () => {
     <div style={styles.container}>
       <div style={styles.wrapper}>
         <div style={styles.title}>💼 Manajemen Penggajian</div>
-        <div style={styles.subtitle}>Kelola gaji karyawan, PPh 21 TER, dan BPJS — Sekolah Islam Terpadu Al-Musabbihin</div>
+        <div style={styles.subtitle}>Kelola gaji karyawan, PPh 21 TER, dan BPJS — Yayasan ISAk 35</div>
 
         <div style={styles.statsGrid}>
           {[

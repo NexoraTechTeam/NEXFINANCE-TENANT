@@ -1,7 +1,7 @@
 {
   "name": "nexfinance-frontend",
   "version": "1.0.0",
-  "description": "Al-Musabbihin NexFinance React Frontend",
+  "description": "Yayasan ISAk 35 NexFinance React Frontend",
   "private": true,
   "dependencies": {
     "ajv": "^8.20.0",

@@ -95,7 +95,7 @@ const AccountingModule = () => {
     <div style={styles.container}>
       <div style={styles.wrapper}>
         <div style={styles.title}>📚 Modul Akuntansi</div>
-        <div style={styles.subtitle}>Buku Besar, Jurnal, Laporan ISAK 35 — Sekolah Islam Terpadu Al-Musabbihin</div>
+        <div style={styles.subtitle}>Buku Besar, Jurnal, Laporan ISAK 35 — Yayasan ISAk 35</div>
 
         <div style={{ ...styles.card, padding: '0' }}>
           <div style={{ padding: '0 24px' }}>

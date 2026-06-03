@@ -33,7 +33,7 @@ const header = (doc, title, subtitle) => {
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.text('PT Alfarhein Teknologi Investama (Nexora)', 14, 21);
-  doc.text('Sekolah Islam Terpadu Al-Musabbihin', 14, 27);
+  doc.text('Yayasan ISAk 35', 14, 27);
 
   // Right: date
   doc.setFontSize(8);
@@ -70,7 +70,7 @@ const footer = (doc) => {
     doc.setFontSize(7.5);
     doc.setTextColor(100, 116, 139);
     doc.setFont('helvetica', 'normal');
-    doc.text('NexFinance — Sistem Keuangan Sekolah Islam Terpadu Al-Musabbihin', 14, 291);
+    doc.text('NexFinance — Sistem Keuangan Yayasan ISAk 35', 14, 291);
     doc.text(`Halaman ${i} / ${pages}`, 196, 291, { align: 'right' });
   }
 };
@@ -371,7 +371,7 @@ export const exportReceiptPDF = (invoice) => {
   doc.text('NexFinance', 10, 10);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
-  doc.text('Sekolah Islam Terpadu Al-Musabbihin', 10, 16);
+  doc.text('Yayasan ISAk 35', 10, 16);
 
   // Receipt title
   doc.setTextColor(...NAVY);
@@ -442,7 +442,7 @@ export const exportReceiptPDF = (invoice) => {
   doc.setFontSize(7.5);
   doc.text('Terima kasih atas pembayaran Anda. Simpan bukti ini sebagai tanda pembayaran yang sah.', 74, y3, { align: 'center', maxWidth: 130 });
   doc.setFont('helvetica', 'normal');
-  doc.text('SIT Al-Musabbihin · finance.almusabbihin.sch.id', 74, y3 + 8, { align: 'center' });
+  doc.text('Yayasan ISAk 35 · finance.almusabbihin.sch.id', 74, y3 + 8, { align: 'center' });
 
   // Stamp circle
   doc.setDrawColor(...TEAL);

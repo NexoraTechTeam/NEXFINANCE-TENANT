@@ -83,7 +83,7 @@ const ProcurementManagement = () => {
     <div style={styles.container}>
       <div style={styles.wrapper}>
         <div style={styles.title}>🛒 Manajemen Pengadaan</div>
-        <div style={styles.subtitle}>Purchase Request → Purchase Order → Penerimaan Barang — Al-Musabbihin</div>
+        <div style={styles.subtitle}>Purchase Request → Purchase Order → Penerimaan Barang — Yayasan ISAk 35</div>
 
         <div style={styles.statsGrid}>
           {[

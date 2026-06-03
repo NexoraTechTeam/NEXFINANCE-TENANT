@@ -103,7 +103,7 @@ export default function LoginPage() {
             <div className="auth-brand-mark">NF</div>
             <div>
               <div className="auth-brand-name">NexFinance</div>
-              <div className="auth-brand-subtitle">Sekolah Islam Terpadu Al-Musabbihin</div>
+              <div className="auth-brand-subtitle">Yayasan ISAk 35</div>
             </div>
           </div>
 
@@ -147,7 +147,7 @@ export default function LoginPage() {
               <div className="auth-brand-mark auth-brand-mark-small">NF</div>
               <div>
                 <div className="auth-panel-brand-name">NexFinance</div>
-                <div className="auth-panel-brand-subtitle">Al-Musabbihin • SIT</div>
+                <div className="auth-panel-brand-subtitle">Yayasan ISAk 35 • SIT</div>
               </div>
             </div>
 
@@ -248,7 +248,7 @@ export default function LoginPage() {
               <ShieldCheck size={14} strokeWidth={2} />
               Protected auth flow
             </div>
-            <div className="auth-footer-note">© 2026 NexFinance • Al-Musabbihin</div>
+            <div className="auth-footer-note">© 2026 NexFinance • Yayasan ISAk 35</div>
           </div>
         </section>
       </div>

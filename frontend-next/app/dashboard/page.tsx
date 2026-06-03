@@ -177,7 +177,7 @@ export default function DashboardPage() {
             Dashboard Keuangan
           </h1>
           <p className="dashboard-subtitle">
-            Sekolah Islam Terpadu Al-Musabbihin &nbsp;·&nbsp; {now}
+            Yayasan ISAk 35 &nbsp;·&nbsp; {now}
           </p>
         </div>
         <button
@@ -197,7 +197,7 @@ export default function DashboardPage() {
             <Sparkles size={14} strokeWidth={2} />
             Executive snapshot
           </div>
-          <div className="executive-title">Al-Musabbihin financial control center</div>
+          <div className="executive-title">Yayasan ISAk 35 financial control center</div>
           <p className="executive-copy">
             Pantau arus kas, koleksi, dan item operasional prioritas dari satu workspace yang lebih tenang dan siap dipakai tim finance.
           </p>

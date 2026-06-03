@@ -155,7 +155,7 @@ const SPPManagement = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <div style={S.title}>💰 Manajemen SPP</div>
-            <div style={S.sub}>Penagihan & Pembayaran SPP Siswa — Sekolah Islam Terpadu Al-Musabbihin</div>
+            <div style={S.sub}>Penagihan & Pembayaran SPP Siswa — Yayasan ISAk 35</div>
           </div>
           <button style={S.btn('linear-gradient(135deg, #41A9A9 0%, #2C3E50 100%)')} onClick={() => setModal('create')}>
             <Plus size={16} /> Buat Invoice

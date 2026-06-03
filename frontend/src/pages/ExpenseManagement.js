@@ -81,7 +81,7 @@ const ExpenseManagement = () => {
     <div style={styles.container}>
       <div style={styles.wrapper}>
         <div style={styles.title}>📋 Manajemen Pengeluaran</div>
-        <div style={styles.subtitle}>Kelola pengeluaran operasional sekolah dengan alur persetujuan — Al-Musabbihin</div>
+        <div style={styles.subtitle}>Kelola pengeluaran operasional sekolah dengan alur persetujuan — Yayasan ISAk 35</div>
 
         <div style={styles.statsGrid}>
           {[

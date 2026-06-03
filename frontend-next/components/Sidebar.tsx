@@ -122,7 +122,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 NexFinance
               </div>
               <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 3 }}>
-                Al-Musabbihin · SIT
+                Yayasan ISAk 35 · SIT
               </div>
             </div>
           </div>
@@ -136,7 +136,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             <X size={16} strokeWidth={2} />
           </button>
         </div>
-
         <div style={{
           marginTop: 16,
           padding: '12px 12px 14px',

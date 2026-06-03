@@ -179,8 +179,8 @@ const Login = () => {
           
           <div style={styles.header}>
             <div style={styles.logo}>NexFinance</div>
-            <div style={styles.subtitle}>Al-Musabbihin Finance System</div>
-            <div style={styles.institution}>Sekolah Islam Terpadu Al-Musabbihin</div>
+            <div style={styles.subtitle}>Yayasan ISAk 35 Finance System</div>
+            <div style={styles.institution}>Yayasan ISAk 35</div>
           </div>
 
           {error && (

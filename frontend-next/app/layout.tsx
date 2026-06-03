@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "NexFinance — Al-Musabbihin",
-  description: "Sistem keuangan terpadu Sekolah Islam Terpadu Al-Musabbihin",
+  title: "NexFinance — Yayasan ISAk 35",
+  description: "Sistem keuangan terpadu Yayasan ISAk 35",
 };
 
 export const viewport: Viewport = {

@@ -1,7 +1,7 @@
 {
   "name": "nexfinance-backend",
   "version": "1.0.0",
-  "description": "Al-Musabbihin NexFinance ISAK35 API",
+  "description": "Yayasan ISAk 35 NexFinance ISAK35 API",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
