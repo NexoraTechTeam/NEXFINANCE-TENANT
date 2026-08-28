@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import {
   ArrowRight,
   BarChart3,
-  Building2,
   CheckCircle2,
   CreditCard,
   Eye,
@@ -60,8 +59,8 @@ function getErrorMessage(error: unknown) {
 }
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('admin@nexfinance.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -184,7 +183,7 @@ export default function LoginPage() {
                   className="glass-input"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@nexfinance.com"
+                  placeholder="Masukkan email Anda"
                   autoComplete="email"
                   required
                 />
@@ -205,7 +204,7 @@ export default function LoginPage() {
                   className="glass-input auth-password-input"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="Masukkan password Anda"
                   autoComplete="current-password"
                   required
                 />
@@ -225,23 +224,6 @@ export default function LoginPage() {
               {!loading && <ArrowRight size={18} strokeWidth={2.2} />}
             </button>
           </form>
-
-          <details className="auth-demo">
-            <summary>
-              <Building2 size={15} strokeWidth={2} />
-              Demo credentials
-            </summary>
-            <div className="auth-demo-content">
-              <div>
-                <span>Email</span>
-                <strong>admin@nexfinance.com</strong>
-              </div>
-              <div>
-                <span>Password</span>
-                <strong>admin123</strong>
-              </div>
-            </div>
-          </details>
 
           <div className="auth-footer">
             <div className="auth-footer-chip">
@@ -677,62 +659,6 @@ export default function LoginPage() {
           margin-top: 6px;
         }
 
-        .auth-demo {
-          margin-top: 22px;
-          border-radius: 18px;
-          border: 1px solid rgba(91, 200, 211, 0.16);
-          background: rgba(6, 19, 25, 0.26);
-          overflow: hidden;
-        }
-
-        .auth-demo summary {
-          list-style: none;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 14px 16px;
-          cursor: pointer;
-          color: #98e4eb;
-          font-size: 13px;
-          font-weight: 700;
-        }
-
-        .auth-demo summary::-webkit-details-marker {
-          display: none;
-        }
-
-        .auth-demo-content {
-          display: grid;
-          gap: 10px;
-          padding: 0 16px 16px;
-        }
-
-        .auth-demo-content div {
-          display: flex;
-          justify-content: space-between;
-          gap: 12px;
-          align-items: center;
-          padding: 12px 14px;
-          border-radius: 14px;
-          background: rgba(255, 255, 255, 0.04);
-          color: rgba(255, 255, 255, 0.74);
-          font-size: 13px;
-        }
-
-        .auth-demo-content span {
-          color: rgba(255, 255, 255, 0.44);
-          text-transform: uppercase;
-          letter-spacing: 0.28px;
-          font-size: 11px;
-          font-weight: 700;
-        }
-
-        .auth-demo-content strong {
-          color: #d7fbff;
-          font-size: 13px;
-          font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-        }
-
         .auth-footer {
           display: flex;
           align-items: center;
@@ -839,11 +765,6 @@ export default function LoginPage() {
             font-size: 30px;
           }
 
-          .auth-demo-content div {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-
           .auth-footer {
             align-items: flex-start;
           }
@@ -894,11 +815,6 @@ export default function LoginPage() {
           .auth-footer {
             flex-direction: column;
             align-items: flex-start;
-          }
-
-          .auth-demo-content strong {
-            font-size: 12px;
-            word-break: break-all;
           }
 
           .glass-input {
