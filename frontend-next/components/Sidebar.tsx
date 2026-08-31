@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import {
   LayoutDashboard, CreditCard, Users, DollarSign,
-  ShoppingCart, BookOpen, FileText, LogOut, Sparkles, X, UserCog, UserRound, ClipboardList, History,
+  ShoppingCart, BookOpen, FileText, LogOut, Sparkles, X, UserCog, UserRound, ClipboardList, History, KeyRound,
 } from 'lucide-react';
+import { authService } from '@/lib/api';
 
 const NAV = [
   { label: 'Dashboard',       icon: LayoutDashboard, href: '/dashboard' },
@@ -30,6 +31,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const router   = useRouter();
   const pathname = usePathname();
   const [currentUser, setCurrentUser] = useState({ name: 'Administrator', role: 'Super Admin' });
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [passwordMessage, setPasswordMessage] = useState('');
+  const [passwordBusy, setPasswordBusy] = useState(false);
 
   useEffect(() => {
     const rawUser = localStorage.getItem('user');
@@ -71,6 +76,21 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const handleNav = (href: string) => {
     router.push(href);
     onClose();
+  };
+
+  const handlePasswordChange = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setPasswordBusy(true);
+    setPasswordMessage('');
+    try {
+      await authService.changePassword(passwords);
+      setPasswordMessage('Password berhasil diubah.');
+      setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (error: any) {
+      setPasswordMessage(error.response?.data?.error || 'Gagal mengubah password.');
+    } finally {
+      setPasswordBusy(false);
+    }
   };
 
   return (
@@ -253,6 +273,20 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             </div>
           </div>
         </div>
+
+        <button type="button" onClick={() => setPasswordOpen((open) => !open)} className="nav-link" aria-expanded={passwordOpen}>
+          <KeyRound size={18} strokeWidth={1.8} />
+          Ubah password
+        </button>
+        {passwordOpen && (
+          <form onSubmit={handlePasswordChange} style={{ padding: '10px 8px' }}>
+            {['currentPassword', 'newPassword', 'confirmPassword'].map((field) => (
+              <input key={field} required minLength={field === 'currentPassword' ? 1 : 8} type="password" placeholder={field === 'currentPassword' ? 'Password saat ini' : field === 'newPassword' ? 'Password baru' : 'Konfirmasi password'} value={passwords[field as keyof typeof passwords]} onChange={(event) => setPasswords((prev) => ({ ...prev, [field]: event.target.value }))} style={{ width: '100%', marginBottom: 7, padding: '8px 9px', borderRadius: 8, border: '1px solid rgba(255,255,255,.16)', background: 'rgba(255,255,255,.08)', color: '#fff' }} />
+            ))}
+            {passwordMessage && <div style={{ color: passwordMessage.startsWith('Password') ? '#8fe5ec' : '#ffaaaa', fontSize: 11, marginBottom: 7 }}>{passwordMessage}</div>}
+            <button type="submit" disabled={passwordBusy} className="nav-link" style={{ color: '#8fe5ec' }}>{passwordBusy ? 'Menyimpan...' : 'Simpan password'}</button>
+          </form>
+        )}
 
         {/* Logout */}
         <button
