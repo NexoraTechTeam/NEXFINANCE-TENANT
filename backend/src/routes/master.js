@@ -280,11 +280,17 @@ router.put('/users/:id', auth, adminOrSuperAdmin, (req, res) => {
     const idx = users.findIndex(u => u.id === req.params.id);
     if (idx === -1) return res.status(404).json({ error: 'User not found' });
 
+    if (req.body.role && req.user.role !== 'super_admin') {
+      return res.status(403).json({ error: 'Only super_admin can change user roles' });
+    }
     if (req.body.role && !VALID_ROLES.includes(req.body.role)) {
       return res.status(400).json({ error: `Invalid role. Must be one of: ${VALID_ROLES.join(', ')}` });
     }
 
-    const updated = { ...users[idx], ...req.body, id: users[idx].id };
+    const allowedFields = ['name', 'email', 'status'];
+    const updates = Object.fromEntries(allowedFields.filter((field) => req.body[field] !== undefined).map((field) => [field, req.body[field]]));
+    if (req.user.role === 'super_admin' && req.body.role) updates.role = req.body.role;
+    const updated = { ...users[idx], ...updates, id: users[idx].id };
     users[idx] = updated;
 
     logActivity(req.user.id, req.user.email, 'update_user', 'master', `Updated user ${updated.email}`, { userId: updated.id, role: updated.role });
@@ -315,7 +321,7 @@ router.patch('/users/:id/role', auth, superAdminOnly, (req, res) => {
 });
 
 // GET /api/v1/master/role-permissions
-router.get('/role-permissions', auth, adminOrSuperAdmin, (req, res) => {
+router.get('/role-permissions', auth, superAdminOnly, (req, res) => {
   try {
     return res.json({ data: rbac.PERMISSIONS });
   } catch (err) {
