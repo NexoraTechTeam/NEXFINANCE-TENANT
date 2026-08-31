@@ -92,14 +92,14 @@ jobs:
       - name: Build and restart isolated dev stack
         run: |
           set -e
-          cd /root/nexora-node/apps/nexfinance-dev
+          cd /home/github-runner/apps/nexfinance-dev
           docker compose -p nexfinance-dev -f docker-compose.dev.yml build --no-cache
           docker compose -p nexfinance-dev -f docker-compose.dev.yml up -d --remove-orphans
 
       - name: Wait for dev backend and frontend
         run: |
           set -e
-          cd /root/nexora-node/apps/nexfinance-dev
+          cd /home/github-runner/apps/nexfinance-dev
           for i in $(seq 1 12); do
             if docker exec nexfinance-dev-backend curl -sf http://localhost:5000/health >/dev/null; then break; fi
             if [ "$i" -eq 12 ]; then docker compose -p nexfinance-dev -f docker-compose.dev.yml logs --tail=50; exit 1; fi
