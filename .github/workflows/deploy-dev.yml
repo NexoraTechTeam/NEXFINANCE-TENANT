@@ -55,7 +55,7 @@ jobs:
           grep -q 'dev-nexfinance.nexoratech.co' docker-compose.dev.yml
           ! grep -qE 'container_name: nexfinance-backend$' docker-compose.dev.yml
           ! grep -qE 'container_name: nexfinance-frontend$' docker-compose.dev.yml
-          ! grep -q 'nexfinance.nexoratech.co' docker-compose.dev.yml
+          ! grep -qE 'Host\(`nexfinance\.nexoratech\.co`\)' docker-compose.dev.yml
 
   deploy:
     name: Build & Deploy Dev to VPS
