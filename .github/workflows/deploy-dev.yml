@@ -79,9 +79,8 @@ jobs:
           DEV_JWT_SECRET: ${{ secrets.NEXFINANCE_DEV_JWT_SECRET }}
         run: |
           set -e
-          APP_DIR="/root/nexora-node/apps/nexfinance-dev"
-          sudo mkdir -p "$APP_DIR"
-          sudo chown "$(id -u):$(id -g)" "$APP_DIR"
+          APP_DIR="/home/github-runner/apps/nexfinance-dev"
+          mkdir -p "$APP_DIR"
           rsync -a --delete \
             --exclude='.git' \
             --exclude='node_modules' \
