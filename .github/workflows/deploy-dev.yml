@@ -80,7 +80,8 @@ jobs:
         run: |
           set -e
           APP_DIR="/root/nexora-node/apps/nexfinance-dev"
-          mkdir -p "$APP_DIR"
+          sudo mkdir -p "$APP_DIR"
+          sudo chown "$(id -u):$(id -g)" "$APP_DIR"
           rsync -a --delete \
             --exclude='.git' \
             --exclude='node_modules' \
