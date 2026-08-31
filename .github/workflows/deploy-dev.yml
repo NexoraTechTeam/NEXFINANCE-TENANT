@@ -116,5 +116,5 @@ jobs:
           set -e
           test "$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 https://dev-nexfinance.nexoratech.co/login)" = 200
           ! curl -sS https://dev-nexfinance.nexoratech.co/login | grep -q 'Demo credentials'
-          docker ps --format '{{.Names}}' | grep -qx nexfinance-dev-backend
-          docker ps --format '{{.Names}}' | grep -qx nexfinance-dev-frontend
+          test "$(docker inspect -f '{{.State.Running}}' nexfinance-dev-backend 2>/dev/null)" = true
+          test "$(docker inspect -f '{{.State.Running}}' nexfinance-dev-frontend 2>/dev/null)" = true
