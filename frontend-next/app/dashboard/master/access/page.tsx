@@ -57,7 +57,7 @@ export default function RoleAccessPage() {
     } catch {
       return '';
     }
-  }, []);
+  }, [isSuperAdmin]);
 
   const currentUserId = useMemo(() => {
     if (typeof window === 'undefined') return '';
@@ -76,12 +76,10 @@ export default function RoleAccessPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [usersRes, permissionsRes] = await Promise.all([
-        masterService.getUsers(),
-        masterService.getRolePermissions(),
-      ]);
+      const usersRes = await masterService.getUsers();
+      const permissionsRes = isSuperAdmin ? await masterService.getRolePermissions() : null;
       setUsers(usersRes.data?.data || usersRes.data?.users || []);
-      setMatrix(permissionsRes.data?.data || {});
+      setMatrix(permissionsRes?.data?.data || {});
       setError('');
     } catch (err: unknown) {
       setUsers([]);
@@ -220,7 +218,7 @@ export default function RoleAccessPage() {
       </div>
 
       {/* Permission matrix — always horizontal scroll, compact module headers */}
-      <div className="card" style={{ padding: 16 }}>
+      {isSuperAdmin && <div className="card" style={{ padding: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           <ShieldCheck size={17} color="var(--teal-500)" />
           <h3 style={{ margin: 0, fontSize: 17 }}>Matriks Akses Role → Modul</h3>
@@ -307,7 +305,7 @@ export default function RoleAccessPage() {
             Klik badge pada matriks untuk toggle akses role ke modul.
           </div>
         )}
-      </div>
+      </div>}
 
       <style jsx global>{`
         @media (max-width: 640px) {
