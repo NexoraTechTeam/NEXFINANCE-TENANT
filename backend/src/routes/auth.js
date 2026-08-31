@@ -100,6 +100,20 @@ router.post('/register', async (req, res) => {
   res.status(201).json({ token, user: maskUser(newUser) });
 });
 
+router.post('/change-password', auth, async (req, res) => {
+  const { currentPassword, newPassword, confirmPassword } = req.body || {};
+  if (!currentPassword || !newPassword || !confirmPassword) return res.status(400).json({ error: 'currentPassword, newPassword, and confirmPassword are required' });
+  if (newPassword.length < 8) return res.status(400).json({ error: 'New password must be at least 8 characters' });
+  if (newPassword !== confirmPassword) return res.status(400).json({ error: 'New password confirmation does not match' });
+  const idx = users.findIndex((user) => user.id === req.user.id);
+  const user = idx >= 0 ? users[idx] : getUserByEmail(req.user.email);
+  if (!user || !(await verifyPassword(currentPassword, user.password))) return res.status(401).json({ error: 'Current password is incorrect' });
+  if (currentPassword === newPassword) return res.status(400).json({ error: 'New password must be different from current password' });
+  users[idx] = { ...user, password: await bcryptjs.hash(newPassword, 10) };
+  logActivity(user.id, user.email, 'change_password', 'auth', `Password changed for ${user.email}`, {});
+  return res.json({ message: 'Password changed successfully' });
+});
+
 router.get('/me', auth, (req, res) => {
   const user = users.find((u) => u.id === req.user.id) || getUserByEmail(req.user.email);
   if (!user) {
