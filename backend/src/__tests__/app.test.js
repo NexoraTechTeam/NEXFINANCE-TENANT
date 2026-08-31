@@ -140,3 +140,48 @@ describe('GET /api/v1/auth/verify', () => {
     expect(res.body.valid).toBe(true);
   });
 });
+
+describe('Role management and password change', () => {
+  const login = async (email, password) => {
+    const response = await request(app).post('/api/v1/auth/login').send({ email, password });
+    return response.body.token;
+  };
+
+  it('allows Admin to manage users but not role permissions', async () => {
+    const token = await login('admin@nexfinance.com', 'admin123');
+    const usersResponse = await request(app)
+      .get('/api/v1/master/users')
+      .set('Authorization', `Bearer ${token}`);
+    const permissionsResponse = await request(app)
+      .get('/api/v1/master/role-permissions')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(usersResponse.statusCode).toBe(200);
+    expect(permissionsResponse.statusCode).toBe(403);
+  });
+
+  it('does not allow Admin to change a user role through user management', async () => {
+    const token = await login('admin@nexfinance.com', 'admin123');
+    const response = await request(app)
+      .put('/api/v1/master/users/USR004')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Staff TU Updated', role: 'admin' });
+
+    expect(response.statusCode).toBe(403);
+  });
+
+  it('allows an authenticated user to change their own password', async () => {
+    const token = await login('staff@nexfinance.com', 'staff123');
+    const changed = await request(app)
+      .post('/api/v1/auth/change-password')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ currentPassword: 'staff123', newPassword: 'staff1234', confirmPassword: 'staff1234' });
+
+    expect(changed.statusCode).toBe(200);
+
+    const newLogin = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: 'staff@nexfinance.com', password: 'staff1234' });
+    expect(newLogin.statusCode).toBe(200);
+  });
+});
