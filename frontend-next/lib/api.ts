@@ -29,6 +29,7 @@ export const authService = {
   login: (email: string, password: string) => api.post('/auth/login', { email, password }),
   me: () => api.get('/auth/me'),
   getPermissions: () => api.get('/auth/permissions'),
+  changePassword: (data: { currentPassword: string; newPassword: string; confirmPassword: string }) => api.post('/auth/change-password', data),
 };
 
 export const dashboardService = {
