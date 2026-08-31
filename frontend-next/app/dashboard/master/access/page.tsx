@@ -57,7 +57,7 @@ export default function RoleAccessPage() {
     } catch {
       return '';
     }
-  }, [isSuperAdmin]);
+  }, []);
 
   const currentUserId = useMemo(() => {
     if (typeof window === 'undefined') return '';
@@ -88,7 +88,7 @@ export default function RoleAccessPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isSuperAdmin]);
 
   useEffect(() => {
     load();
