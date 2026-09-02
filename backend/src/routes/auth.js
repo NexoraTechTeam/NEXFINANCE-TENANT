@@ -7,6 +7,8 @@ const { users, getUserByEmail, logActivity } = require('../db');
 const router = express.Router();
 
 const VALID_ROLES = ['super_admin', 'admin', 'bendahara', 'kabag', 'staff', 'auditor'];
+const LOGIN_FAILED_MESSAGE = 'Email atau password salah.';
+const CURRENT_PASSWORD_FAILED_MESSAGE = 'Password saat ini salah.';
 
 const getRequestIp = (req) => (
   req.headers['x-forwarded-for']?.split(',')[0]?.trim()
@@ -51,13 +53,13 @@ router.post('/login', async (req, res) => {
 
   if (!user || user.status === 'inactive') {
     logActivity(user?.id || 'anonymous', email, 'login_failed', 'auth', `Failed login for ${email}`, { reason: 'user_not_found_or_inactive' }, { level: 'warning', ipAddress });
-    return res.status(401).json({ error: 'Invalid credentials' });
+    return res.status(401).json({ error: LOGIN_FAILED_MESSAGE });
   }
 
   const passwordValid = await verifyPassword(password, user.password);
   if (!passwordValid) {
     logActivity(user.id, email, 'login_failed', 'auth', `Failed login for ${email}`, { reason: 'invalid_password' }, { level: 'warning', ipAddress });
-    return res.status(401).json({ error: 'Invalid credentials' });
+    return res.status(401).json({ error: LOGIN_FAILED_MESSAGE });
   }
 
   const token = createToken(user);
@@ -107,7 +109,7 @@ router.post('/change-password', auth, async (req, res) => {
   if (newPassword !== confirmPassword) return res.status(400).json({ error: 'New password confirmation does not match' });
   const idx = users.findIndex((user) => user.id === req.user.id);
   const user = idx >= 0 ? users[idx] : getUserByEmail(req.user.email);
-  if (!user || !(await verifyPassword(currentPassword, user.password))) return res.status(401).json({ error: 'Current password is incorrect' });
+  if (!user || !(await verifyPassword(currentPassword, user.password))) return res.status(401).json({ error: CURRENT_PASSWORD_FAILED_MESSAGE });
   if (currentPassword === newPassword) return res.status(400).json({ error: 'New password must be different from current password' });
   users[idx] = { ...user, password: await bcryptjs.hash(newPassword, 10) };
   logActivity(user.id, user.email, 'change_password', 'auth', `Password changed for ${user.email}`, {});
