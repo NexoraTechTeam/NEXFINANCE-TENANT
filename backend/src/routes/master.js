@@ -243,12 +243,16 @@ router.get('/users', auth, adminOrSuperAdmin, (req, res) => {
 router.post('/users', auth, adminOrSuperAdmin, (req, res) => {
   try {
     const { email, password, role, name } = req.body;
+    const userRole = req.user.role === 'super_admin' ? role : 'staff';
 
-    if (!email || !password || !role || !name) {
-      return res.status(400).json({ error: 'email, password, role, and name are required' });
+    if (!email || !password || !name || (req.user.role === 'super_admin' && !role)) {
+      return res.status(400).json({ error: 'email, password, name, and role for super_admin are required' });
     }
 
-    if (!VALID_ROLES.includes(role)) {
+    if (req.user.role !== 'super_admin' && role) {
+      return res.status(403).json({ error: 'Only super_admin can assign user roles' });
+    }
+    if (!VALID_ROLES.includes(userRole)) {
       return res.status(400).json({ error: `Invalid role. Must be one of: ${VALID_ROLES.join(', ')}` });
     }
 
@@ -260,17 +264,33 @@ router.post('/users', auth, adminOrSuperAdmin, (req, res) => {
       id: `USR${String(users.length + 1).padStart(3, '0')}`,
       email,
       password,
-      role,
+      role: userRole,
       name,
       status: 'active',
     };
 
     users.push(newUser);
-    logActivity(req.user.id, req.user.email, 'create_user', 'master', `Created user ${email} with role ${role}`, { newUserId: newUser.id, role });
+    logActivity(req.user.id, req.user.email, 'create_user', 'master', `Created user ${email} with role ${userRole}`, { newUserId: newUser.id, role: userRole });
 
     res.status(201).json({ data: maskUser(newUser) });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/v1/master/users/:id — soft delete to preserve audit history
+router.delete('/users/:id', auth, adminOrSuperAdmin, (req, res) => {
+  try {
+    const idx = users.findIndex((user) => user.id === req.params.id);
+    if (idx === -1) return res.status(404).json({ error: 'User not found' });
+    if (users[idx].id === req.user.id) return res.status(400).json({ error: 'You cannot deactivate your own account' });
+
+    const updated = { ...users[idx], status: 'inactive' };
+    users[idx] = updated;
+    logActivity(req.user.id, req.user.email, 'deactivate_user', 'master', `Deactivated user ${updated.email}`, { userId: updated.id });
+    return res.json({ data: maskUser(updated), message: 'User deactivated' });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 });
 
