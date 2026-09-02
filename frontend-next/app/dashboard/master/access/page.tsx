@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ShieldCheck, Users, Save } from 'lucide-react';
+import { ShieldCheck, Users, Save, Plus, Pencil, Trash2, X } from 'lucide-react';
 import { masterService } from '@/lib/api';
 
 type AppUser = {
@@ -13,6 +13,9 @@ type AppUser = {
 };
 
 type PermissionMatrix = Record<string, string[]>;
+type UserForm = { name: string; email: string; password: string; role: string; status: string };
+
+const EMPTY_USER_FORM: UserForm = { name: '', email: '', password: '', role: 'staff', status: 'active' };
 
 const ROLE_LABELS: Record<string, string> = {
   super_admin: 'Super Admin',
@@ -41,6 +44,10 @@ export default function RoleAccessPage() {
   const [submittingRole, setSubmittingRole] = useState('');
   const [submittingPermissionRole, setSubmittingPermissionRole] = useState('');
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+  const [editingUser, setEditingUser] = useState<AppUser | null>(null);
+  const [userFormOpen, setUserFormOpen] = useState(false);
+  const [userForm, setUserForm] = useState<UserForm>(EMPTY_USER_FORM);
+  const [savingUser, setSavingUser] = useState(false);
 
   const showToast = (msg: string, ok = true) => {
     setToast({ msg, ok });
@@ -112,6 +119,56 @@ export default function RoleAccessPage() {
     }
   };
 
+  const openCreateUser = () => {
+    setEditingUser(null);
+    setUserForm({ ...EMPTY_USER_FORM });
+    setUserFormOpen(true);
+  };
+
+  const openEditUser = (user: AppUser) => {
+    setEditingUser(user);
+    setUserForm({ name: user.name || '', email: user.email, password: '', role: user.role, status: user.status || 'active' });
+    setUserFormOpen(true);
+  };
+
+  const closeUserForm = () => {
+    setEditingUser(null);
+    setUserForm(EMPTY_USER_FORM);
+    setUserFormOpen(false);
+  };
+
+  const saveUser = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSavingUser(true);
+    try {
+      if (editingUser) {
+        const payload = { name: userForm.name, email: userForm.email, status: userForm.status, ...(isSuperAdmin ? { role: userForm.role } : {}) };
+        await masterService.updateUser(editingUser.id, payload);
+        showToast('Data user diperbarui.');
+      } else {
+        await masterService.createUser({ name: userForm.name, email: userForm.email, password: userForm.password, ...(isSuperAdmin ? { role: userForm.role } : {}) });
+        showToast('User baru ditambahkan.');
+      }
+      closeUserForm();
+      await load();
+    } catch (err: unknown) {
+      showToast(getErrMsg(err, 'Gagal menyimpan user.'), false);
+    } finally {
+      setSavingUser(false);
+    }
+  };
+
+  const deactivateUser = async (user: AppUser) => {
+    if (user.id === currentUserId || !window.confirm(`Nonaktifkan ${user.name || user.email}?`)) return;
+    try {
+      await masterService.deleteUser(user.id);
+      showToast('User dinonaktifkan.');
+      await load();
+    } catch (err: unknown) {
+      showToast(getErrMsg(err, 'Gagal menonaktifkan user.'), false);
+    }
+  };
+
   const togglePermission = async (role: string, module: string) => {
     if (!isSuperAdmin) return;
     const current = matrix?.[role] || [];
@@ -161,9 +218,12 @@ export default function RoleAccessPage() {
 
       {/* User list — responsive table with overflow scroll */}
       <div className="card" style={{ padding: 16, marginBottom: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Users size={17} color="var(--teal-500)" />
           <h3 style={{ margin: 0, fontSize: 17 }}>Daftar User</h3>
+          </div>
+          <button type="button" className="btn btn-primary" onClick={openCreateUser}><Plus size={16} /> Tambah user</button>
         </div>
 
         {loading ? (
@@ -182,6 +242,7 @@ export default function RoleAccessPage() {
                   <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>Role</th>
                   <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>Edit Role</th>
                   <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>Status</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--text-3)', fontSize: 13 }}>Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -203,6 +264,10 @@ export default function RoleAccessPage() {
                           <option key={role} value={role}>{label}</option>
                         ))}
                       </select>
+                    </td>
+                    <td style={{ padding: '11px 14px', whiteSpace: 'nowrap' }}>
+                      <button type="button" className="btn btn-secondary" onClick={() => openEditUser(u)} style={{ marginRight: 6 }}><Pencil size={14} /> Edit</button>
+                      <button type="button" className="btn btn-danger" disabled={u.id === currentUserId || (u.status || 'active') === 'inactive'} onClick={() => deactivateUser(u)}><Trash2 size={14} /> Nonaktifkan</button>
                     </td>
                     <td style={{ padding: '11px 14px' }}>
                       <span className={`badge ${(u.status || 'active') === 'active' ? 'badge-success' : 'badge-danger'}`}>
@@ -306,6 +371,20 @@ export default function RoleAccessPage() {
           </div>
         )}
       </div>}
+
+      {userFormOpen && (
+        <div role="dialog" aria-modal="true" style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.48)', zIndex: 50, display: 'grid', placeItems: 'center', padding: 16 }}>
+          <form onSubmit={saveUser} className="card" style={{ width: 'min(520px, 100%)', padding: 22 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}><h2 style={{ margin: 0, fontSize: 20 }}>{editingUser ? 'Edit user' : 'Tambah user'}</h2><button type="button" className="btn btn-secondary" onClick={closeUserForm}><X size={16} /></button></div>
+            <label className="form-label">Nama<input required className="form-input" value={userForm.name} onChange={(event) => setUserForm((prev) => ({ ...prev, name: event.target.value }))} /></label>
+            <label className="form-label">Email<input required type="email" className="form-input" value={userForm.email} onChange={(event) => setUserForm((prev) => ({ ...prev, email: event.target.value }))} /></label>
+            {!editingUser && <label className="form-label">Password awal<input required minLength={8} type="password" className="form-input" value={userForm.password} onChange={(event) => setUserForm((prev) => ({ ...prev, password: event.target.value }))} /></label>}
+            {isSuperAdmin && <label className="form-label">Role<select className="form-select" value={userForm.role} onChange={(event) => setUserForm((prev) => ({ ...prev, role: event.target.value }))}>{Object.entries(ROLE_LABELS).map(([role, label]) => <option key={role} value={role}>{label}</option>)}</select></label>}
+            {editingUser && <label className="form-label">Status<select className="form-select" value={userForm.status} onChange={(event) => setUserForm((prev) => ({ ...prev, status: event.target.value }))}><option value="active">Aktif</option><option value="inactive">Tidak aktif</option></select></label>}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 20 }}><button type="button" className="btn btn-secondary" onClick={closeUserForm}>Batal</button><button disabled={savingUser} className="btn btn-primary" type="submit">{savingUser ? 'Menyimpan…' : 'Simpan'}</button></div>
+          </form>
+        </div>
+      )}
 
       <style jsx global>{`
         @media (max-width: 640px) {
