@@ -33,7 +33,7 @@ describe('POST /api/v1/auth/login', () => {
       .post('/api/v1/auth/login')
       .send({ email: 'admin@nexfinance.com', password: 'wrongpassword' });
     expect(res.statusCode).toBe(401);
-    expect(res.body).toHaveProperty('error');
+    expect(res.body.error).toBe('Email atau password salah.');
   });
 
   it('returns 401 with unknown email', async () => {
@@ -41,6 +41,7 @@ describe('POST /api/v1/auth/login', () => {
       .post('/api/v1/auth/login')
       .send({ email: 'nobody@nexfinance.com', password: 'somepassword' });
     expect(res.statusCode).toBe(401);
+    expect(res.body.error).toBe('Email atau password salah.');
   });
 
   it('returns 400 when email or password is missing', async () => {
@@ -183,6 +184,22 @@ describe('Role management and password change', () => {
       .post('/api/v1/auth/login')
       .send({ email: 'staff@nexfinance.com', password: 'staff1234' });
     expect(newLogin.statusCode).toBe(200);
+  });
+
+  it('keeps the user signed in and returns a clear error when current password is wrong', async () => {
+    const token = await login('bendahara@nexfinance.com', 'bendahara123');
+    const changed = await request(app)
+      .post('/api/v1/auth/change-password')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ currentPassword: 'salah-password', newPassword: 'bendahara1234', confirmPassword: 'bendahara1234' });
+
+    expect(changed.statusCode).toBe(401);
+    expect(changed.body.error).toBe('Password saat ini salah.');
+
+    const profile = await request(app)
+      .get('/api/v1/auth/me')
+      .set('Authorization', `Bearer ${token}`);
+    expect(profile.statusCode).toBe(200);
   });
 
   it('lets Admin create, update, and deactivate a user without choosing a role', async () => {
