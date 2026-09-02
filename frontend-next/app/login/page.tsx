@@ -51,7 +51,9 @@ function getErrorMessage(error: unknown) {
   if (typeof error === 'object' && error !== null && 'response' in error) {
     const response = (error as { response?: { data?: { error?: string } } }).response;
     if (typeof response?.data?.error === 'string') {
-      return response.data.error;
+      return response.data.error === 'Invalid credentials'
+        ? 'Email atau password salah.'
+        : response.data.error;
     }
   }
 
