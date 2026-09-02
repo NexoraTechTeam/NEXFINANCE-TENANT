@@ -184,4 +184,38 @@ describe('Role management and password change', () => {
       .send({ email: 'staff@nexfinance.com', password: 'staff1234' });
     expect(newLogin.statusCode).toBe(200);
   });
+
+  it('lets Admin create, update, and deactivate a user without choosing a role', async () => {
+    const token = await login('admin@nexfinance.com', 'admin123');
+    const email = `admin-crud-${Date.now()}@nexfinance.com`;
+    const created = await request(app)
+      .post('/api/v1/master/users')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Admin CRUD User', email, password: 'securepass123' });
+
+    expect(created.statusCode).toBe(201);
+    expect(created.body.data.role).toBe('staff');
+
+    const updated = await request(app)
+      .put(`/api/v1/master/users/${created.body.data.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Updated Admin CRUD User', status: 'inactive' });
+    expect(updated.statusCode).toBe(200);
+    expect(updated.body.data.name).toBe('Updated Admin CRUD User');
+
+    const deleted = await request(app)
+      .delete(`/api/v1/master/users/${created.body.data.id}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(deleted.statusCode).toBe(200);
+    expect(deleted.body.data.status).toBe('inactive');
+  });
+
+  it('prevents Admin from assigning a role when creating a user', async () => {
+    const token = await login('admin@nexfinance.com', 'admin123');
+    const response = await request(app)
+      .post('/api/v1/master/users')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Role Escalation', email: `role-${Date.now()}@nexfinance.com`, password: 'securepass123', role: 'super_admin' });
+    expect(response.statusCode).toBe(403);
+  });
 });
