@@ -22,6 +22,21 @@ const NAV = [
   { label: 'Role & Akses',    icon: UserCog,         href: '/dashboard/master/access' },
 ];
 
+const PASSWORD_SUCCESS_MESSAGE = 'Password berhasil diubah.';
+
+function getPasswordErrorMessage(error: unknown) {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { data?: { error?: string } } }).response;
+    if (typeof response?.data?.error === 'string') {
+      return response.data.error === 'Current password is incorrect'
+        ? 'Password saat ini salah.'
+        : response.data.error;
+    }
+  }
+
+  return 'Gagal mengubah password.';
+}
+
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -84,10 +99,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     setPasswordMessage('');
     try {
       await authService.changePassword(passwords);
-      setPasswordMessage('Password berhasil diubah.');
+      setPasswordMessage(PASSWORD_SUCCESS_MESSAGE);
       setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    } catch (error: any) {
-      setPasswordMessage(error.response?.data?.error || 'Gagal mengubah password.');
+    } catch (error: unknown) {
+      setPasswordMessage(getPasswordErrorMessage(error));
     } finally {
       setPasswordBusy(false);
     }
@@ -283,7 +298,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             {['currentPassword', 'newPassword', 'confirmPassword'].map((field) => (
               <input key={field} required minLength={field === 'currentPassword' ? 1 : 8} type="password" placeholder={field === 'currentPassword' ? 'Password saat ini' : field === 'newPassword' ? 'Password baru' : 'Konfirmasi password'} value={passwords[field as keyof typeof passwords]} onChange={(event) => setPasswords((prev) => ({ ...prev, [field]: event.target.value }))} style={{ width: '100%', marginBottom: 7, padding: '8px 9px', borderRadius: 8, border: '1px solid rgba(255,255,255,.16)', background: 'rgba(255,255,255,.08)', color: '#fff' }} />
             ))}
-            {passwordMessage && <div style={{ color: passwordMessage.startsWith('Password') ? '#8fe5ec' : '#ffaaaa', fontSize: 11, marginBottom: 7 }}>{passwordMessage}</div>}
+            {passwordMessage && <div style={{ color: passwordMessage === PASSWORD_SUCCESS_MESSAGE ? '#8fe5ec' : '#ffaaaa', fontSize: 11, marginBottom: 7 }}>{passwordMessage}</div>}
             <button type="submit" disabled={passwordBusy} className="nav-link" style={{ color: '#8fe5ec' }}>{passwordBusy ? 'Menyimpan...' : 'Simpan password'}</button>
           </form>
         )}
