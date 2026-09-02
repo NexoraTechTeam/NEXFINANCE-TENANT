@@ -5,6 +5,13 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+const CREDENTIAL_AUTH_PATHS = ['/auth/login', '/auth/change-password'];
+
+export const shouldRedirectToLogin = (status?: number, requestUrl = '') => {
+  if (status !== 401) return false;
+  return !CREDENTIAL_AUTH_PATHS.some((path) => requestUrl.includes(path));
+};
+
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('token');
@@ -16,7 +23,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401 && typeof window !== 'undefined') {
+    if (shouldRedirectToLogin(err.response?.status, err.config?.url) && typeof window !== 'undefined') {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
