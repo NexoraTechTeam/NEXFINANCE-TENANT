@@ -114,7 +114,34 @@ jobs:
       - name: Smoke test dev domain and isolation
         run: |
           set -e
-          test "$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 https://dev-nexfinance.nexoratech.co/login)" = 200
-          ! curl -sS https://dev-nexfinance.nexoratech.co/login | grep -q 'Demo credentials'
-          test "$(docker inspect -f '{{.State.Running}}' nexfinance-dev-backend 2>/dev/null)" = true
-          test "$(docker inspect -f '{{.State.Running}}' nexfinance-dev-frontend 2>/dev/null)" = true
+          LOGIN_HTML="/tmp/nexfinance-dev-login.html"
+          LOGIN_STATUS=""
+
+          for attempt in $(seq 1 12); do
+            LOGIN_STATUS="$(curl -sS -o "$LOGIN_HTML" -w '%{http_code}' --max-time 15 https://dev-nexfinance.nexoratech.co/login || true)"
+            if [ "$LOGIN_STATUS" = 200 ]; then
+              break
+            fi
+            if [ "$attempt" -eq 12 ]; then
+              echo "Dev login smoke check failed with HTTP ${LOGIN_STATUS:-curl-error}"
+              docker compose -p nexfinance-dev -f /home/github-runner/apps/nexfinance-dev/docker-compose.dev.yml logs --tail=80
+              exit 1
+            fi
+            sleep 5
+          done
+
+          if grep -q 'Demo credentials' "$LOGIN_HTML"; then
+            echo "Dev login page still exposes demo credentials"
+            exit 1
+          fi
+
+          BACKEND_RUNNING="$(docker inspect -f '{{.State.Running}}' nexfinance-dev-backend 2>/dev/null || true)"
+          FRONTEND_RUNNING="$(docker inspect -f '{{.State.Running}}' nexfinance-dev-frontend 2>/dev/null || true)"
+          if [ "$BACKEND_RUNNING" != true ]; then
+            echo "Dev backend container is not running: ${BACKEND_RUNNING:-missing}"
+            exit 1
+          fi
+          if [ "$FRONTEND_RUNNING" != true ]; then
+            echo "Dev frontend container is not running: ${FRONTEND_RUNNING:-missing}"
+            exit 1
+          fi
