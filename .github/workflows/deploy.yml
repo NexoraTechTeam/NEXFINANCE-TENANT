@@ -44,6 +44,10 @@ jobs:
         working-directory: frontend-next
         run: npm run lint
 
+      - name: Test frontend
+        working-directory: frontend-next
+        run: npm test
+
   # ── Stage 2: Deploy (only after tests pass) ─────────────────────────────────
   deploy:
     name: Build & Deploy to VPS

@@ -220,7 +220,7 @@ export default function RoleAccessPage() {
       <div className="card" style={{ padding: 16, marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Users size={17} color="var(--teal-500)" />
+          <Users size={17} color="var(--brand-500)" />
           <h3 style={{ margin: 0, fontSize: 17 }}>Daftar User</h3>
           </div>
           <button type="button" className="btn btn-primary" onClick={openCreateUser}><Plus size={16} /> Tambah user</button>
@@ -285,7 +285,7 @@ export default function RoleAccessPage() {
       {/* Permission matrix — always horizontal scroll, compact module headers */}
       {isSuperAdmin && <div className="card" style={{ padding: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <ShieldCheck size={17} color="var(--teal-500)" />
+          <ShieldCheck size={17} color="var(--brand-500)" />
           <h3 style={{ margin: 0, fontSize: 17 }}>Matriks Akses Role → Modul</h3>
         </div>
 

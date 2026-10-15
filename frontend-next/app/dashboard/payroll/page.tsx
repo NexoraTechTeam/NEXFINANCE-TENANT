@@ -40,8 +40,8 @@ export default function PayrollPage() {
   const totalNet   = history.reduce((s, p) => s + (p.netSalary || 0), 0);
 
   const statCards = [
-    { label: 'Total Karyawan',   value: employees.length, color: '#319ea9', icon: Users },
-    { label: 'Total Penggajian', value: fmt(totalGross),  color: '#3B82F6', icon: DollarSign },
+    { label: 'Total Karyawan',   value: employees.length, color: '#4373b8', icon: Users },
+    { label: 'Total Penggajian', value: fmt(totalGross),  color: '#6B4FA0', icon: DollarSign },
     { label: 'Total Take-Home',  value: fmt(totalNet),    color: '#10B981', icon: CheckCircle },
     { label: 'Slip Diproses',    value: history.length,   color: '#F59E0B', icon: FileText },
   ];
@@ -50,7 +50,7 @@ export default function PayrollPage() {
     ['Gaji Pokok',                      payrollResult.baseSalary,              'var(--text)',  false, false],
     ['Tunjangan Sertifikasi',           payrollResult.certificationAllowance,  'var(--text)',  false, false],
     ['Tunjangan Keluarga',              payrollResult.familyAllowance,         'var(--text)',  false, false],
-    ['Gaji Bruto',                      payrollResult.grossSalary,             '#319ea9',      true,  false],
+    ['Gaji Bruto',                      payrollResult.grossSalary,             '#4373b8',      true,  false],
     ['BPJS Kesehatan (1%)',             -payrollResult.bpjsKesehatan,          '#EF4444',      false, false],
     ['BPJS Ketenagakerjaan (5.7%)',     -payrollResult.bpjsKetenagakerjaan,    '#EF4444',      false, false],
     ['PPh 21 TER',                      -payrollResult.pphTER,                 '#EF4444',      false, false],
@@ -103,8 +103,8 @@ export default function PayrollPage() {
       <div className="card" style={{ padding: 24, marginBottom: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: showForm ? 20 : 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 9, background: 'linear-gradient(135deg, #319ea915, #319ea925)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Calculator size={18} color="#319ea9" strokeWidth={1.8} />
+            <div style={{ width: 36, height: 36, borderRadius: 9, background: 'linear-gradient(135deg, #4373b815, #4373b825)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Calculator size={18} color="#4373b8" strokeWidth={1.8} />
             </div>
             <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>Hitung Gaji</span>
           </div>
@@ -146,7 +146,7 @@ export default function PayrollPage() {
             <button
               onClick={calculate}
               disabled={loading}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 22px', borderRadius: 9, background: '#319ea9', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', minHeight: 44, opacity: loading ? 0.7 : 1, transition: 'background 160ms ease' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 22px', borderRadius: 9, background: '#4373b8', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', minHeight: 44, opacity: loading ? 0.7 : 1, transition: 'background 160ms ease' }}
             >
               <Calculator size={16} /> {loading ? 'Menghitung...' : 'Hitung Gaji'}
             </button>
@@ -159,7 +159,7 @@ export default function PayrollPage() {
             {/* Slip header — stacks on mobile via class */}
             <div
               className="payroll-slip-header"
-              style={{ background: 'linear-gradient(135deg, #319ea9 0%, #278a94 100%)', borderRadius: '12px 12px 0 0', padding: '20px 24px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}
+              style={{ background: 'linear-gradient(135deg, #4373b8 0%, #3461a8 100%)', borderRadius: '12px 12px 0 0', padding: '20px 24px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}
             >
               <div>
                 <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.8, marginBottom: 4 }}>Slip Gaji</div>
@@ -184,13 +184,13 @@ export default function PayrollPage() {
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                     padding: isBruto ? '13px 20px' : '11px 20px',
                     borderBottom: '1px solid var(--border)',
-                    background: isBruto ? '#f0fafb' : '#fff',
+                    background: isBruto ? '#eef3fb' : '#fff',
                     fontWeight: isBruto ? 700 : 400,
                     flexWrap: 'wrap',
                     gap: 8,
                   }}
                 >
-                  <span style={{ fontSize: 13, color: isBruto ? '#319ea9' : 'var(--text-3)', fontWeight: isBruto ? 700 : 500 }}>{label}</span>
+                  <span style={{ fontSize: 13, color: isBruto ? '#4373b8' : 'var(--text-3)', fontWeight: isBruto ? 700 : 500 }}>{label}</span>
                   <span style={{ fontSize: 14, fontWeight: isBruto ? 800 : 600, color: color as string }}>{fmt(Math.abs(val))}</span>
                 </div>
               ))}
@@ -225,8 +225,8 @@ export default function PayrollPage() {
       {/* Riwayat Penggajian */}
       <div className="card" style={{ padding: 24, marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 9, background: 'linear-gradient(135deg, #319ea915, #319ea925)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Clock size={18} color="#319ea9" strokeWidth={1.8} />
+          <div style={{ width: 36, height: 36, borderRadius: 9, background: 'linear-gradient(135deg, #4373b815, #4373b825)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Clock size={18} color="#4373b8" strokeWidth={1.8} />
           </div>
           <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>Riwayat Penggajian</span>
           {history.length > 0 && (
@@ -277,8 +277,8 @@ export default function PayrollPage() {
       {/* Data Karyawan */}
       <div className="card" style={{ padding: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 9, background: 'linear-gradient(135deg, #319ea915, #319ea925)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Users size={18} color="#319ea9" strokeWidth={1.8} />
+          <div style={{ width: 36, height: 36, borderRadius: 9, background: 'linear-gradient(135deg, #4373b815, #4373b825)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Users size={18} color="#4373b8" strokeWidth={1.8} />
           </div>
           <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>Data Karyawan</span>
           {employees.length > 0 && (
@@ -305,11 +305,11 @@ export default function PayrollPage() {
                 {employees.map((emp, i) => (
                   <tr key={emp.id} className="payroll-emp-row" style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? '#fff' : '#f5f7fa', transition: 'background 150ms' }}>
                     <td style={{ padding: '13px 16px' }}>
-                      <span style={{ background: '#f0fafb', color: '#319ea9', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, fontFamily: 'monospace' }}>{emp.id}</span>
+                      <span style={{ background: '#eef3fb', color: '#4373b8', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, fontFamily: 'monospace' }}>{emp.id}</span>
                     </td>
                     <td style={{ padding: '13px 16px', fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{emp.name}</td>
                     <td style={{ padding: '13px 16px', fontSize: 14 }}>
-                      <span style={{ background: '#eff6ff', color: '#2563eb', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600 }}>{emp.position}</span>
+                      <span style={{ background: '#f3effa', color: '#5b4192', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600 }}>{emp.position}</span>
                     </td>
                     <td style={{ padding: '13px 16px', color: 'var(--text)', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap' }}>{fmt(emp.baseSalary)}</td>
                     <td style={{ padding: '13px 16px', color: 'var(--text)', fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(emp.certificationAllowance)}</td>
@@ -331,7 +331,7 @@ export default function PayrollPage() {
         /* ── Payroll: table row hover ── */
         .payroll-history-row:hover,
         .payroll-emp-row:hover {
-          background: #f0fafb !important;
+          background: #eef3fb !important;
         }
 
         /* ── Payroll: form grid — 1 col on mobile ── */

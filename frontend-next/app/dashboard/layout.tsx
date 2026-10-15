@@ -4,6 +4,8 @@ import { useState, useEffect, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { Menu } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
+import HelpLauncher from '@/components/help/HelpLauncher';
+import { TourProvider } from '@/components/tour/TourProvider';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -11,6 +13,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pageLabel =
     pathname === '/dashboard'
       ? 'Executive Overview'
+      : pathname === '/dashboard/help'
+      ? 'Pusat Bantuan'
       : pathname.split('/').filter(Boolean).pop()?.replace(/-/g, ' ') || 'Dashboard';
 
   // Close sidebar on route change (mobile navigation)
@@ -40,6 +44,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [sidebarOpen]);
 
   return (
+    <TourProvider onSidebarRequest={setSidebarOpen}>
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)', flexDirection: 'column' }}>
       {/* Mobile top header — hidden on desktop via CSS */}
       <header className="mobile-header">
@@ -104,10 +109,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         {/* Main content */}
-        <main className="dashboard-main">
+        <main className="dashboard-main" data-tour="content">
           {children}
         </main>
       </div>
+
+      <HelpLauncher />
     </div>
+    </TourProvider>
   );
 }

@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import { BRAND_SCALE, NEXORA } from "./lib/theme";
 
 const config: Config = {
   content: [
@@ -12,20 +13,17 @@ const config: Config = {
         sans: ['Inter', 'Arial', 'sans-serif'],
       },
       colors: {
-        teal: {
-          50:  '#f0fafb',
-          100: '#d5f0f3',
-          200: '#aee2e8',
-          300: '#78cfd8',
-          400: '#45b5c2',
-          500: '#319ea9',
-          600: '#278a94',
-          700: '#1e6e77',
-          800: '#175660',
-          900: '#124550',
+        brand: { ...BRAND_SCALE },
+        nexora: {
+          navy: NEXORA.navy,
+          'navy-deep': NEXORA.navyDeep,
+          ink: NEXORA.ink,
+          blue: NEXORA.blue,
+          purple: NEXORA.purple,
+          gold: NEXORA.gold,
         },
         sidebar: {
-          DEFAULT: '#1d3744',
+          DEFAULT: NEXORA.navy,
         },
       },
       screens: {
@@ -50,8 +48,8 @@ const config: Config = {
           to:   { opacity: '1' },
         },
         nfPulse: {
-          '0%, 100%': { boxShadow: '0 10px 22px rgba(49,158,169,0.26)' },
-          '50%':       { boxShadow: '0 10px 30px rgba(49,158,169,0.52)' },
+          '0%, 100%': { boxShadow: '0 10px 22px rgba(67,115,184,0.26)' },
+          '50%':       { boxShadow: '0 10px 30px rgba(107,79,160,0.45)' },
         },
       },
       animation: {

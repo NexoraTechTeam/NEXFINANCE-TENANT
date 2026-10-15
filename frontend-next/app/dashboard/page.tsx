@@ -21,7 +21,7 @@ const short = (n: number) =>
   : n >= 1e6 ? `Rp ${(n / 1e6).toFixed(1)}Jt`
   : `Rp ${(n / 1e3).toFixed(0)}K`;
 
-const COLORS = ['#319ea9', '#10B981', '#3B82F6', '#8B5CF6', '#F59E0B'];
+const COLORS = ['#4373B8', '#10B981', '#6B4FA0', '#F5B70A', '#8FAEE0'];
 
 const monthly = [
   { bulan: 'Jan', pendapatan: 65_000_000, beban: 42_000_000, laba: 23_000_000 },
@@ -142,15 +142,15 @@ export default function DashboardPage() {
   useEffect(() => { load(); }, [load]);
 
   const kpiCards = kpi ? [
-    { label: 'Pendapatan Bulan Ini', value: IDR(kpi.monthRevenue), icon: DollarSign, color: '#319ea9', bg: '#f0fafb', trend: '+12%',          up: true,  sub: 'vs bulan lalu',                              to: '/dashboard/reports'    },
+    { label: 'Pendapatan Bulan Ini', value: IDR(kpi.monthRevenue), icon: DollarSign, color: '#4373b8', bg: '#eef3fb', trend: '+12%',          up: true,  sub: 'vs bulan lalu',                              to: '/dashboard/reports'    },
     { label: 'Collection SPP',       value: kpi.collectionRate,    icon: TrendingUp,  color: '#10B981', bg: '#f0fdf6', trend: '+3.2%',         up: true,  sub: `${kpi.paidInvoices}/${kpi.totalInvoices} invoice lunas`, to: '/dashboard/spp' },
-    { label: 'Saldo Kas & Bank',     value: IDR(kpi.cashBalance),  icon: Wallet,      color: '#3B82F6', bg: '#eff6ff', trend: '+8.4%',         up: true,  sub: 'Total aset likuid',                           to: '/dashboard/accounting' },
+    { label: 'Saldo Kas & Bank',     value: IDR(kpi.cashBalance),  icon: Wallet,      color: '#6B4FA0', bg: '#f3effa', trend: '+8.4%',         up: true,  sub: 'Total aset likuid',                           to: '/dashboard/accounting' },
     { label: 'Item Perlu Aksi',      value: kpi.pendingItems,      icon: AlertCircle, color: '#F59E0B', bg: '#fffbeb', trend: `-${kpi.pendingItems}`, up: false, sub: `${kpi.pendingExpenses} pengeluaran pending`, to: '/dashboard/reports' },
   ] : [];
 
   const infoCards = kpi ? [
-    { label: 'Total Siswa',          value: kpi.totalStudents ?? 0, icon: Users,        color: '#8B5CF6' },
-    { label: 'Total Karyawan',       value: kpi.totalEmployees,     icon: Users,        color: '#319ea9' },
+    { label: 'Total Siswa',          value: kpi.totalStudents ?? 0, icon: Users,        color: '#2A4F8C' },
+    { label: 'Total Karyawan',       value: kpi.totalEmployees,     icon: Users,        color: '#4373b8' },
     { label: 'Total Invoice SPP',    value: kpi.totalInvoices,      icon: ClipboardList,color: '#10B981' },
     { label: 'Pengeluaran Pending',  value: kpi.pendingExpenses,    icon: Activity,     color: '#F59E0B' },
   ] : [];
@@ -186,7 +186,7 @@ export default function DashboardPage() {
           className="refresh-btn"
         >
           <RefreshCw size={16} strokeWidth={1.8}
-            style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none', color: '#319ea9' }} />
+            style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none', color: '#4373b8' }} />
           {refreshing ? 'Memperbarui...' : 'Refresh'}
         </button>
       </div>
@@ -309,9 +309,9 @@ export default function DashboardPage() {
                 <button key={m} onClick={() => setChartMode(m)} style={{
                   padding: '8px 16px', borderRadius: 8, fontSize: 13, cursor: 'pointer',
                   fontFamily: 'inherit', fontWeight: chartMode === m ? 600 : 400, minHeight: 38,
-                  background: chartMode === m ? '#f0fafb' : '#fff',
-                  border: `1px solid ${chartMode === m ? '#319ea9' : 'var(--border)'}`,
-                  color: chartMode === m ? '#319ea9' : 'var(--text-3)',
+                  background: chartMode === m ? '#eef3fb' : '#fff',
+                  border: `1px solid ${chartMode === m ? '#4373b8' : 'var(--border)'}`,
+                  color: chartMode === m ? '#4373b8' : 'var(--text-3)',
                   transition: 'all 160ms ease',
                 }}>
                   {m === 'area' ? '∿ Area' : '▌ Bar'}
@@ -326,8 +326,8 @@ export default function DashboardPage() {
                 <AreaChart data={monthly}>
                   <defs>
                     <linearGradient id="gPend" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#319ea9" stopOpacity={.18} />
-                      <stop offset="95%" stopColor="#319ea9" stopOpacity={0} />
+                      <stop offset="5%"  stopColor="#4373b8" stopOpacity={.18} />
+                      <stop offset="95%" stopColor="#4373b8" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="gBeban" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%"  stopColor="#EF4444" stopOpacity={.12} />
@@ -339,7 +339,7 @@ export default function DashboardPage() {
                   <YAxis tick={axisStyle} tickFormatter={v => `${v / 1e6}Jt`} axisLine={false} tickLine={false} width={44} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 13, color: 'var(--text-3)', paddingTop: 8 }} />
-                  <Area type="monotone" dataKey="pendapatan" name="Pendapatan" stroke="#319ea9" strokeWidth={2.5} fill="url(#gPend)"  dot={{ r: 5, fill: '#319ea9' }} activeDot={{ r: 7 }} />
+                  <Area type="monotone" dataKey="pendapatan" name="Pendapatan" stroke="#4373b8" strokeWidth={2.5} fill="url(#gPend)"  dot={{ r: 5, fill: '#4373b8' }} activeDot={{ r: 7 }} />
                   <Area type="monotone" dataKey="beban"      name="Beban"      stroke="#EF4444" strokeWidth={2}   fill="url(#gBeban)" dot={{ r: 5, fill: '#EF4444' }} activeDot={{ r: 7 }} />
                   <Area type="monotone" dataKey="laba"       name="Surplus"    stroke="#10B981" strokeWidth={2}   fill="none" strokeDasharray="5 4" dot={{ r: 4, fill: '#10B981' }} />
                 </AreaChart>
@@ -350,7 +350,7 @@ export default function DashboardPage() {
                   <YAxis tick={axisStyle} tickFormatter={v => `${v / 1e6}Jt`} axisLine={false} tickLine={false} width={44} />
                   <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc' }} />
                   <Legend wrapperStyle={{ fontSize: 13, color: 'var(--text-3)', paddingTop: 8 }} />
-                  <Bar dataKey="pendapatan" name="Pendapatan" fill="#319ea9" radius={[5,5,0,0]} />
+                  <Bar dataKey="pendapatan" name="Pendapatan" fill="#4373b8" radius={[5,5,0,0]} />
                   <Bar dataKey="beban"      name="Beban"      fill="#EF4444" radius={[5,5,0,0]} />
                   <Bar dataKey="laba"       name="Surplus"    fill="#10B981" radius={[5,5,0,0]} />
                 </BarChart>
@@ -416,8 +416,8 @@ export default function DashboardPage() {
           {([
             ['Total Pendapatan', totalPend,  '#10B981', '#f0fdf6'],
             ['Total Beban',      totalBeban, '#EF4444', '#fff5f5'],
-            ['Surplus Bersih',   totalLaba,  '#319ea9', '#f0fafb'],
-            ['Margin Bersih',    ((totalLaba / totalPend) * 100).toFixed(1) + '%', '#3B82F6', '#eff6ff'],
+            ['Surplus Bersih',   totalLaba,  '#4373b8', '#eef3fb'],
+            ['Margin Bersih',    ((totalLaba / totalPend) * 100).toFixed(1) + '%', '#6B4FA0', '#f3effa'],
           ] as [string, number | string, string, string][]).map(([label, val, color, bg]) => (
             <div key={label} className="card-hover ytd-card" style={{
               background: bg, border: `1px solid ${color}22`,
@@ -480,7 +480,7 @@ export default function DashboardPage() {
         }
         .refresh-btn:hover {
           box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-          border-color: rgba(49, 158, 169, 0.3);
+          border-color: rgba(67, 115, 184, 0.3);
         }
         .refresh-btn:disabled {
           opacity: 0.7;
@@ -497,7 +497,7 @@ export default function DashboardPage() {
           padding: 28px 30px;
           margin-bottom: 20px;
           background:
-            linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(240,250,251,0.98) 100%);
+            linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(238, 243, 251,0.98) 100%);
         }
         .executive-kicker {
           display: inline-flex;
@@ -505,8 +505,8 @@ export default function DashboardPage() {
           gap: 8px;
           padding: 7px 12px;
           border-radius: 999px;
-          background: rgba(49, 158, 169, 0.12);
-          color: #278a94;
+          background: rgba(67, 115, 184, 0.12);
+          color: #3461a8;
           font-size: 12px;
           font-weight: 700;
           letter-spacing: .32px;
@@ -536,7 +536,7 @@ export default function DashboardPage() {
         .executive-metric {
           min-height: 88px;
           border-radius: 16px;
-          border: 1px solid rgba(49, 158, 169, 0.14);
+          border: 1px solid rgba(67, 115, 184, 0.14);
           background: rgba(255,255,255,0.80);
           padding: 14px 16px;
           display: flex;
@@ -545,8 +545,8 @@ export default function DashboardPage() {
           transition: box-shadow 200ms ease, border-color 200ms ease;
         }
         .executive-metric:hover {
-          border-color: rgba(49, 158, 169, 0.28);
-          box-shadow: 0 4px 16px rgba(49, 158, 169, 0.08);
+          border-color: rgba(67, 115, 184, 0.28);
+          box-shadow: 0 4px 16px rgba(67, 115, 184, 0.08);
         }
         .executive-metric span {
           color: var(--text-4);

@@ -31,9 +31,9 @@ export interface FinancialReportPdfInput {
   };
 }
 
-const NAVY: RGB = [30, 58, 71];
-const TEAL: RGB = [49, 158, 169];
-const BLUE: RGB = [59, 130, 246];
+const NAVY: RGB = [21, 45, 79];
+const BRAND: RGB = [67, 115, 184];
+const PURPLE: RGB = [107, 79, 160];
 const GREEN: RGB = [16, 185, 129];
 const RED: RGB = [239, 68, 68];
 const SLATE: RGB = [71, 85, 105];
@@ -60,7 +60,7 @@ async function loadPdfModules() {
 function drawHeader(doc: import('jspdf').jsPDF, title: string, subtitle: string) {
   doc.setFillColor(...NAVY);
   doc.rect(0, 0, 595.28, 112, 'F');
-  doc.setFillColor(...TEAL);
+  doc.setFillColor(...BRAND);
   doc.rect(0, 104, 595.28, 8, 'F');
 
   doc.setTextColor(255, 255, 255);
@@ -176,8 +176,8 @@ export async function downloadFinancialReportPdf(input: FinancialReportPdfInput)
   let cursorY = drawSummaryCards(pdfDoc, [
     { label: 'Pendapatan YTD', value: formatCurrency(totalPendapatan), tone: GREEN, soft: [236, 253, 245] },
     { label: 'Beban YTD', value: formatCurrency(totalBeban), tone: RED, soft: [254, 242, 242] },
-    { label: 'Surplus YTD', value: formatCurrency(totalSurplus), tone: TEAL, soft: [240, 250, 251] },
-    { label: 'Margin Bersih', value: `${margin}%`, tone: BLUE, soft: [239, 246, 255] },
+    { label: 'Surplus YTD', value: formatCurrency(totalSurplus), tone: BRAND, soft: [238, 243, 251] },
+    { label: 'Margin Bersih', value: `${margin}%`, tone: PURPLE, soft: [243, 239, 250] },
   ]);
 
   cursorY = drawInsightBand(pdfDoc, 'Executive highlights', [
@@ -214,7 +214,7 @@ export async function downloadFinancialReportPdf(input: FinancialReportPdfInput)
         hookData.cell.styles.textColor = RED;
       }
       if (itemLabel === 'Surplus Bersih') {
-        hookData.cell.styles.textColor = TEAL;
+        hookData.cell.styles.textColor = BRAND;
         hookData.cell.styles.fillColor = [240, 250, 251];
       }
       if (itemLabel.startsWith('Total ')) {
@@ -237,7 +237,7 @@ export async function downloadFinancialReportPdf(input: FinancialReportPdfInput)
       formatNumber(row.surplus),
       `${row.pendapatan ? ((row.surplus / row.pendapatan) * 100).toFixed(1) : '0.0'}%`,
     ]),
-    headStyles: { fillColor: TEAL, textColor: 255, fontStyle: 'bold', fontSize: 9.5 },
+    headStyles: { fillColor: BRAND, textColor: 255, fontStyle: 'bold', fontSize: 9.5 },
     bodyStyles: { fontSize: 9, textColor: NAVY },
     alternateRowStyles: { fillColor: [248, 250, 252] },
     columnStyles: {
@@ -286,7 +286,7 @@ export async function downloadFinancialReportPdf(input: FinancialReportPdfInput)
     didParseCell: (hookData) => {
       if (hookData.section !== 'body' || !Array.isArray(hookData.row.raw)) return;
       if (String(hookData.row.raw[0]).includes('Ekuitas')) {
-        hookData.cell.styles.textColor = TEAL;
+        hookData.cell.styles.textColor = BRAND;
       }
     },
   });

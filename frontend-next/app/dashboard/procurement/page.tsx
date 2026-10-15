@@ -18,7 +18,7 @@ const statusBadge = (s: string): { className: string; style?: Record<string, str
   if (s === 'approved') return { className: 'badge badge-success', label: labelMap[s] };
   if (s === 'rejected') return { className: 'badge badge-danger',  label: labelMap[s] };
   if (s === 'ordered')  return { className: 'badge badge-info',    label: labelMap[s] };
-  if (s === 'received') return { className: 'badge', style: { color:'#7c3aed', background:'#f5f3ff' }, label: labelMap[s] };
+  if (s === 'received') return { className: 'badge', style: { color:'#5b4192', background:'#f3effa' }, label: labelMap[s] };
   return { className: 'badge badge-neutral', label: s };
 };
 
@@ -117,7 +117,7 @@ export default function ProcurementPage() {
 
         /* ── ISAK35 section header (shared) ── */
         .isak35-section-header {
-          border-left: 3px solid #319ea9;
+          border-left: 3px solid #4373b8;
           padding-left: 12px;
         }
 
@@ -156,14 +156,14 @@ export default function ProcurementPage() {
           <button
             onClick={() => setModal('pr')}
             className="proc-action-btn"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '11px 18px', borderRadius: 9, background: '#3B82F6', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer', minHeight: 44, whiteSpace: 'nowrap' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '11px 18px', borderRadius: 9, background: '#6B4FA0', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer', minHeight: 44, whiteSpace: 'nowrap' }}
           >
             <Plus size={16}/> Buat PR
           </button>
           <button
             onClick={() => setModal('po')}
             className="proc-action-btn"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '11px 18px', borderRadius: 9, background: '#319ea9', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer', minHeight: 44, whiteSpace: 'nowrap' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '11px 18px', borderRadius: 9, background: '#4373b8', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer', minHeight: 44, whiteSpace: 'nowrap' }}
           >
             <Plus size={16}/> Buat PO
           </button>
@@ -176,9 +176,9 @@ export default function ProcurementPage() {
         style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 14, marginBottom: 24 }}
       >
         {[
-          { label: 'Total PR',    value: prs.length,                                   color: '#3B82F6', icon: FileText    },
+          { label: 'Total PR',    value: prs.length,                                   color: '#6B4FA0', icon: FileText    },
           { label: 'PR Pending',  value: prs.filter(p=>p.status==='pending').length,   color: '#F59E0B', icon: ShoppingCart },
-          { label: 'Total PO',    value: pos.length,                                   color: '#319ea9', icon: Package     },
+          { label: 'Total PO',    value: pos.length,                                   color: '#4373b8', icon: Package     },
           { label: 'PO Diterima', value: pos.filter(p=>p.status==='received').length,  color: '#10B981', icon: CheckCircle },
         ].map((s, i) => { const Icon = s.icon; return (
           <div key={i} className="card" style={{ padding: '18px 20px', borderTop: `4px solid ${s.color}` }}>
@@ -220,7 +220,7 @@ export default function ProcurementPage() {
               <button
                 onClick={() => setModal('pr')}
                 className="proc-action-btn"
-                style={{ marginTop: 18, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 9, background: '#3B82F6', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+                style={{ marginTop: 18, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 9, background: '#6B4FA0', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
               >
                 <Plus size={15}/> Buat PR
               </button>
@@ -246,11 +246,11 @@ export default function ProcurementPage() {
                     {prs.map((pr, i) => (
                       <tr key={pr.id} style={{ borderBottom: '1px solid var(--border)', background: i%2===0 ? '#fff' : '#fafbfc', transition: 'background 120ms' }}>
                         <td style={{ padding: '13px 16px' }}>
-                          <span style={{ background: '#f0fafb', color: '#319ea9', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700 }}>{pr.id}</span>
+                          <span style={{ background: '#eef3fb', color: '#4373b8', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700 }}>{pr.id}</span>
                         </td>
                         <td style={{ padding: '13px 16px', fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{pr.item}</td>
                         <td style={{ padding: '13px 16px', color: 'var(--text-2)', fontSize: 14 }}>{pr.quantity}</td>
-                        <td style={{ padding: '13px 16px', fontWeight: 700, color: '#319ea9', fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(pr.estimatedCost)}</td>
+                        <td style={{ padding: '13px 16px', fontWeight: 700, color: '#4373b8', fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(pr.estimatedCost)}</td>
                         <td style={{ padding: '13px 16px', color: 'var(--text-3)', fontSize: 13 }}>{pr.reason || '-'}</td>
                         <td style={{ padding: '13px 16px' }}>
                           {(() => { const b = statusBadge(pr.status); return <span className={b.className} style={b.style}>{b.label}</span>; })()}
@@ -271,7 +271,7 @@ export default function ProcurementPage() {
               <button
                 onClick={() => setModal('po')}
                 className="proc-action-btn"
-                style={{ marginTop: 18, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 9, background: '#319ea9', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+                style={{ marginTop: 18, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 9, background: '#4373b8', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
               >
                 <Plus size={15}/> Buat PO
               </button>
@@ -297,10 +297,10 @@ export default function ProcurementPage() {
                     {pos.map((po, i) => (
                       <tr key={po.id} style={{ borderBottom: '1px solid var(--border)', background: i%2===0 ? '#fff' : '#fafbfc', transition: 'background 120ms' }}>
                         <td style={{ padding: '13px 16px' }}>
-                          <span style={{ background: '#f0fafb', color: '#319ea9', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700 }}>{po.id}</span>
+                          <span style={{ background: '#eef3fb', color: '#4373b8', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700 }}>{po.id}</span>
                         </td>
                         <td style={{ padding: '13px 16px', fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{po.vendor}</td>
-                        <td style={{ padding: '13px 16px', fontWeight: 700, color: '#319ea9', fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(po.totalCost)}</td>
+                        <td style={{ padding: '13px 16px', fontWeight: 700, color: '#4373b8', fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(po.totalCost)}</td>
                         <td style={{ padding: '13px 16px' }}>
                           {(() => { const b = statusBadge(po.status); return <span className={b.className} style={b.style}>{b.label}</span>; })()}
                         </td>
@@ -363,7 +363,7 @@ export default function ProcurementPage() {
                 onClick={handlePR}
                 disabled={submitting}
                 className="proc-action-btn"
-                style={{ padding: '11px 20px', borderRadius: 8, background: '#3B82F6', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer', fontFamily: 'inherit', minHeight: 44, opacity: submitting ? 0.7 : 1 }}
+                style={{ padding: '11px 20px', borderRadius: 8, background: '#6B4FA0', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer', fontFamily: 'inherit', minHeight: 44, opacity: submitting ? 0.7 : 1 }}
               >
                 {submitting ? 'Menyimpan...' : 'Buat PR'}
               </button>
@@ -409,7 +409,7 @@ export default function ProcurementPage() {
                 onClick={handlePO}
                 disabled={submitting}
                 className="proc-action-btn"
-                style={{ padding: '11px 20px', borderRadius: 8, background: '#319ea9', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer', fontFamily: 'inherit', minHeight: 44, opacity: submitting ? 0.7 : 1 }}
+                style={{ padding: '11px 20px', borderRadius: 8, background: '#4373b8', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer', fontFamily: 'inherit', minHeight: 44, opacity: submitting ? 0.7 : 1 }}
               >
                 {submitting ? 'Menyimpan...' : 'Buat PO'}
               </button>

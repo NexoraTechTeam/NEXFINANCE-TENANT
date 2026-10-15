@@ -172,9 +172,9 @@ export default function ExpensesPage() {
         <button
           onClick={() => setModal(true)}
           className="exp-header-btn"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 20px', borderRadius: 10, background: '#319ea9', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer', minHeight: 44, whiteSpace: 'nowrap', transition: 'background 180ms ease, transform 180ms ease, box-shadow 180ms ease' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#278a94'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 14px rgba(49,158,169,0.35)'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#319ea9'; (e.currentTarget as HTMLButtonElement).style.transform = ''; (e.currentTarget as HTMLButtonElement).style.boxShadow = ''; }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 20px', borderRadius: 10, background: '#4373b8', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer', minHeight: 44, whiteSpace: 'nowrap', transition: 'background 180ms ease, transform 180ms ease, box-shadow 180ms ease' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#3461a8'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 14px rgba(67, 115, 184,0.35)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#4373b8'; (e.currentTarget as HTMLButtonElement).style.transform = ''; (e.currentTarget as HTMLButtonElement).style.boxShadow = ''; }}
         >
           <Plus size={17} strokeWidth={2} /> Ajukan Pengeluaran
         </button>
@@ -183,10 +183,10 @@ export default function ExpensesPage() {
       {/* Stat Cards — responsive auto-fill grid */}
       <div className="exp-stat-grid anim-fadeup">
         {[
-          { label: 'Total Pengajuan', value: expenses.length,     color: '#319ea9', icon: FileText,    filter: 'all'      },
+          { label: 'Total Pengajuan', value: expenses.length,     color: '#4373b8', icon: FileText,    filter: 'all'      },
           { label: 'Menunggu',        value: pending.length,      color: '#F59E0B', icon: Clock,       filter: 'pending'  },
           { label: 'Disetujui',       value: approved.length,     color: '#10B981', icon: CheckCircle, filter: 'approved' },
-          { label: 'Total Disetujui', value: fmt(totalApproved),  color: '#3B82F6', icon: DollarSign,  filter: 'approved' },
+          { label: 'Total Disetujui', value: fmt(totalApproved),  color: '#6B4FA0', icon: DollarSign,  filter: 'approved' },
         ].map((s, i) => {
           const Icon = s.icon;
           return (
@@ -258,7 +258,7 @@ export default function ExpensesPage() {
                     >
                       <td style={{ padding: '13px 16px', fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{e.title}</td>
                       <td style={{ padding: '13px 16px', color: 'var(--text-2)', fontSize: 14 }}>{e.category}</td>
-                      <td style={{ padding: '13px 16px', fontWeight: 700, color: '#319ea9', fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(e.amount)}</td>
+                      <td style={{ padding: '13px 16px', fontWeight: 700, color: '#4373b8', fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(e.amount)}</td>
                       <td style={{ padding: '13px 16px', color: 'var(--text-3)', fontSize: 13, whiteSpace: 'nowrap' }}>{e.submittedAt ? new Date(e.submittedAt).toLocaleDateString('id-ID') : '-'}</td>
                       <td style={{ padding: '13px 16px' }}><span className={bc}>{bl}</span></td>
                       <td style={{ padding: '13px 16px' }}>
@@ -347,7 +347,7 @@ export default function ExpensesPage() {
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
-                style={{ padding: '11px 20px', borderRadius: 8, background: '#319ea9', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer', fontFamily: 'inherit', minHeight: 44, display: 'inline-flex', alignItems: 'center', gap: 7, opacity: submitting ? 0.7 : 1, transition: 'background 160ms ease' }}
+                style={{ padding: '11px 20px', borderRadius: 8, background: '#4373b8', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer', fontFamily: 'inherit', minHeight: 44, display: 'inline-flex', alignItems: 'center', gap: 7, opacity: submitting ? 0.7 : 1, transition: 'background 160ms ease' }}
               >
                 <Plus size={16}/> {submitting ? 'Menyimpan...' : 'Ajukan'}
               </button>

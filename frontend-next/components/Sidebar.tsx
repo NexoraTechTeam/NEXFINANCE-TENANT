@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import {
   LayoutDashboard, CreditCard, Users, DollarSign,
   ShoppingCart, BookOpen, FileText, LogOut, Sparkles, X, UserCog, UserRound, ClipboardList, History, KeyRound,
+  LifeBuoy,
 } from 'lucide-react';
 import { authService } from '@/lib/api';
 
@@ -21,6 +22,8 @@ const NAV = [
   { label: 'Master Karyawan', icon: ClipboardList,   href: '/dashboard/master/employees' },
   { label: 'Role & Akses',    icon: UserCog,         href: '/dashboard/master/access' },
 ];
+
+const HELP_NAV = { label: 'Bantuan', icon: LifeBuoy, href: '/dashboard/help' };
 
 const PASSWORD_SUCCESS_MESSAGE = 'Password berhasil diubah.';
 
@@ -67,7 +70,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   }, []);
 
   const activeSection = useMemo(
-    () => NAV.find(({ href }) => pathname === href)?.label || 'Dashboard',
+    () => [...NAV, HELP_NAV].find(({ href }) => pathname === href)?.label || 'Dashboard',
     [pathname]
   );
 
@@ -119,13 +122,15 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         padding: '18px 14px 16px',
       }}
     >
+      <div className="nx-brand-bar" aria-hidden="true" style={{ position: 'absolute', top: 0, left: 0, right: 0, borderRadius: 0 }} />
+
       {/* ── Logo / brand area ── */}
       <div style={{
         padding: '6px 8px 18px',
         marginBottom: 14,
         borderBottom: '1px solid rgba(255,255,255,0.10)',
         /* subtle gradient accent at bottom of logo area */
-        background: 'linear-gradient(180deg, rgba(49,158,169,0.08) 0%, transparent 100%)',
+        background: 'linear-gradient(180deg, rgba(67, 115, 184,0.08) 0%, transparent 100%)',
         borderRadius: '12px 12px 0 0',
         marginInline: -4,
         paddingInline: 12,
@@ -139,7 +144,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 width: 40,
                 height: 40,
                 borderRadius: 12,
-                background: 'linear-gradient(135deg, var(--teal-500) 0%, #278a94 100%)',
+                background: 'linear-gradient(135deg, var(--brand-500) 0%, var(--nx-purple) 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -171,12 +176,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             <X size={16} strokeWidth={2} />
           </button>
         </div>
-        <div style={{
+        <div data-tour="brand" style={{
           marginTop: 16,
           padding: '12px 12px 14px',
           borderRadius: 16,
-          background: 'linear-gradient(135deg, rgba(49,158,169,0.16) 0%, rgba(49,158,169,0.04) 100%)',
-          border: '1px solid rgba(91,200,211,0.18)',
+          background: 'linear-gradient(135deg, rgba(67, 115, 184,0.22) 0%, rgba(107, 79, 160,0.10) 100%)',
+          border: '1px solid rgba(143, 174, 224,0.18)',
         }}>
           <div style={{
             display: 'inline-flex',
@@ -184,7 +189,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             gap: 6,
             fontSize: 11,
             fontWeight: 700,
-            color: '#8fe5ec',
+            color: 'var(--nx-gold)',
             letterSpacing: '.35px',
             textTransform: 'uppercase',
             marginBottom: 8,
@@ -202,7 +207,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       </div>
 
       {/* ── Nav ── */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+      <nav data-tour="nav" aria-label="Menu utama" style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
         {NAV.map(({ label, icon: Icon, href }) => {
           const active = href === '/dashboard' ? pathname === href : pathname.startsWith(href);
           return (
@@ -220,18 +225,49 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                   width: 6,
                   height: 6,
                   borderRadius: '50%',
-                  background: 'var(--teal-500)',
+                  background: 'var(--nx-gold)',
                   flexShrink: 0,
-                  boxShadow: '0 0 6px rgba(49,158,169,0.70)',
+                  boxShadow: '0 0 8px rgba(245, 183, 10, 0.65)',
                 }} />
               )}
             </button>
           );
         })}
+
+        <div style={{
+          margin: '12px 14px 6px',
+          fontSize: 10.5,
+          fontWeight: 800,
+          letterSpacing: '.08em',
+          textTransform: 'uppercase',
+          color: 'rgba(255,255,255,0.38)',
+        }}>
+          Dukungan
+        </div>
+        <button
+          type="button"
+          data-tour="help-menu"
+          onClick={() => handleNav(HELP_NAV.href)}
+          className={`nav-link ${pathname === HELP_NAV.href ? 'nav-link-active' : ''}`}
+          aria-current={pathname === HELP_NAV.href ? 'page' : undefined}
+        >
+          <HELP_NAV.icon size={18} strokeWidth={1.8} />
+          <span style={{ flex: 1 }}>{HELP_NAV.label}</span>
+          <span style={{
+            fontSize: 10,
+            fontWeight: 800,
+            padding: '2px 7px',
+            borderRadius: 999,
+            color: 'var(--nx-navy)',
+            background: 'var(--nx-gold)',
+          }}>
+            Panduan
+          </span>
+        </button>
       </nav>
 
       {/* ── User profile ── */}
-      <div style={{
+      <div data-tour="profile" style={{
         borderTop: '1px solid rgba(255,255,255,0.08)',
         paddingTop: 14,
         marginTop: 8,
@@ -253,8 +289,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             width: 36,
             height: 36,
             borderRadius: 10,
-            background: 'linear-gradient(135deg, rgba(49,158,169,0.55) 0%, rgba(39,138,148,0.55) 100%)',
-            border: '1.5px solid rgba(49,158,169,0.40)',
+            background: 'linear-gradient(135deg, rgba(67, 115, 184,0.55) 0%, rgba(52, 97, 168,0.55) 100%)',
+            border: '1.5px solid rgba(67, 115, 184,0.40)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -298,8 +334,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             {['currentPassword', 'newPassword', 'confirmPassword'].map((field) => (
               <input key={field} required minLength={field === 'currentPassword' ? 1 : 8} type="password" placeholder={field === 'currentPassword' ? 'Password saat ini' : field === 'newPassword' ? 'Password baru' : 'Konfirmasi password'} value={passwords[field as keyof typeof passwords]} onChange={(event) => setPasswords((prev) => ({ ...prev, [field]: event.target.value }))} style={{ width: '100%', marginBottom: 7, padding: '8px 9px', borderRadius: 8, border: '1px solid rgba(255,255,255,.16)', background: 'rgba(255,255,255,.08)', color: '#fff' }} />
             ))}
-            {passwordMessage && <div style={{ color: passwordMessage === PASSWORD_SUCCESS_MESSAGE ? '#8fe5ec' : '#ffaaaa', fontSize: 11, marginBottom: 7 }}>{passwordMessage}</div>}
-            <button type="submit" disabled={passwordBusy} className="nav-link" style={{ color: '#8fe5ec' }}>{passwordBusy ? 'Menyimpan...' : 'Simpan password'}</button>
+            {passwordMessage && <div style={{ color: passwordMessage === PASSWORD_SUCCESS_MESSAGE ? '#c9d8f5' : '#ffaaaa', fontSize: 11, marginBottom: 7 }}>{passwordMessage}</div>}
+            <button type="submit" disabled={passwordBusy} className="nav-link" style={{ color: '#c9d8f5' }}>{passwordBusy ? 'Menyimpan...' : 'Simpan password'}</button>
           </form>
         )}
 

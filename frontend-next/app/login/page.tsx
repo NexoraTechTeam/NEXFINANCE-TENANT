@@ -259,8 +259,8 @@ export default function LoginPage() {
           100% { background-position: 0% 50%; }
         }
         @keyframes cardGlowPulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(49, 158, 169, 0); }
-          50%       { box-shadow: 0 0 18px 4px rgba(49, 158, 169, 0.18); }
+          0%, 100% { box-shadow: 0 0 0 0 rgba(67, 115, 184, 0); }
+          50%       { box-shadow: 0 0 18px 4px rgba(67, 115, 184, 0.18); }
         }
 
         /* ── Shell ── */
@@ -268,7 +268,7 @@ export default function LoginPage() {
           position: relative;
           min-height: 100vh;
           overflow: hidden;
-          background: linear-gradient(135deg, rgba(18, 45, 55, 0.98) 0%, rgba(18, 41, 49, 0.96) 100%);
+          background: linear-gradient(135deg, rgba(16, 36, 64, 0.98) 0%, rgba(12, 28, 52, 0.96) 100%);
           color: #fff;
         }
 
@@ -299,7 +299,7 @@ export default function LoginPage() {
           height: 560px;
           top: -160px;
           left: -120px;
-          background: radial-gradient(circle, rgba(49, 158, 169, 0.22) 0%, rgba(39, 138, 148, 0.1) 50%, transparent 72%);
+          background: radial-gradient(circle, rgba(67, 115, 184, 0.22) 0%, rgba(52, 97, 168, 0.1) 50%, transparent 72%);
           animation: orbFloat 14s ease-in-out infinite;
         }
 
@@ -308,7 +308,7 @@ export default function LoginPage() {
           height: 500px;
           right: -140px;
           bottom: -180px;
-          background: radial-gradient(circle, rgba(49, 158, 169, 0.18) 0%, rgba(119, 216, 224, 0.08) 52%, transparent 76%);
+          background: radial-gradient(circle, rgba(107, 79, 160, 0.30) 0%, rgba(107, 79, 160, 0.10) 52%, transparent 76%);
           animation: orbPulse 18s ease-in-out infinite;
         }
 
@@ -317,7 +317,7 @@ export default function LoginPage() {
           height: 280px;
           left: 48%;
           top: 26%;
-          background: radial-gradient(circle, rgba(165, 243, 252, 0.12) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(245, 183, 10, 0.12) 0%, transparent 70%);
           animation: orbDrift 22s ease-in-out infinite;
         }
 
@@ -335,9 +335,9 @@ export default function LoginPage() {
           gap: 8px;
           padding: 8px 14px;
           border-radius: 999px;
-          background: rgba(49, 158, 169, 0.14);
-          border: 1px solid rgba(91, 200, 211, 0.24);
-          color: #9de8ee;
+          background: rgba(67, 115, 184, 0.14);
+          border: 1px solid rgba(143, 174, 224, 0.24);
+          color: #c9d8f5;
           font-size: 12px;
           font-weight: 700;
           letter-spacing: 0.38px;
@@ -360,13 +360,13 @@ export default function LoginPage() {
           align-items: center;
           justify-content: center;
           border-radius: 18px;
-          background: linear-gradient(135deg, #319ea9, #278a94, #4cb8c2, #319ea9);
+          background: linear-gradient(135deg, #4373b8, #6b4fa0, #3461a8, #4373b8);
           background-size: 300% 300%;
           animation: brandGradient 6s ease infinite;
           color: #fff;
           font-size: 18px;
           font-weight: 800;
-          box-shadow: 0 20px 34px rgba(49, 158, 169, 0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+          box-shadow: 0 20px 34px rgba(67, 115, 184, 0.3), inset 0 1px 0 rgba(255,255,255,0.2);
           flex-shrink: 0;
         }
 
@@ -375,7 +375,7 @@ export default function LoginPage() {
           height: 42px;
           border-radius: 14px;
           font-size: 15px;
-          box-shadow: 0 14px 24px rgba(49, 158, 169, 0.22), inset 0 1px 0 rgba(255,255,255,0.18);
+          box-shadow: 0 14px 24px rgba(67, 115, 184, 0.22), inset 0 1px 0 rgba(255,255,255,0.18);
         }
 
         .auth-brand-name,
@@ -405,7 +405,7 @@ export default function LoginPage() {
 
         .auth-title span {
           display: block;
-          background: linear-gradient(90deg, #77d8e0, #a5f3fc, #5bc8d3);
+          background: linear-gradient(90deg, #a9c1ec, #c9b8ee, #ffd45c);
           background-size: 200% auto;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -440,9 +440,9 @@ export default function LoginPage() {
         }
 
         .auth-highlight-card:hover {
-          background: rgba(49, 158, 169, 0.1);
-          border-color: rgba(91, 200, 211, 0.28);
-          box-shadow: 0 0 20px rgba(49, 158, 169, 0.15), inset 0 1px 0 rgba(255,255,255,0.06);
+          background: rgba(67, 115, 184, 0.1);
+          border-color: rgba(143, 174, 224, 0.28);
+          box-shadow: 0 0 20px rgba(67, 115, 184, 0.15), inset 0 1px 0 rgba(255,255,255,0.06);
           transform: translateY(-2px);
         }
 
@@ -482,7 +482,7 @@ export default function LoginPage() {
 
         .auth-feature-card:hover {
           background: rgba(255, 255, 255, 0.07);
-          border-color: rgba(91, 200, 211, 0.2);
+          border-color: rgba(143, 174, 224, 0.2);
           transform: translateY(-2px);
         }
 
@@ -495,10 +495,10 @@ export default function LoginPage() {
           align-items: center;
           justify-content: center;
           border-radius: 14px;
-          background: linear-gradient(135deg, rgba(49, 158, 169, 0.22) 0%, rgba(91, 200, 211, 0.12) 100%);
-          color: #8fe5ec;
-          border: 1px solid rgba(91, 200, 211, 0.22);
-          box-shadow: 0 4px 14px rgba(49, 158, 169, 0.14), inset 0 1px 0 rgba(255,255,255,0.08);
+          background: linear-gradient(135deg, rgba(67, 115, 184, 0.22) 0%, rgba(143, 174, 224, 0.12) 100%);
+          color: #c9d8f5;
+          border: 1px solid rgba(143, 174, 224, 0.22);
+          box-shadow: 0 4px 14px rgba(67, 115, 184, 0.14), inset 0 1px 0 rgba(255,255,255,0.08);
         }
 
         .auth-feature-title {
@@ -544,9 +544,9 @@ export default function LoginPage() {
           gap: 6px;
           padding: 8px 12px;
           border-radius: 999px;
-          background: rgba(49, 158, 169, 0.12);
-          border: 1px solid rgba(91, 200, 211, 0.18);
-          color: #9ce7ee;
+          background: rgba(67, 115, 184, 0.12);
+          border: 1px solid rgba(143, 174, 224, 0.18);
+          color: #c9d8f5;
           font-size: 12px;
           font-weight: 700;
           white-space: nowrap;
@@ -563,7 +563,7 @@ export default function LoginPage() {
           margin-bottom: 10px;
           font-size: 12px;
           font-weight: 700;
-          color: #7edbe3;
+          color: #a9c1ec;
           letter-spacing: 0.36px;
           text-transform: uppercase;
         }
@@ -713,7 +713,7 @@ export default function LoginPage() {
         /* ── Breakpoint: tablet portrait / large mobile (820px) ── */
         @media (max-width: 820px) {
           .auth-shell {
-            background: linear-gradient(180deg, rgba(18, 45, 55, 1) 0%, rgba(17, 36, 45, 1) 100%);
+            background: linear-gradient(180deg, rgba(16, 36, 64, 1) 0%, rgba(14, 31, 56, 1) 100%);
           }
 
           .auth-grid {
@@ -834,13 +834,13 @@ export default function LoginPage() {
 
           .auth-brand-mark {
             animation: none;
-            background: linear-gradient(135deg, #319ea9 0%, #278a94 100%);
+            background: linear-gradient(135deg, #4373b8 0%, #3461a8 100%);
             background-size: 100% 100%;
           }
 
           .auth-title span {
             animation: none;
-            background: linear-gradient(90deg, #77d8e0, #a5f3fc);
+            background: linear-gradient(90deg, #a9c1ec, #ffd45c);
             background-size: 100% auto;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;

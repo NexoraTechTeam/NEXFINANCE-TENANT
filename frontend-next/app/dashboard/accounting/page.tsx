@@ -145,7 +145,7 @@ export default function AccountingPage() {
 
         /* ── ISAK35 section header accent ── */
         .isak35-section-header {
-          border-left: 3px solid #319ea9;
+          border-left: 3px solid #4373b8;
           padding-left: 12px;
         }
 
@@ -191,10 +191,10 @@ export default function AccountingPage() {
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
             padding: '11px 20px', borderRadius: 10,
-            background: 'linear-gradient(135deg, #319ea9, #278a94)',
+            background: 'linear-gradient(135deg, #4373b8, #3461a8)',
             color: '#fff', border: 'none', fontSize: 14, fontWeight: 600,
             cursor: 'pointer', minHeight: 44,
-            boxShadow: '0 4px 14px rgba(49,158,169,0.30)',
+            boxShadow: '0 4px 14px rgba(67, 115, 184,0.30)',
           }}
         >
           <Plus size={17} strokeWidth={2} /> Tambah Jurnal
@@ -207,8 +207,8 @@ export default function AccountingPage() {
         style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px,1fr))', gap: 14, marginBottom: 24 }}
       >
         {[
-          { label: 'Total Akun',   value: accounts.length,  color: '#319ea9', icon: BookOpen },
-          { label: 'Total Jurnal', value: journals.length,  color: '#3B82F6', icon: List },
+          { label: 'Total Akun',   value: accounts.length,  color: '#4373b8', icon: BookOpen },
+          { label: 'Total Jurnal', value: journals.length,  color: '#6B4FA0', icon: List },
           { label: 'Total Debit',  value: fmt(totalDebit),  color: '#10B981', icon: Plus },
           { label: 'Total Kredit', value: fmt(totalCredit), color: '#F59E0B', icon: Plus },
         ].map((s, i) => { const Icon = s.icon; return (
@@ -226,7 +226,7 @@ export default function AccountingPage() {
         style={{
           padding: '14px 18px',
           marginBottom: 20,
-          background: 'linear-gradient(135deg, rgba(49,158,169,0.06), rgba(49,158,169,0.02))',
+          background: 'linear-gradient(135deg, rgba(67, 115, 184,0.06), rgba(67, 115, 184,0.02))',
           display: 'flex',
           alignItems: 'flex-start',
           gap: 12,
@@ -236,7 +236,7 @@ export default function AccountingPage() {
         <div style={{ flex: 1, minWidth: 200 }}>
           <div
             className="isak35-section-header"
-            style={{ fontSize: 12, fontWeight: 700, color: '#278a94', letterSpacing: '.5px', textTransform: 'uppercase', marginBottom: 4 }}
+            style={{ fontSize: 12, fontWeight: 700, color: '#3461a8', letterSpacing: '.5px', textTransform: 'uppercase', marginBottom: 4 }}
           >
             ISAK 35 — Entitas Nirlaba
           </div>
@@ -286,7 +286,7 @@ export default function AccountingPage() {
                   marginTop: 18,
                   display: 'inline-flex', alignItems: 'center', gap: 8,
                   padding: '10px 20px', borderRadius: 10,
-                  background: 'linear-gradient(135deg, #319ea9, #278a94)',
+                  background: 'linear-gradient(135deg, #4373b8, #3461a8)',
                   color: '#fff', border: 'none', fontSize: 14, fontWeight: 600,
                   cursor: 'pointer',
                 }}
@@ -315,7 +315,7 @@ export default function AccountingPage() {
                     {journals.map((j, i) => (
                       <tr key={j.id} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? '#fff' : '#fafbfc', transition: 'background 120ms' }}>
                         <td style={{ padding: '13px 16px' }}>
-                          <span style={{ background: '#f0fafb', color: '#319ea9', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700 }}>{j.id}</span>
+                          <span style={{ background: '#eef3fb', color: '#4373b8', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700 }}>{j.id}</span>
                         </td>
                         <td style={{ padding: '13px 16px', color: 'var(--text-3)', fontSize: 13, whiteSpace: 'nowrap' }}>{j.date ? new Date(j.date).toLocaleDateString('id-ID') : '-'}</td>
                         <td style={{ padding: '13px 16px', fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{j.description}</td>
@@ -365,7 +365,7 @@ export default function AccountingPage() {
                     {accounts.map((acc, i) => (
                       <tr key={acc.code} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? '#fff' : '#fafbfc', transition: 'background 120ms' }}>
                         <td style={{ padding: '13px 16px' }}>
-                          <span style={{ background: '#f0fafb', color: '#319ea9', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, fontFamily: 'monospace' }}>{acc.code}</span>
+                          <span style={{ background: '#eef3fb', color: '#4373b8', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, fontFamily: 'monospace' }}>{acc.code}</span>
                         </td>
                         <td style={{ padding: '13px 16px', fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{acc.name}</td>
                         <td style={{ padding: '13px 16px', color: 'var(--text-2)', fontSize: 14 }}>{acc.type}</td>
@@ -480,12 +480,12 @@ export default function AccountingPage() {
                 className="acct-action-btn"
                 style={{
                   padding: '11px 24px', borderRadius: 8,
-                  background: 'linear-gradient(135deg, #319ea9, #278a94)',
+                  background: 'linear-gradient(135deg, #4373b8, #3461a8)',
                   color: '#fff', border: 'none', fontSize: 14, fontWeight: 600,
                   cursor: submitting ? 'not-allowed' : 'pointer',
                   fontFamily: 'inherit', minHeight: 44,
                   opacity: submitting ? 0.7 : 1,
-                  boxShadow: '0 4px 14px rgba(49,158,169,0.28)',
+                  boxShadow: '0 4px 14px rgba(67, 115, 184,0.28)',
                   transition: 'opacity 160ms',
                 }}
               >
