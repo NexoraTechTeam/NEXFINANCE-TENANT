@@ -8,6 +8,7 @@ import {
   LifeBuoy,
 } from 'lucide-react';
 import { authService } from '@/lib/api';
+import BrandMark, { NexoraLogo } from '@/components/brand/BrandMark';
 
 const NAV = [
   { label: 'Dashboard',       icon: LayoutDashboard, href: '/dashboard' },
@@ -137,26 +138,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {/* NF badge — pulses subtly */}
-            <div
-              className="nf-badge-pulse"
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
-                background: 'linear-gradient(135deg, var(--brand-500) 0%, var(--nx-purple) 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 13,
-                fontWeight: 800,
-                color: '#fff',
-                letterSpacing: '0.5px',
-                flexShrink: 0,
-              }}
-            >
-              NF
-            </div>
+            {/* Official NexFinance mark — pulses subtly */}
+            <span className="nf-badge-pulse" style={{ display: 'inline-flex', borderRadius: '50%', flexShrink: 0 }}>
+              <BrandMark size={40} />
+            </span>
             <div>
               <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', letterSpacing: '-0.3px', lineHeight: 1.2 }}>
                 NexFinance
@@ -176,7 +161,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             <X size={16} strokeWidth={2} />
           </button>
         </div>
-        <div data-tour="brand" style={{
+        <div data-tour="brand" className="sidebar-workspace" style={{
           marginTop: 16,
           padding: '12px 12px 14px',
           borderRadius: 16,
@@ -200,7 +185,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div style={{ color: '#fff', fontSize: 15, fontWeight: 700, lineHeight: 1.35 }}>
             {activeSection}
           </div>
-          <div style={{ color: 'rgba(255,255,255,0.52)', fontSize: 12, marginTop: 4 }}>
+          <div className="sidebar-workspace-desc" style={{ color: 'rgba(255,255,255,0.52)', fontSize: 12, marginTop: 4 }}>
             Ringkas, cepat, dan siap dipakai di desktop maupun mobile.
           </div>
         </div>
@@ -234,8 +219,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           );
         })}
 
+      </nav>
+
+      {/* ── Support — kept outside the scrolling nav so it is always visible ── */}
+      <div style={{ flexShrink: 0, paddingTop: 8, marginTop: 6, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
         <div style={{
-          margin: '12px 14px 6px',
+          margin: '6px 14px 4px',
           fontSize: 10.5,
           fontWeight: 800,
           letterSpacing: '.08em',
@@ -264,7 +253,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             Panduan
           </span>
         </button>
-      </nav>
+      </div>
 
       {/* ── User profile ── */}
       <div data-tour="profile" style={{
@@ -349,6 +338,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           <LogOut size={18} strokeWidth={1.8} />
           Keluar
         </button>
+
+        <div className="sidebar-powered">
+          <span>Produk dari</span>
+          <NexoraLogo height={16} />
+        </div>
       </div>
     </aside>
   );

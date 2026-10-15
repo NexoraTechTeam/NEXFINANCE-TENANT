@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { BookOpenCheck, Compass, HelpCircle, LifeBuoy, X } from 'lucide-react';
+import { BookOpenCheck, Compass, HelpCircle, LifeBuoy, MousePointerClick, X } from 'lucide-react';
 import { useTour } from '@/components/tour/TourProvider';
 import { getModuleGuide } from '@/lib/help-content';
 
@@ -10,7 +10,7 @@ import { getModuleGuide } from '@/lib/help-content';
 export default function HelpLauncher() {
   const router = useRouter();
   const pathname = usePathname();
-  const { startTour } = useTour();
+  const { startTour, startPageTour } = useTour();
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const guide = getModuleGuide(pathname || '/dashboard');
@@ -65,6 +65,14 @@ export default function HelpLauncher() {
               ))}
             </ol>
             <div style={{ display: 'grid', gap: 8 }}>
+              <button
+                type="button"
+                className="help-action help-action-primary"
+                onClick={() => { setOpen(false); startPageTour(pathname || '/dashboard'); }}
+              >
+                <span className="help-action-icon"><MousePointerClick size={16} strokeWidth={2} /></span>
+                Tur halaman ini
+              </button>
               <button
                 type="button"
                 className="help-action"

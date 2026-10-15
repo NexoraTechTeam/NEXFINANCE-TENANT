@@ -17,6 +17,7 @@ import {
   Users2,
 } from 'lucide-react';
 import { authService } from '@/lib/api';
+import BrandMark, { NexoraLogo } from '@/components/brand/BrandMark';
 
 const features = [
   {
@@ -101,7 +102,7 @@ export default function LoginPage() {
           </div>
 
           <div className="auth-brand-row">
-            <div className="auth-brand-mark">NF</div>
+            <div className="auth-brand-mark"><BrandMark size={54} /></div>
             <div>
               <div className="auth-brand-name">NexFinance</div>
               <div className="auth-brand-subtitle">Yayasan ISAk 35</div>
@@ -145,7 +146,7 @@ export default function LoginPage() {
         <section className="glass-card auth-panel anim-fadeup">
           <div className="auth-panel-top">
             <div className="auth-panel-brand">
-              <div className="auth-brand-mark auth-brand-mark-small">NF</div>
+              <div className="auth-brand-mark auth-brand-mark-small"><BrandMark size={42} /></div>
               <div>
                 <div className="auth-panel-brand-name">NexFinance</div>
                 <div className="auth-panel-brand-subtitle">Yayasan ISAk 35 • SIT</div>
@@ -233,6 +234,10 @@ export default function LoginPage() {
               Protected auth flow
             </div>
             <div className="auth-footer-note">© 2026 NexFinance • Yayasan ISAk 35</div>
+          </div>
+          <div className="auth-powered">
+            <span>Produk dari</span>
+            <NexoraLogo height={20} />
           </div>
         </section>
       </div>
@@ -359,23 +364,30 @@ export default function LoginPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: 18px;
-          background: linear-gradient(135deg, #4373b8, #6b4fa0, #3461a8, #4373b8);
-          background-size: 300% 300%;
-          animation: brandGradient 6s ease infinite;
-          color: #fff;
-          font-size: 18px;
-          font-weight: 800;
-          box-shadow: 0 20px 34px rgba(67, 115, 184, 0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+          border-radius: 50%;
+          background: transparent;
+          box-shadow: 0 16px 34px rgba(67, 115, 184, 0.38), 0 0 0 1px rgba(255,255,255,0.12);
           flex-shrink: 0;
+        }
+        .auth-brand-mark img { width: 100%; height: 100%; }
+
+        .auth-powered {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          margin-top: 18px;
+          padding-top: 16px;
+          border-top: 1px solid rgba(255,255,255,0.08);
+          font-size: 12px;
+          color: rgba(255,255,255,0.55);
         }
 
         .auth-brand-mark-small {
           width: 42px;
           height: 42px;
-          border-radius: 14px;
-          font-size: 15px;
-          box-shadow: 0 14px 24px rgba(67, 115, 184, 0.22), inset 0 1px 0 rgba(255,255,255,0.18);
+          border-radius: 50%;
+          box-shadow: 0 12px 24px rgba(67, 115, 184, 0.3), 0 0 0 1px rgba(255,255,255,0.12);
         }
 
         .auth-brand-name,
@@ -797,8 +809,6 @@ export default function LoginPage() {
           .auth-brand-mark-small {
             width: 36px;
             height: 36px;
-            border-radius: 11px;
-            font-size: 13px;
           }
 
           .auth-panel-brand-name {
@@ -834,8 +844,6 @@ export default function LoginPage() {
 
           .auth-brand-mark {
             animation: none;
-            background: linear-gradient(135deg, #4373b8 0%, #3461a8 100%);
-            background-size: 100% 100%;
           }
 
           .auth-title span {

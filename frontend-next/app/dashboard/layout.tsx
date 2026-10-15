@@ -4,6 +4,7 @@ import { useState, useEffect, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { Menu } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
+import BrandMark from '@/components/brand/BrandMark';
 import HelpLauncher from '@/components/help/HelpLauncher';
 import { TourProvider } from '@/components/tour/TourProvider';
 
@@ -57,6 +58,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           >
             <Menu size={20} strokeWidth={2} />
           </button>
+          <BrandMark size={30} />
           <span style={{
             display: 'flex',
             flexDirection: 'column',

@@ -11,6 +11,8 @@ interface ProductTourProps {
   onNext: () => void;
   onPrev: () => void;
   onSkip: () => void;
+  /** Eyebrow label, e.g. "Tur aplikasi" or "Tur halaman". */
+  label?: string;
 }
 
 interface Rect { top: number; left: number; width: number; height: number }
@@ -61,7 +63,7 @@ function popoverPosition(rect: Rect): CSSProperties {
   return { left: clampLeft(rect.left + 24), top: clampTop(Math.max(rect.top, 0) + 24) };
 }
 
-export default function ProductTour({ step, index, total, onNext, onPrev, onSkip }: ProductTourProps) {
+export default function ProductTour({ step, index, total, onNext, onPrev, onSkip, label = 'Tur aplikasi' }: ProductTourProps) {
   const [rect, setRect] = useState<Rect | null>(null);
   const primaryRef = useRef<HTMLButtonElement>(null);
   const isLast = index === total - 1;
@@ -115,7 +117,7 @@ export default function ProductTour({ step, index, total, onNext, onPrev, onSkip
         <div className="tour-popover-body">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
             <span className="nx-eyebrow">
-              <Compass size={13} strokeWidth={2.2} /> Tur aplikasi
+              <Compass size={13} strokeWidth={2.2} /> {label}
             </span>
             <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-4)' }}>
               Langkah {index + 1} dari {total}

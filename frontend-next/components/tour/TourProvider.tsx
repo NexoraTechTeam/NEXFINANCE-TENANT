@@ -6,6 +6,7 @@ import {
 } from 'react';
 import { Compass, Sparkles } from 'lucide-react';
 import ProductTour from '@/components/tour/ProductTour';
+import { getPageTour, resolveTourSteps } from '@/lib/page-tours';
 import {
   APP_TOUR_STEPS, hasCompletedTour, initialTourState, markTourCompleted, tourReducer,
   type TourStep,
@@ -15,11 +16,18 @@ const MOBILE_BREAKPOINT = 768;
 const WELCOME_DELAY_MS = 700;
 
 interface TourContextValue {
+  /** Start the global app tour. */
   startTour: () => void;
+  /** Start a tour of the page at `pathname`, skipping regions not on screen. */
+  startPageTour: (pathname: string) => void;
   active: boolean;
 }
 
-const TourContext = createContext<TourContextValue>({ startTour: () => {}, active: false });
+const TourContext = createContext<TourContextValue>({
+  startTour: () => {},
+  startPageTour: () => {},
+  active: false,
+});
 
 export const useTour = () => useContext(TourContext);
 
@@ -37,6 +45,7 @@ const safeStorage = () => (typeof window === 'undefined' ? undefined : window.lo
 export function TourProvider({ children, steps = APP_TOUR_STEPS, autoStart = true, onSidebarRequest }: TourProviderProps) {
   const [state, dispatch] = useReducer(tourReducer, initialTourState);
   const [welcomeOpen, setWelcomeOpen] = useState(false);
+  const [run, setRun] = useState<{ kind: 'app' | 'page'; steps: TourStep[] }>({ kind: 'app', steps });
 
   useEffect(() => {
     if (!autoStart || hasCompletedTour(safeStorage())) return;
@@ -46,22 +55,30 @@ export function TourProvider({ children, steps = APP_TOUR_STEPS, autoStart = tru
 
   const startTour = useCallback(() => {
     setWelcomeOpen(false);
+    setRun({ kind: 'app', steps });
     dispatch({ type: 'start', total: steps.length });
-  }, [steps.length]);
+  }, [steps]);
+
+  const startPageTour = useCallback((pathname: string) => {
+    setWelcomeOpen(false);
+    const pageSteps = resolveTourSteps(getPageTour(pathname), document);
+    setRun({ kind: 'page', steps: pageSteps });
+    dispatch({ type: 'start', total: pageSteps.length });
+  }, []);
 
   const dismissWelcome = useCallback(() => {
     setWelcomeOpen(false);
     markTourCompleted(safeStorage());
   }, []);
 
-  // Persist completion and close the mobile drawer when the tour ends.
+  // Persist completion (app tour only) and close the mobile drawer when a tour ends.
   useEffect(() => {
     if (!state.completed) return;
-    markTourCompleted(safeStorage());
+    if (run.kind === 'app') markTourCompleted(safeStorage());
     onSidebarRequest?.(false);
-  }, [state.completed, onSidebarRequest]);
+  }, [state.completed, run.kind, onSidebarRequest]);
 
-  const step = state.active ? steps[state.index] : undefined;
+  const step = state.active ? run.steps[state.index] : undefined;
 
   // On small screens the sidebar is an off-canvas drawer; open it for sidebar steps.
   useEffect(() => {
@@ -81,7 +98,10 @@ export function TourProvider({ children, steps = APP_TOUR_STEPS, autoStart = tru
     return () => document.removeEventListener('keydown', onKey);
   }, [state.active]);
 
-  const value = useMemo(() => ({ startTour, active: state.active }), [startTour, state.active]);
+  const value = useMemo(
+    () => ({ startTour, startPageTour, active: state.active }),
+    [startTour, startPageTour, state.active],
+  );
 
   return (
     <TourContext.Provider value={value}>
@@ -127,6 +147,7 @@ export function TourProvider({ children, steps = APP_TOUR_STEPS, autoStart = tru
           onNext={() => dispatch({ type: 'next' })}
           onPrev={() => dispatch({ type: 'prev' })}
           onSkip={() => dispatch({ type: 'skip' })}
+          label={run.kind === 'page' ? 'Tur halaman' : 'Tur aplikasi'}
         />
       )}
     </TourContext.Provider>
