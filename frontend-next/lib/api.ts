@@ -77,6 +77,10 @@ export const accountingService = {
   getJournals: () => api.get('/accounting/journals'),
   getBalanceSheet: () => api.get('/accounting/reports/balance-sheet'),
   getIncomeStatement: () => api.get('/accounting/reports/income-statement'),
+  getMonthly: (year: number) => api.get('/accounting/reports/monthly', { params: { year } }),
+  getOpeningBalance: () => api.get('/accounting/opening-balance'),
+  postOpeningBalance: (data: { date: string; entries: Array<{ account: string; amount: number }> }) =>
+    api.post('/accounting/opening-balance', data),
 };
 
 export const reportsService = {

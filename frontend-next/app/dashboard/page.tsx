@@ -13,6 +13,7 @@ import {
   ArrowUpRight, ArrowDownRight, Sparkles,
 } from 'lucide-react';
 import { dashboardService } from '@/lib/api';
+import { toExpenseDistribution, toMonthlyRows, type LedgerMonth, type MonthlyRow } from '@/lib/financials';
 
 const IDR = (n: number) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n || 0);
@@ -23,20 +24,6 @@ const short = (n: number) =>
 
 const COLORS = ['#4373B8', '#10B981', '#6B4FA0', '#F5B70A', '#8FAEE0'];
 
-const monthly = [
-  { bulan: 'Jan', pendapatan: 65_000_000, beban: 42_000_000, laba: 23_000_000 },
-  { bulan: 'Feb', pendapatan: 68_000_000, beban: 44_000_000, laba: 24_000_000 },
-  { bulan: 'Mar', pendapatan: 72_000_000, beban: 43_000_000, laba: 29_000_000 },
-  { bulan: 'Apr', pendapatan: 75_000_000, beban: 45_500_000, laba: 29_500_000 },
-  { bulan: 'Mei', pendapatan: 78_000_000, beban: 46_000_000, laba: 32_000_000 },
-];
-const expDist = [
-  { name: 'Gaji & Honor',   value: 185_000_000 },
-  { name: 'Operasional',    value:  57_000_000 },
-  { name: 'Pemeliharaan',   value:  28_500_000 },
-  { name: 'ATK & Supplies', value:   9_250_000 },
-  { name: 'Utilitas',       value:  14_250_000 },
-];
 
 interface DashboardKpi {
   monthRevenue: number;
@@ -65,21 +52,27 @@ interface CustomTooltipProps {
 
 interface PieTooltipProps {
   active?: boolean;
-  payload?: Array<{ name?: string; value?: number }>;
+  payload?: Array<{ name?: string; value?: number; payload?: { share?: number } }>;
 }
 
-const fallbackKpi: DashboardKpi = {
-  monthRevenue: 10_200_000,
-  collectionRate: '66.7%',
-  cashBalance: 525_000_000,
-  pendingItems: 6,
-  totalStudents: 15,
-  totalEmployees: 7,
-  totalInvoices: 12,
-  paidInvoices: 8,
-  pendingExpenses: 3,
-  pendingPR: 3,
+const EMPTY_KPI: DashboardKpi = {
+  monthRevenue: 0,
+  collectionRate: '0%',
+  cashBalance: 0,
+  pendingItems: 0,
+  totalStudents: 0,
+  totalEmployees: 0,
+  totalInvoices: 0,
+  paidInvoices: 0,
+  pendingExpenses: 0,
+  pendingPR: 0,
 };
+
+interface MonthlyReport {
+  series?: LedgerMonth[];
+  expenseDistribution?: Array<{ account: string; name: string; value: number }>;
+  ytd?: { revenue: number; expenses: number; netIncome: number };
+}
 
 const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (!active || !payload?.length) return null;
@@ -99,7 +92,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 const PieTooltip = ({ active, payload }: PieTooltipProps) => {
   if (!active || !payload?.length) return null;
   const { name, value = 0 } = payload[0];
-  const total = expDist.reduce((s, e) => s + e.value, 0);
+  const share = (payload[0] as { payload?: { share?: number } }).payload?.share ?? 0;
   return (
     <div className="chart-tooltip">
       <div className="chart-tooltip-title">{name}</div>
@@ -109,7 +102,7 @@ const PieTooltip = ({ active, payload }: PieTooltipProps) => {
       </div>
       <div className="chart-tooltip-row">
         <span className="chart-tooltip-label">Proporsi</span>
-        <span className="chart-tooltip-value">{((value / total) * 100).toFixed(1)}%</span>
+        <span className="chart-tooltip-value">{(share * 100).toFixed(1)}%</span>
       </div>
     </div>
   );
@@ -122,6 +115,8 @@ const Skeleton = ({ h = 20, w = '100%' }: { h?: number; w?: string }) => (
 export default function DashboardPage() {
   const router = useRouter();
   const [kpi, setKpi]           = useState<DashboardKpi | null>(null);
+  const [report, setReport]     = useState<MonthlyReport | null>(null);
+  const [loadError, setLoadError] = useState('');
   const [loading, setLoading]   = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [chartMode, setChartMode]   = useState<'area' | 'bar'>('area');
@@ -129,11 +124,16 @@ export default function DashboardPage() {
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true); else setRefreshing(true);
+    const [kpiRes, reportRes] = await Promise.allSettled([
+      dashboardService.getKPI(),
+      dashboardService.getMonthlyReport(),
+    ]);
     try {
-      const r = await dashboardService.getKPI();
-      setKpi(r.data);
-    } catch {
-      setKpi(fallbackKpi);
+      setKpi(kpiRes.status === 'fulfilled' ? kpiRes.value.data : EMPTY_KPI);
+      setReport(reportRes.status === 'fulfilled' ? reportRes.value.data : null);
+      setLoadError(kpiRes.status === 'rejected' || reportRes.status === 'rejected'
+        ? 'Sebagian data belum dapat dimuat. Coba Refresh beberapa saat lagi.'
+        : '');
     } finally {
       setLoading(false); setRefreshing(false);
     }
@@ -141,11 +141,21 @@ export default function DashboardPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  const monthly: MonthlyRow[] = toMonthlyRows(report?.series);
+  const totalExpDist = (report?.expenseDistribution ?? []).reduce((s, e) => s + e.value, 0);
+  const expDist = toExpenseDistribution(report?.expenseDistribution)
+    .map((e) => ({ ...e, share: totalExpDist ? e.value / totalExpDist : 0 }));
+  const [prevMonth, thisMonth] = monthly.slice(-2);
+  const revenueTrend = prevMonth && prevMonth.pendapatan > 0
+    ? ((thisMonth.pendapatan - prevMonth.pendapatan) / prevMonth.pendapatan) * 100
+    : null;
+  const fmtTrend = (n: number | null) => (n === null ? null : `${n >= 0 ? '+' : ''}${n.toFixed(1)}%`);
+
   const kpiCards = kpi ? [
-    { label: 'Pendapatan Bulan Ini', value: IDR(kpi.monthRevenue), icon: DollarSign, color: '#4373b8', bg: '#eef3fb', trend: '+12%',          up: true,  sub: 'vs bulan lalu',                              to: '/dashboard/reports'    },
-    { label: 'Collection SPP',       value: kpi.collectionRate,    icon: TrendingUp,  color: '#10B981', bg: '#f0fdf6', trend: '+3.2%',         up: true,  sub: `${kpi.paidInvoices}/${kpi.totalInvoices} invoice lunas`, to: '/dashboard/spp' },
-    { label: 'Saldo Kas & Bank',     value: IDR(kpi.cashBalance),  icon: Wallet,      color: '#6B4FA0', bg: '#f3effa', trend: '+8.4%',         up: true,  sub: 'Total aset likuid',                           to: '/dashboard/accounting' },
-    { label: 'Item Perlu Aksi',      value: kpi.pendingItems,      icon: AlertCircle, color: '#F59E0B', bg: '#fffbeb', trend: `-${kpi.pendingItems}`, up: false, sub: `${kpi.pendingExpenses} pengeluaran pending`, to: '/dashboard/reports' },
+    { label: 'Pendapatan Bulan Ini', value: IDR(kpi.monthRevenue), icon: DollarSign, color: '#4373b8', bg: '#eef3fb', trend: fmtTrend(revenueTrend), up: (revenueTrend ?? 0) >= 0, sub: 'vs bulan lalu',                              to: '/dashboard/reports'    },
+    { label: 'Collection SPP',       value: kpi.collectionRate,    icon: TrendingUp,  color: '#10B981', bg: '#f0fdf6', trend: null as string | null, up: true,  sub: `${kpi.paidInvoices}/${kpi.totalInvoices} invoice lunas`, to: '/dashboard/spp' },
+    { label: 'Saldo Kas & Bank',     value: IDR(kpi.cashBalance),  icon: Wallet,      color: '#6B4FA0', bg: '#f3effa', trend: null as string | null, up: true,  sub: 'Total aset likuid',                           to: '/dashboard/accounting' },
+    { label: 'Item Perlu Aksi',      value: kpi.pendingItems,      icon: AlertCircle, color: '#F59E0B', bg: '#fffbeb', trend: kpi.pendingItems ? `${kpi.pendingItems}` : null, up: false, sub: `${kpi.pendingExpenses} pengeluaran pending`, to: '/dashboard/reports' },
   ] : [];
 
   const infoCards = kpi ? [
@@ -155,10 +165,9 @@ export default function DashboardPage() {
     { label: 'Pengeluaran Pending',  value: kpi.pendingExpenses,    icon: Activity,     color: '#F59E0B' },
   ] : [];
 
-  const totalPend    = monthly.reduce((s, m) => s + m.pendapatan, 0);
-  const totalBeban   = monthly.reduce((s, m) => s + m.beban, 0);
-  const totalLaba    = totalPend - totalBeban;
-  const totalExpDist = expDist.reduce((s, e) => s + e.value, 0);
+  const totalPend    = report?.ytd?.revenue ?? 0;
+  const totalBeban   = report?.ytd?.expenses ?? 0;
+  const totalLaba    = report?.ytd?.netIncome ?? 0;
 
   const now = new Date().toLocaleDateString('id-ID', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
@@ -190,6 +199,12 @@ export default function DashboardPage() {
           {refreshing ? 'Memperbarui...' : 'Refresh'}
         </button>
       </div>
+
+      {loadError && (
+        <div role="alert" style={{ marginBottom: 14, padding: '11px 14px', borderRadius: 10, background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e', fontSize: 13 }}>
+          {loadError}
+        </div>
+      )}
 
       <section className="card executive-banner anim-fadeup">
         <div>
@@ -245,15 +260,17 @@ export default function DashboardPage() {
                 <div style={{ width: 44, height: 44, borderRadius: 12, background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Icon size={20} color={c.color} strokeWidth={1.8} />
                 </div>
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 3,
-                  background: c.up ? '#f0fdf4' : '#fffbeb',
-                  color: c.up ? '#059669' : '#d97706',
-                  padding: '4px 9px', borderRadius: 999, fontSize: 12, fontWeight: 700,
-                  whiteSpace: 'nowrap',
-                }}>
-                  <Arrow size={12} />{c.trend}
-                </span>
+                {c.trend && (
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 3,
+                    background: c.up ? '#f0fdf4' : '#fffbeb',
+                    color: c.up ? '#059669' : '#d97706',
+                    padding: '4px 9px', borderRadius: 999, fontSize: 12, fontWeight: 700,
+                    whiteSpace: 'nowrap',
+                  }}>
+                    <Arrow size={12} />{c.trend}
+                  </span>
+                )}
               </div>
               <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 5 }}>
                 {c.label}
@@ -364,7 +381,12 @@ export default function DashboardPage() {
           <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>Distribusi Beban</div>
           <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 16 }}>Klik segmen untuk detail</div>
 
-          <div className="chart-container-pie">
+          {expDist.length === 0 && !loading && (
+            <p style={{ fontSize: 13, color: 'var(--text-4)', padding: '24px 0', textAlign: 'center' }}>
+              Belum ada beban tercatat. Distribusi akan muncul setelah transaksi pertama.
+            </p>
+          )}
+          <div className="chart-container-pie" hidden={expDist.length === 0}>
             <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={160}>
               <PieChart>
                 <Pie data={expDist} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
@@ -417,7 +439,7 @@ export default function DashboardPage() {
             ['Total Pendapatan', totalPend,  '#10B981', '#f0fdf6'],
             ['Total Beban',      totalBeban, '#EF4444', '#fff5f5'],
             ['Surplus Bersih',   totalLaba,  '#4373b8', '#eef3fb'],
-            ['Margin Bersih',    ((totalLaba / totalPend) * 100).toFixed(1) + '%', '#6B4FA0', '#f3effa'],
+            ['Margin Bersih',    totalPend ? ((totalLaba / totalPend) * 100).toFixed(1) + '%' : '–', '#6B4FA0', '#f3effa'],
           ] as [string, number | string, string, string][]).map(([label, val, color, bg]) => (
             <div key={label} className="card-hover ytd-card" style={{
               background: bg, border: `1px solid ${color}22`,

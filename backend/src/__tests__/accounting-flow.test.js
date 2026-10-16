@@ -117,4 +117,12 @@ describe('real financial numbers for a clean tenant', () => {
     expect(current.beban).toBe(4_000_000 + 700_000);
     expect(res.body.expenseDistribution.map((e) => e.account).sort()).toEqual(['5000', '5400']);
   });
+
+  it('serves chart series through the dashboard module too', async () => {
+    const res = await api.get('/api/v1/dashboard/monthly-report');
+    expect(res.statusCode).toBe(200);
+    expect(res.body.series).toHaveLength(12);
+    expect(res.body.expenseDistribution.length).toBeGreaterThan(0);
+    expect(res.body.ytd).toMatchObject({ revenue: 1_500_000, expenses: 4_700_000, netIncome: -3_200_000 });
+  });
 });

@@ -4,15 +4,20 @@ const express = require('express');
 const auth = require('../middleware/auth');
 const rbac = require('../middleware/rbac');
 const { ah } = require('../lib/http');
-const { accountBalances } = require('../services/ledger');
+const { accountBalances, monthlySeries, expenseDistribution, incomeStatement } = require('../services/ledger');
 
 const router = express.Router();
 
 const load = (store, names) => Promise.all(names.map((n) => store.list(n)));
 
-const balances = async (store) => {
+const books = async (store) => {
   const [journals, accounts] = await load(store, ['journals', 'chart_of_accounts']);
   const coa = Object.fromEntries(accounts.map(({ id, ...a }) => [id, a]));
+  return { journals, coa };
+};
+
+const balances = async (store) => {
+  const { journals, coa } = await books(store);
   return accountBalances(journals, coa);
 };
 
@@ -43,8 +48,11 @@ router.get('/kpi', auth, rbac('dashboard'), ah(async (req, res) => {
 
 router.get('/monthly-report', auth, rbac('dashboard'), ah(async (req, res) => {
   const [sppInvoices, expenses, payrollRuns] = await load(req.store, ['spp_invoices', 'expenses', 'payroll_runs']);
-  const b = await balances(req.store);
+  const { journals, coa } = await books(req.store);
+  const b = accountBalances(journals, coa);
   const donations = (b['4100'] || 0) + (b['4200'] || 0);
+  const year = new Date().getFullYear();
+  const statement = incomeStatement(journals.filter((jr) => new Date(jr.date).getFullYear() === year), coa);
   const paidSPP = sppInvoices.filter(i => i.status === 'paid');
   const revenue = paidSPP.reduce((s, i) => s + i.amount, 0) + donations;
   const expenseTotal = expenses.filter(e => e.status === 'approved').reduce((s, e) => s + e.amount, 0);
@@ -61,6 +69,10 @@ router.get('/monthly-report', auth, rbac('dashboard'), ah(async (req, res) => {
       salaries,
       operationalExpenses: expenseTotal,
     },
+    // Ledger-based chart data (additive fields)
+    series: monthlySeries(journals, coa, year),
+    expenseDistribution: expenseDistribution(journals, coa),
+    ytd: { revenue: statement.revenue, expenses: statement.expenses, netIncome: statement.netIncome },
   });
 }));
 

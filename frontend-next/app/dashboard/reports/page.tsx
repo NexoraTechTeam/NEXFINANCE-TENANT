@@ -4,44 +4,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { FileText, TrendingUp, BarChart2, Download, ExternalLink } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { accountingService } from '@/lib/api';
-import { downloadFinancialReportPdf, type MonthlyFinancialRow } from '@/lib/report-pdf';
+import { downloadFinancialReportPdf } from '@/lib/report-pdf';
+import { toBalanceRows, toExpenseRows, toIncomeRows, toMonthlyRows, type LedgerMonth } from '@/lib/financials';
 
 const fmt = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n || 0);
 const short = (n: number) => n >= 1e6 ? `Rp ${(n / 1e6).toFixed(1)}Jt` : `Rp ${(n / 1e3).toFixed(0)}K`;
-
-const monthly: MonthlyFinancialRow[] = [
-  { bulan:'Jan', pendapatan:65_000_000, beban:42_000_000, surplus:23_000_000 },
-  { bulan:'Feb', pendapatan:68_000_000, beban:44_000_000, surplus:24_000_000 },
-  { bulan:'Mar', pendapatan:72_000_000, beban:43_000_000, surplus:29_000_000 },
-  { bulan:'Apr', pendapatan:75_000_000, beban:45_500_000, surplus:29_500_000 },
-  { bulan:'Mei', pendapatan:78_000_000, beban:46_000_000, surplus:32_000_000 },
-];
-
-const balanceSheet = {
-  assets: [
-    { name:'Kas & Bank', value:525_000_000 },
-    { name:'Piutang SPP', value:18_000_000 },
-    { name:'Peralatan', value:120_000_000 },
-    { name:'Aset Tetap', value:350_000_000 },
-  ],
-  liabilities: [
-    { name:'Utang Operasional', value:12_000_000 },
-    { name:'Utang Gaji', value:45_000_000 },
-  ],
-};
-
-const incomeRows = [
-  { label: 'SPP Siswa', amount: 285_000_000 },
-  { label: 'Donasi & Infaq', amount: 58_000_000 },
-  { label: 'Lain-lain', amount: 15_000_000 },
-];
-
-const expenseRows = [
-  { label: 'Gaji & Honor', amount: 185_000_000 },
-  { label: 'Operasional', amount: 57_000_000 },
-  { label: 'Pemeliharaan', amount: 28_500_000 },
-  { label: 'Utilitas & Lain', amount: 23_500_000 },
-];
 
 const reportTabs = [
   { value: 'income', label: 'Laporan Aktivitas', icon: FileText },
@@ -105,6 +72,8 @@ export default function ReportsPage() {
   const [liveBalanceSheet, setLiveBalanceSheet] = useState<BalanceSheetResponse | null>(null);
   const [liveIncomeStatement, setLiveIncomeStatement] = useState<IncomeStatementResponse | null>(null);
   const [coaRecords, setCoaRecords] = useState<Record<string, AccountRecord>>({});
+  const [liveMonths, setLiveMonths] = useState<LedgerMonth[] | undefined>(undefined);
+  const reportYear = new Date().getFullYear();
 
   useEffect(() => {
     let cancelled = false;
@@ -112,12 +81,14 @@ export default function ReportsPage() {
       accountingService.getBalanceSheet(),
       accountingService.getIncomeStatement(),
       accountingService.getChartOfAccounts(),
+      accountingService.getMonthly(reportYear),
     ])
-      .then(([balanceRes, incomeRes, coaRes]) => {
+      .then(([balanceRes, incomeRes, coaRes, monthlyRes]) => {
         if (cancelled) return;
         setLiveBalanceSheet(balanceRes.data || null);
         setLiveIncomeStatement(incomeRes.data || null);
         setCoaRecords(coaRes.data?.accounts || {});
+        setLiveMonths(monthlyRes.data?.months);
       })
       .catch(() => {
         if (cancelled) return;
@@ -129,12 +100,22 @@ export default function ReportsPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reportYear]);
 
-  const totalPendapatan = monthly.reduce((s, m) => s + m.pendapatan, 0);
-  const totalBeban      = monthly.reduce((s, m) => s + m.beban, 0);
-  const totalSurplus    = monthly.reduce((s, m) => s + m.surplus, 0);
-  const margin          = ((totalSurplus / totalPendapatan) * 100).toFixed(1);
+  // All figures come from the ledger; missing data shows as zero, never as estimates.
+  const monthly = toMonthlyRows(liveMonths, { year: reportYear });
+  const incomeRows = toIncomeRows(liveIncomeStatement);
+  const expenseRows = toExpenseRows(liveIncomeStatement);
+  const balanceSheet = toBalanceRows(liveBalanceSheet);
+  const totalPendapatan = liveIncomeStatement?.revenue ?? 0;
+  const totalBeban      = liveIncomeStatement?.expenses ?? 0;
+  const totalSurplus    = liveIncomeStatement?.netIncome ?? 0;
+  const yearPendapatan  = monthly.reduce((s, m) => s + m.pendapatan, 0);
+  const yearBeban       = monthly.reduce((s, m) => s + m.beban, 0);
+  const yearSurplus     = monthly.reduce((s, m) => s + m.surplus, 0);
+  const pct = (num: number, den: number) => (den ? ((num / den) * 100).toFixed(1) : '0.0');
+  const margin          = pct(totalSurplus, totalPendapatan);
+  const yearMargin      = pct(yearSurplus, yearPendapatan);
 
   const totalAssets      = balanceSheet.assets.reduce((s, a) => s + a.value, 0);
   const totalLiabilities = balanceSheet.liabilities.reduce((s, l) => s + l.value, 0);
@@ -142,8 +123,8 @@ export default function ReportsPage() {
   const liveAssets       = liveBalanceSheet?.assets ?? totalAssets;
   const liveLiabilities  = liveBalanceSheet?.liabilities ?? totalLiabilities;
   const liveEquity       = liveBalanceSheet?.equity ?? equity;
-  const restrictedFunds  = liveBalanceSheet?.detail?.danaTerikatTemporer ?? liveEquity * 0.25;
-  const unrestrictedFunds = liveBalanceSheet?.detail?.danaTidakTerikat ?? liveEquity * 0.75;
+  const restrictedFunds  = liveBalanceSheet?.detail?.danaTerikatTemporer ?? 0;
+  const unrestrictedFunds = liveBalanceSheet?.detail?.danaTidakTerikat ?? liveEquity;
   const liveRevenue      = liveIncomeStatement?.revenue ?? totalPendapatan;
   const liveExpenses     = liveIncomeStatement?.expenses ?? totalBeban;
   const liveNetIncome    = liveIncomeStatement?.netIncome ?? totalSurplus;
@@ -164,20 +145,7 @@ export default function ReportsPage() {
     { label: 'Total Aset', value: fmt(liveAssets), color: '#10B981' },
     { label: 'Total Kewajiban', value: fmt(liveLiabilities), color: '#EF4444' },
   ];
-  const exportBalanceSheet = liveBalanceSheet?.detail
-    ? {
-        assets: [
-          { name: 'Kas & Setara Kas', value: liveBalanceSheet.detail.kas || liveBalanceSheet.detail.bank || liveAssets * 0.12 },
-          { name: 'Rekening Bank', value: liveBalanceSheet.detail.bank || liveAssets * 0.55 },
-          { name: 'Piutang SPP', value: liveBalanceSheet.detail.piutangSPP || liveAssets * 0.08 },
-          { name: 'Persediaan', value: liveBalanceSheet.detail.persediaan || liveAssets * 0.06 },
-        ],
-        liabilities: [
-          { name: 'Hutang Usaha', value: liveBalanceSheet.detail.hutangUsaha || liveLiabilities * 0.6 },
-          { name: 'Hutang Gaji', value: liveBalanceSheet.detail.hutangGaji || liveLiabilities * 0.4 },
-        ],
-      }
-    : balanceSheet;
+  const exportBalanceSheet = balanceSheet;
 
   const handleDownloadPdf = async () => {
     setDownloadingPdf(true);
@@ -185,7 +153,7 @@ export default function ReportsPage() {
 
     try {
       await downloadFinancialReportPdf({
-        year: 2026,
+        year: reportYear,
         schoolName: 'Yayasan ISAk 35',
         reportName: 'Laporan Keuangan NexFinance',
         activeTabLabel,
@@ -292,7 +260,7 @@ export default function ReportsPage() {
       <div className="page-header rpt-page-header">
         <div>
           <h1 style={{ fontSize: 'clamp(22px, 5vw, 28px)', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px', marginBottom: 5 }}>Laporan Keuangan</h1>
-          <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Laporan Posisi Keuangan, Aktivitas, &amp; Arus Kas — ISAK 35 — Tahun 2026</p>
+          <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Laporan Posisi Keuangan, Aktivitas, &amp; Arus Kas — ISAK 35 — Tahun {reportYear}</p>
         </div>
         <div className="rpt-export-row" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'flex-end' }}>
           <a
@@ -462,7 +430,7 @@ export default function ReportsPage() {
               className="isak35-section-header"
               style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 20 }}
             >
-              Laporan Aktivitas — YTD 2026
+              Laporan Aktivitas — YTD {reportYear}
             </div>
             <div style={{ fontSize: 11, color: 'var(--text-4)', marginBottom: 12 }}>ISAK 35 — Entitas Nirlaba Pesantren</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
@@ -600,7 +568,7 @@ export default function ReportsPage() {
             className="isak35-section-header"
             style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}
           >
-            Laporan Arus Kas — Tren Bulanan 2026
+            Laporan Arus Kas — Tren Bulanan {reportYear}
           </div>
           <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 20 }}>
             ISAK 35 — Arus kas operasional, investasi, dan pendanaan pesantren
@@ -623,10 +591,10 @@ export default function ReportsPage() {
           {/* Cash flow summary rows */}
           <div style={{ marginTop: 24, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
             {[
-              { label: 'Total Pendapatan', value: fmt(totalPendapatan), color: '#4373b8' },
-              { label: 'Total Beban', value: fmt(totalBeban), color: '#EF4444' },
-              { label: 'Surplus Kumulatif', value: fmt(totalSurplus), color: '#10B981' },
-              { label: 'Margin Bersih', value: margin + '%', color: '#6B4FA0' },
+              { label: 'Total Pendapatan', value: fmt(yearPendapatan), color: '#4373b8' },
+              { label: 'Total Beban', value: fmt(yearBeban), color: '#EF4444' },
+              { label: 'Surplus Kumulatif', value: fmt(yearSurplus), color: '#10B981' },
+              { label: 'Margin Bersih', value: yearMargin + '%', color: '#6B4FA0' },
             ].map((item, i) => (
               <div key={i} style={{ padding: '12px 14px', borderRadius: 12, background: '#f8fafc', border: '1px solid var(--border)' }}>
                 <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.4px', color: item.color, marginBottom: 6 }}>{item.label}</div>
