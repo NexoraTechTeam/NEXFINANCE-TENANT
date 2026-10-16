@@ -5,6 +5,18 @@ const bcryptjs = require('bcryptjs');
 const { migrateTenantSchema } = require('../db/migrate');
 const { createStore } = require('../db/store');
 const { VALID_ROLES, DEFAULT_PERMISSIONS, DEFAULT_CHART_OF_ACCOUNTS } = require('../db/defaults');
+const { postOpeningBalance } = require('./posting');
+
+/** Opening position for the sales demo tenant (mirrors the old NexFinance demo figures). */
+const DEMO_OPENING_BALANCE = [
+  { account: '1000', amount: 75_000_000 },
+  { account: '1100', amount: 450_000_000 },
+  { account: '1200', amount: 28_500_000 },
+  { account: '1300', amount: 96_500_000 },
+  { account: '2000', amount: 55_000_000 },
+  { account: '2100', amount: 30_000_000 },
+  { account: '3100', amount: 145_000_000 },
+];
 
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/;
 const DOMAIN_RE = /^(?=.{3,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
@@ -79,6 +91,7 @@ async function seedDemoData(store) {
     await insertUser(store, { id: u.id, email: u.email, name: u.name, role: u.role, password: u.password });
   }
   await store.reserveIds('users', demo.users.length);
+  await postOpeningBalance(store, { date: '2026-01-01', entries: DEMO_OPENING_BALANCE });
 }
 
 /**

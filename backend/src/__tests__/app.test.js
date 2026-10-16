@@ -250,3 +250,15 @@ describe('Role management and password change', () => {
     expect(response.statusCode).toBe(403);
   });
 });
+
+describe('Demo tenant books', () => {
+  it('has realistic, balanced books derived from journals', async () => {
+    const login = await http.post('/api/v1/auth/login').send({ email: 'bendahara@nexfinance.com', password: 'bendahara123' });
+    const auth = { Authorization: `Bearer ${login.body.token}` };
+    const sheet = (await http.get('/api/v1/accounting/reports/balance-sheet').set(auth)).body;
+    expect(sheet.assets).toBeGreaterThan(500_000_000);
+    expect(sheet.assets).toBe(sheet.liabilities + sheet.equity);
+    const kpi = (await http.get('/api/v1/dashboard/kpi').set(auth)).body;
+    expect(kpi.cashBalance).toBeGreaterThan(0);
+  });
+});

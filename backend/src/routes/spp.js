@@ -6,6 +6,7 @@ const rbac = require('../middleware/rbac');
 const { logActivity } = require('../lib/activity');
 const { getRequestIp, ah } = require('../lib/http');
 const { sendEmailNotification, sendWhatsAppNotification } = require('../services/notifications');
+const { postSppInvoice, postSppPayment } = require('../services/posting');
 
 const router = express.Router();
 
@@ -35,8 +36,9 @@ router.post('/invoices', auth, rbac('spp'), ah(async (req, res) => {
     return res.status(400).json({ error: 'Missing required fields: studentId, studentName, amount, month' });
   }
   const student = await store.get('students', studentId);
-  const id = await store.nextId('spp_invoices');
-  const invoice = await store.insert('spp_invoices', {
+  const invoice = await store.withTransaction(async (tx) => {
+    const id = await tx.nextId('spp_invoices');
+    const created = await tx.insert('spp_invoices', {
     id,
     invoiceNumber: id,
     studentId,
@@ -50,6 +52,9 @@ router.post('/invoices', auth, rbac('spp'), ah(async (req, res) => {
     payerName: payerName || guardianName || parentName || student?.guardianName || student?.parentName || null,
     payerPhone: payerPhone || student?.phone || null,
     payerEmail: payerEmail || student?.email || null,
+    });
+    await postSppInvoice(tx, created);
+    return created;
   });
   await logActivity(store, req.user.id, req.user.email, 'create_invoice', 'spp', `Created SPP invoice ${invoice.id} for ${invoice.studentName}`, { invoiceId: invoice.id, studentId: invoice.studentId, amount: invoice.amount, month: invoice.month }, { ipAddress });
   return res.status(201).json(enrichInvoice(invoice));
@@ -62,7 +67,8 @@ router.post('/payment', auth, rbac('spp'), ah(async (req, res) => {
   if (!invoiceId) return res.status(400).json({ error: 'invoiceId is required' });
 
   let conflict = null;
-  const invoice = await store.update('spp_invoices', invoiceId, (current) => {
+  const invoice = await store.withTransaction(async (tx) => {
+    const updated = await tx.update('spp_invoices', invoiceId, (current) => {
     if (current.status === 'paid') { conflict = 'Invoice already paid'; return current; }
     return {
       ...current,
@@ -74,6 +80,9 @@ router.post('/payment', auth, rbac('spp'), ah(async (req, res) => {
       payerPhone: current.payerPhone || payerContact.phone || null,
       payerEmail: current.payerEmail || payerContact.email || null,
     };
+    });
+    if (updated && !conflict) await postSppPayment(tx, updated);
+    return updated;
   });
   if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
   if (conflict) return res.status(400).json({ error: conflict });

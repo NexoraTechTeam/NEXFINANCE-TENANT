@@ -5,6 +5,7 @@ const auth = require('../middleware/auth');
 const rbac = require('../middleware/rbac');
 const { logActivity } = require('../lib/activity');
 const { getRequestIp, ah, today } = require('../lib/http');
+const { postReceivedPurchaseOrder } = require('../services/posting');
 
 const router = express.Router();
 
@@ -56,9 +57,15 @@ router.post('/po', auth, rbac('procurement'), ah(async (req, res) => {
 
 router.post('/po/:id/receive', auth, rbac('procurement'), ah(async (req, res) => {
   const ipAddress = getRequestIp(req);
-  const po = await req.store.update('purchase_orders', req.params.id, (current) => ({
-    ...current, status: 'received', receivedAt: today(),
-  }));
+  let alreadyReceived = false;
+  const po = await req.store.withTransaction(async (tx) => {
+    const updated = await tx.update('purchase_orders', req.params.id, (current) => {
+      alreadyReceived = current.status === 'received';
+      return alreadyReceived ? current : { ...current, status: 'received', receivedAt: today() };
+    });
+    if (updated && !alreadyReceived) await postReceivedPurchaseOrder(tx, updated);
+    return updated;
+  });
   if (!po) return res.status(404).json({ error: 'PO not found' });
   await logActivity(req.store, req.user.id, req.user.email, 'receive_po', 'procurement', `Marked purchase order ${po.id} as received`, { poId: po.id, receivedAt: po.receivedAt }, { ipAddress });
   return res.json(po);

@@ -5,6 +5,8 @@ const auth = require('../middleware/auth');
 const rbac = require('../middleware/rbac');
 const { logActivity } = require('../lib/activity');
 const { getRequestIp, ah, today } = require('../lib/http');
+const ledger = require('../services/ledger');
+const { postOpeningBalance } = require('../services/posting');
 
 const router = express.Router();
 
@@ -39,43 +41,50 @@ router.post('/journals', auth, rbac('accounting'), ah(async (req, res) => {
   return res.status(201).json(journal);
 }));
 
-router.get('/reports/balance-sheet', auth, rbac('accounting'), (req, res) => {
-  const assets = 650000000;
-  const liabilities = 85000000;
-  const equity = assets - liabilities;
-  res.json({
-    date: new Date().toISOString().split('T')[0],
-    assets,
-    liabilities,
-    equity,
-    detail: {
-      kas: 75000000,
-      bank: 450000000,
-      piutangSPP: 28500000,
-      persediaan: 96500000,
-      hutangUsaha: 55000000,
-      hutangGaji: 30000000,
-      danaTidakTerikat: 420000000,
-      danaTerikatTemporer: 145000000,
-    },
-  });
+const loadBooks = async (store) => ({
+  journals: await store.list('journals'),
+  coa: await chartOfAccounts(store),
 });
 
-router.get('/reports/income-statement', auth, rbac('accounting'), (req, res) => {
+router.get('/reports/balance-sheet', auth, rbac('accounting'), ah(async (req, res) => {
+  const { journals, coa } = await loadBooks(req.store);
+  res.json(ledger.balanceSheet(journals, coa));
+}));
+
+router.get('/reports/income-statement', auth, rbac('accounting'), ah(async (req, res) => {
+  const { journals, coa } = await loadBooks(req.store);
+  res.json(ledger.incomeStatement(journals, coa));
+}));
+
+router.get('/reports/monthly', auth, rbac('accounting'), ah(async (req, res) => {
+  const year = Number(req.query.year) || new Date().getFullYear();
+  const { journals, coa } = await loadBooks(req.store);
   res.json({
-    date: new Date().toISOString().split('T')[0],
-    revenue: 375000000,
-    expenses: 285000000,
-    netIncome: 90000000,
-    detail: {
-      pendapatanSPP: 318750000,
-      pendapatanLain: 56250000,
-      bebanGaji: 185250000,
-      bebanOperasional: 57000000,
-      bebanPemeliharaan: 28500000,
-      bebanLain: 14250000,
-    },
+    year,
+    months: ledger.monthlySeries(journals, coa, year),
+    expenseDistribution: ledger.expenseDistribution(journals, coa),
   });
-});
+}));
+
+router.get('/opening-balance', auth, rbac('accounting'), ah(async (req, res) => {
+  const journals = await req.store.list('journals');
+  res.json({ journals: journals.filter((jr) => jr.source?.type === 'opening_balance') });
+}));
+
+router.post('/opening-balance', auth, rbac('accounting'), ah(async (req, res) => {
+  const { date, entries } = req.body || {};
+  if (!date || !Array.isArray(entries) || entries.length === 0) {
+    return res.status(400).json({ error: 'date and a non-empty entries array are required' });
+  }
+  const coa = await chartOfAccounts(req.store);
+  const invalid = entries.find((e) => !['Asset', 'Liability', 'Equity'].includes(coa[e?.account]?.type)
+    || !(Number(e.amount) > 0) || e.account === '3000');
+  if (invalid) {
+    return res.status(400).json({ error: 'Each entry needs a balance-sheet account (not 3000) and a positive amount' });
+  }
+  const journals = await req.store.withTransaction((tx) => postOpeningBalance(tx, { date, entries }));
+  await logActivity(req.store, req.user.id, req.user.email, 'opening_balance', 'accounting', `Recorded opening balance (${journals.length} entries)`, { date, entries }, { ipAddress: getRequestIp(req) });
+  return res.status(201).json({ journals });
+}));
 
 module.exports = router;

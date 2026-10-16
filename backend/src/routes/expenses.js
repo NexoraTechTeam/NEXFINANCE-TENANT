@@ -5,6 +5,7 @@ const auth = require('../middleware/auth');
 const rbac = require('../middleware/rbac');
 const { logActivity } = require('../lib/activity');
 const { getRequestIp, ah, today } = require('../lib/http');
+const { postApprovedExpense } = require('../services/posting');
 
 const router = express.Router();
 
@@ -35,10 +36,14 @@ router.post('/submit', auth, rbac('expenses'), ah(async (req, res) => {
 router.post('/:id/approve', auth, rbac('expenses'), ah(async (req, res) => {
   const ipAddress = getRequestIp(req);
   let conflict = null;
-  const expense = await req.store.update('expenses', req.params.id, (current) => {
-    if (current.status !== 'pending') { conflict = `Cannot approve — status is ${current.status}`; return current; }
-    const approvals = [...(current.approvals || []), { approver: req.user.email, approvedAt: today() }];
-    return { ...current, approvals, status: approvals.length >= 2 ? 'approved' : current.status };
+  const expense = await req.store.withTransaction(async (tx) => {
+    const updated = await tx.update('expenses', req.params.id, (current) => {
+      if (current.status !== 'pending') { conflict = `Cannot approve — status is ${current.status}`; return current; }
+      const approvals = [...(current.approvals || []), { approver: req.user.email, approvedAt: today() }];
+      return { ...current, approvals, status: approvals.length >= 2 ? 'approved' : current.status };
+    });
+    if (updated && !conflict && updated.status === 'approved') await postApprovedExpense(tx, updated);
+    return updated;
   });
   if (!expense) return res.status(404).json({ error: 'Expense not found' });
   if (conflict) return res.status(400).json({ error: conflict });

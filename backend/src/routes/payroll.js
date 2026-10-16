@@ -6,6 +6,7 @@ const rbac = require('../middleware/rbac');
 const { logActivity } = require('../lib/activity');
 const { getRequestIp, ah } = require('../lib/http');
 const { calcPayroll } = require('../services/payroll');
+const { postPayroll } = require('../services/posting');
 
 const router = express.Router();
 
@@ -19,7 +20,11 @@ router.post('/calculate', auth, rbac('payroll'), ah(async (req, res) => {
   if (!employeeId || !month) return res.status(400).json({ error: 'employeeId and month are required' });
   const emp = await req.store.get('employees', employeeId);
   if (!emp) return res.status(404).json({ error: 'Employee not found' });
-  const result = await req.store.insert('payroll_runs', calcPayroll(emp, month));
+  const result = await req.store.withTransaction(async (tx) => {
+    const run = await tx.insert('payroll_runs', calcPayroll(emp, month));
+    await postPayroll(tx, run);
+    return run;
+  });
   await logActivity(req.store, req.user.id, req.user.email, 'calculate_payroll', 'payroll', `Calculated payroll for ${emp.name} (${month})`, { payrollId: result.id, employeeId: emp.id, month, netSalary: result.netSalary }, { ipAddress });
   return res.status(201).json(result);
 }));
