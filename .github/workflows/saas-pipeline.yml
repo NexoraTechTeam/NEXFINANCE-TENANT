@@ -1,0 +1,185 @@
+name: SaaS pipeline (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: GitHub environment holding secrets/vars (staging | production)
+        type: string
+        required: true
+      stack:
+        description: Docker compose project / container prefix (must start with nexfin-saas)
+        type: string
+        required: true
+
+jobs:
+  test:
+    name: Test & contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: nexfin_saas_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend-next/package-lock.json
+
+      - name: Isolation contract (never touch NexFinance stacks)
+        run: sh deploy/check-isolation.sh
+
+      - name: Backend — install, lint, test
+        working-directory: backend
+        env:
+          TEST_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/nexfin_saas_test
+          JWT_SECRET: test-jwt-secret-do-not-use-in-production
+        run: |
+          npm ci
+          npx eslint src scripts
+          npm test
+
+      - name: Frontend — install, lint, test
+        working-directory: frontend-next
+        run: |
+          npm ci
+          npm run lint
+          npm test
+
+      - name: Compose file is valid
+        env:
+          STACK: ${{ inputs.stack }}
+          DB_PASSWORD: ci
+          JWT_SECRET: ci
+          CONSOLE_HOSTS: console.example.test
+          TENANT_BASE_DOMAIN: example.test
+          SAAS_TRAEFIK_RULE: Host(`console.example.test`)
+        run: docker compose -p "$STACK" -f docker-compose.saas.yml config -q
+
+  deploy:
+    name: Deploy ${{ inputs.environment }}
+    runs-on: self-hosted
+    needs: test
+    timeout-minutes: 30
+    environment: ${{ inputs.environment }}
+    concurrency:
+      group: ${{ inputs.stack }}-deploy
+      cancel-in-progress: false
+    permissions:
+      contents: read
+    env:
+      STACK: ${{ inputs.stack }}
+      APP_DIR: /home/github-runner/apps/${{ inputs.stack }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Guard stack name and target directory
+        run: |
+          set -e
+          case "$STACK" in nexfin-saas*) ;; *) echo "Refusing stack '$STACK'"; exit 1 ;; esac
+          case "$APP_DIR" in /home/github-runner/apps/nexfin-saas*) ;; *) echo "Refusing APP_DIR '$APP_DIR'"; exit 1 ;; esac
+
+      - name: Validate required secrets and variables
+        env:
+          JWT_SECRET: ${{ secrets.SAAS_JWT_SECRET }}
+          DB_PASSWORD: ${{ secrets.SAAS_DB_PASSWORD }}
+          SAAS_HOSTS: ${{ vars.SAAS_HOSTS }}
+          CONSOLE_HOSTS: ${{ vars.CONSOLE_HOSTS }}
+          TENANT_BASE_DOMAIN: ${{ vars.TENANT_BASE_DOMAIN }}
+        run: |
+          for v in JWT_SECRET DB_PASSWORD SAAS_HOSTS CONSOLE_HOSTS TENANT_BASE_DOMAIN; do
+            eval "val=\${$v:-}"; [ -n "$val" ] || { echo "Missing $v"; exit 1; }
+          done
+
+      - name: Record running NexFinance containers (must stay untouched)
+        run: |
+          for c in nexfinance-backend nexfinance-frontend nexfinance-dev-backend nexfinance-dev-frontend; do # isolation:allow (read-only check)
+            docker inspect -f '{{.Name}} {{.State.StartedAt}}' "$c" 2>/dev/null || true
+          done > /tmp/${STACK}-neighbours.before
+
+      - name: Sync code and write environment
+        env:
+          JWT_SECRET: ${{ secrets.SAAS_JWT_SECRET }}
+          DB_PASSWORD: ${{ secrets.SAAS_DB_PASSWORD }}
+          CONSOLE_ADMIN_EMAIL: ${{ secrets.SAAS_CONSOLE_ADMIN_EMAIL }}
+          CONSOLE_ADMIN_PASSWORD: ${{ secrets.SAAS_CONSOLE_ADMIN_PASSWORD }}
+          SAAS_HOSTS: ${{ vars.SAAS_HOSTS }}
+          CONSOLE_HOSTS: ${{ vars.CONSOLE_HOSTS }}
+          TENANT_BASE_DOMAIN: ${{ vars.TENANT_BASE_DOMAIN }}
+          DEMO_TENANT_HOSTS: ${{ vars.DEMO_TENANT_HOSTS }}
+        run: |
+          set -e
+          RULE="$(sh deploy/traefik-rule.sh "$SAAS_HOSTS")"
+          mkdir -p "$APP_DIR"
+          rsync -a --delete --exclude='.git' --exclude='node_modules' --exclude='.next' --exclude='.env.saas' \
+            "$GITHUB_WORKSPACE/" "$APP_DIR/"
+          umask 077
+          {
+            printf 'STACK=%s\n' "$STACK"
+            printf 'SAAS_TRAEFIK_RULE=%s\n' "$RULE"
+            printf 'JWT_SECRET=%s\n' "$JWT_SECRET"
+            printf 'DB_PASSWORD=%s\n' "$DB_PASSWORD"
+            printf 'CONSOLE_HOSTS=%s\n' "$CONSOLE_HOSTS"
+            printf 'TENANT_BASE_DOMAIN=%s\n' "$TENANT_BASE_DOMAIN"
+            printf 'CONSOLE_ADMIN_EMAIL=%s\n' "$CONSOLE_ADMIN_EMAIL"
+            printf 'CONSOLE_ADMIN_PASSWORD=%s\n' "$CONSOLE_ADMIN_PASSWORD"
+            printf 'DEMO_TENANT_HOSTS=%s\n' "$DEMO_TENANT_HOSTS"
+          } > "$APP_DIR/.env.saas"
+
+      - name: Build and start stack
+        run: |
+          set -e
+          cd "$APP_DIR"
+          docker compose -p "$STACK" --env-file .env.saas -f docker-compose.saas.yml build
+          docker compose -p "$STACK" --env-file .env.saas -f docker-compose.saas.yml up -d --remove-orphans
+
+      - name: Wait for backend and frontend
+        run: |
+          set -e
+          for i in $(seq 1 24); do
+            docker exec "$STACK-backend" curl -sf http://localhost:5000/health >/dev/null && break
+            [ "$i" -eq 24 ] && { cd "$APP_DIR"; docker compose -p "$STACK" --env-file .env.saas -f docker-compose.saas.yml logs --tail=80; exit 1; }
+            sleep 5
+          done
+          for i in $(seq 1 24); do
+            docker exec "$STACK-frontend" wget -qO- http://localhost:3000/login >/dev/null 2>&1 && break
+            [ "$i" -eq 24 ] && { cd "$APP_DIR"; docker compose -p "$STACK" --env-file .env.saas -f docker-compose.saas.yml logs --tail=80; exit 1; }
+            sleep 5
+          done
+
+      - name: Smoke test every host
+        env:
+          SAAS_HOSTS: ${{ vars.SAAS_HOSTS }}
+          CONSOLE_HOSTS: ${{ vars.CONSOLE_HOSTS }}
+        run: |
+          set -e
+          for host in $(echo "$SAAS_HOSTS" | tr ',' ' '); do
+            case ",$CONSOLE_HOSTS," in *",$host,"*) path=/console ;; *) path=/login ;; esac
+            for attempt in $(seq 1 12); do
+              code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 "https://$host$path" || true)"
+              [ "$code" = 200 ] && { echo "✓ $host$path"; break; }
+              [ "$attempt" -eq 12 ] && { echo "✗ $host$path → ${code:-curl-error}"; exit 1; }
+              sleep 5
+            done
+          done
+
+      - name: Verify NexFinance containers were not restarted
+        run: |
+          for c in nexfinance-backend nexfinance-frontend nexfinance-dev-backend nexfinance-dev-frontend; do # isolation:allow (read-only check)
+            docker inspect -f '{{.Name}} {{.State.StartedAt}}' "$c" 2>/dev/null || true
+          done > /tmp/${STACK}-neighbours.after
+          diff -u /tmp/${STACK}-neighbours.before /tmp/${STACK}-neighbours.after
+          echo "✓ NexFinance stacks untouched"

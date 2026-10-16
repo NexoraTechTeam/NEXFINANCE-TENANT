@@ -1,137 +1,42 @@
-# NexFinance — Yayasan ISAk 35 School Finance System
+# NexFinance SaaS
 
-Sistem keuangan sekolah berbasis web dengan fokus operasional harian, kontrol akses berbasis role (RBAC), audit log, dan notifikasi multi-channel (Email + WhatsApp).
+Multi-tenant edition of **NexFinance** (school finance: SPP, payroll, expenses,
+procurement, ISAK 35 accounting & reports) by **Nexora**. One deployment serves
+every school; each school (tenant) gets its own Postgres schema, domain, logo,
+color theme and users.
 
-## Highlights
+> The original single-tenant NexFinance (`Nexora-Tech-Team/NEXFINANCE`) stays the
+> sales/demo product and is **not** affected by this repository — see
+> [docs/OPERATIONS.md](docs/OPERATIONS.md#isolation-from-nexfinance).
 
-- **Dashboard finansial** dengan KPI pemasukan/pengeluaran dan distribusi beban
-- **Manajemen SPP**: invoice, pembayaran, bukti pembayaran, dan pelaporan koleksi
-- **Payroll**: perhitungan gaji, histori run payroll, dan ringkasan biaya SDM
-- **Expense & Procurement**: alur pengajuan, approval, PR/PO, dan penerimaan barang
-- **Accounting & Reports**: jurnal, neraca, laba-rugi, serta ringkasan lintas modul
-- **Master Data**: siswa, karyawan, user, role, dan matriks akses role → menu
-- **Activity Logs**: jejak aktivitas lintas modul
-- **Notifications**: pengiriman notifikasi via Email dan WhatsApp
+## Architecture
 
-## Arsitektur Singkat
-
-- **Frontend**: React (`frontend/`)
-- **Backend API**: Express (`backend/`)
-- **Auth**: JWT + RBAC per modul
-- **Data saat ini**: in-memory store di `backend/src/db.js` (siap diadaptasi ke DB persisten)
-
-## Daftar Modul
-
-| Modul | Route Frontend | Prefix API |
+| Part | Path | Notes |
 | --- | --- | --- |
-| Dashboard | `/dashboard` | `/api/v1/dashboard` |
-| SPP | `/spp` | `/api/v1/spp` |
-| Payroll | `/payroll` | `/api/v1/payroll` |
-| Expenses | `/expenses` | `/api/v1/expenses` |
-| Procurement | `/procurement` | `/api/v1/procurement` |
-| Accounting | `/accounting` | `/api/v1/accounting` |
-| Reports | `/reports` | kombinasi endpoint laporan modul |
-| Master (Siswa/Karyawan/Akses) | `/master/*` | `/api/v1/master` |
-| Activity Logs | `/activity-logs` | `/api/v1/activity` |
-| Notifications | `/notifications` | `/api/v1/notifications` |
+| API | `backend/` | Express + Postgres (knex). Tenant resolved from host. |
+| Web | `frontend-next/` | Next.js 14. Theme & identity injected per tenant (SSR). |
+| Console | `/console` on `CONSOLE_HOSTS` | Nexora operator CMS: create/edit tenants, logo → palette, domains, admin resets. |
+| Deploy | `docker-compose.saas.yml`, `.github/workflows/` | Isolated stack `nexfin-saas[-staging]` behind the shared Traefik. |
 
-## Role & Permission
+Design decisions: [docs/adr/0001-multi-tenant-schema-per-tenant.md](docs/adr/0001-multi-tenant-schema-per-tenant.md).
 
-Role default:
-
-- `super_admin`
-- `admin`
-- `bendahara`
-- `kabag`
-- `staff`
-- `auditor`
-
-Definisi permission role ada di:
-
-- `backend/src/middleware/rbac.js`
-- dapat dikelola dari UI **Master → Hak Akses Role** (editable untuk Super Admin)
-
-## Quick Start (Local Development)
-
-### 1. Backend
+## Local development
 
 ```bash
-cd backend
-npm install
-cp .env.example .env
-npm run dev
+# 1. Postgres running locally, then:
+cd backend && cp .env.example .env && npm ci && npm run dev      # migrates on boot
+cd frontend-next && npm ci && BACKEND_URL=http://localhost:5000 CONSOLE_HOSTS=console.localhost npm run dev
+# Console: http://console.localhost:3000   Demo school: http://demo.localhost:3000
 ```
 
-Backend berjalan di `http://localhost:5000`.
-
-### 2. Frontend
+## Tests
 
 ```bash
-cd frontend
-npm install
-npm start
+cd backend && TEST_DATABASE_URL=postgres://postgres@127.0.0.1:5432/nexfin_saas_test npm test
+cd frontend-next && npm test && npm run lint
+sh deploy/check-isolation.sh
 ```
 
-Frontend berjalan di `http://localhost:3000`.
+## Operating
 
-## Environment Variables Penting
-
-Contoh backend ada di `backend/.env.example`.
-
-Variabel notifikasi:
-
-- `EMAIL_PROVIDER_URL` / `EMAIL_WEBHOOK_URL`
-- `EMAIL_PROVIDER_TOKEN`
-- `WHATSAPP_META_TOKEN`
-- `WHATSAPP_PHONE_NUMBER_ID`
-- `WHATSAPP_WEBHOOK_URL` (fallback opsional)
-
-Variabel frontend:
-
-- `REACT_APP_API_URL` (default: `http://localhost:5000/api/v1`)
-
-## Akun Demo (seed in-memory)
-
-Sumber: `backend/src/db.js`
-
-- `superadmin@nexfinance.com` / `superadmin123`
-- `admin@nexfinance.com` / `admin123`
-- `bendahara@nexfinance.com` / `bendahara123`
-- `kabag@nexfinance.com` / `kabag123`
-- `staff@nexfinance.com` / `staff123`
-- `auditor@nexfinance.com` / `auditor123`
-
-## Dokumentasi
-
-- [API Documentation](docs/API_DOCUMENTATION.md)
-- [Deployment Guide](docs/DEPLOYMENT_GUIDE.md)
-- [ISAK35 Compliance](docs/ISAK35_COMPLIANCE.md)
-- [Module Guide (Markdown)](docs/NEXFINANCE_MODULE_GUIDE.md)
-- **Module Guide (PDF)**: `docs/NEXFINANCE_MODULE_GUIDE.pdf`
-- [User Manual Book (Markdown)](docs/NEXFINANCE_USER_MANUAL_BOOK.md)
-- **User Manual Book (PDF)**: `docs/NEXFINANCE_USER_MANUAL_BOOK.pdf`
-
-## Scripts
-
-### Backend
-
-```bash
-cd backend
-npm run dev
-npm run start
-npm run test
-npm run lint
-```
-
-### Frontend
-
-```bash
-cd frontend
-npm start
-npm run build
-npm test
-```
-
-## Status
-
-Project aktif dan terus dikembangkan untuk kebutuhan operasional keuangan sekolah Yayasan ISAk 35.
+Onboarding a school, domains, backups and restores: [docs/OPERATIONS.md](docs/OPERATIONS.md).

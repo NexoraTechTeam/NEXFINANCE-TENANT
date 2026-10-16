@@ -1,0 +1,116 @@
+# NexFinance SaaS — one stack serves every school (tenant resolved by host).
+#
+# ALWAYS run with an explicit, unique project name so it can never touch the
+# NexFinance stacks on the same host:
+#   docker compose -p "$STACK" -f docker-compose.saas.yml up -d
+#
+# Required env (see .env.saas.example): STACK, SAAS_TRAEFIK_RULE, JWT_SECRET,
+# DB_PASSWORD, CONSOLE_HOSTS, TENANT_BASE_DOMAIN, CONSOLE_ADMIN_EMAIL,
+# CONSOLE_ADMIN_PASSWORD.
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: ${STACK:?STACK is required}-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nexfinance
+      POSTGRES_USER: nexfinance
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexfinance -d nexfinance"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ${STACK}-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: postgres://nexfinance:${DB_PASSWORD}@${STACK}-db:5432/nexfinance
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_EXPIRY: ${JWT_EXPIRY:-12h}
+      CONSOLE_HOSTS: ${CONSOLE_HOSTS:?CONSOLE_HOSTS is required}
+      TENANT_BASE_DOMAIN: ${TENANT_BASE_DOMAIN:?TENANT_BASE_DOMAIN is required}
+      CONSOLE_ADMIN_EMAIL: ${CONSOLE_ADMIN_EMAIL:-}
+      CONSOLE_ADMIN_PASSWORD: ${CONSOLE_ADMIN_PASSWORD:-}
+      DEMO_TENANT_HOSTS: ${DEMO_TENANT_HOSTS:-}
+      EMAIL_PROVIDER_URL: ${EMAIL_PROVIDER_URL:-}
+      EMAIL_PROVIDER_TOKEN: ${EMAIL_PROVIDER_TOKEN:-}
+      WHATSAPP_META_TOKEN: ${WHATSAPP_META_TOKEN:-}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    # Only reachable by the frontend (internal network); never published via Traefik.
+    networks:
+      - internal
+
+  frontend:
+    build:
+      context: ./frontend-next
+      dockerfile: Dockerfile
+      args:
+        BACKEND_URL: http://${STACK}-backend:5000
+    container_name: ${STACK}-frontend
+    restart: unless-stopped
+    environment:
+      BACKEND_URL: http://${STACK}-backend:5000
+      CONSOLE_HOSTS: ${CONSOLE_HOSTS}
+    depends_on:
+      - backend
+    networks:
+      - internal
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.${STACK}.rule=${SAAS_TRAEFIK_RULE:?SAAS_TRAEFIK_RULE is required}"
+      - "traefik.http.routers.${STACK}.entrypoints=websecure"
+      - "traefik.http.routers.${STACK}.tls.certresolver=myresolver"
+      - "traefik.http.services.${STACK}.loadbalancer.server.port=3000"
+      - "traefik.http.routers.${STACK}-http.rule=${SAAS_TRAEFIK_RULE}"
+      - "traefik.http.routers.${STACK}-http.entrypoints=web"
+      - "traefik.http.routers.${STACK}-http.middlewares=${STACK}-https-redirect"
+      - "traefik.http.middlewares.${STACK}-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.${STACK}-https-redirect.redirectscheme.permanent=true"
+
+  backup:
+    image: postgres:16-alpine
+    container_name: ${STACK}-backup
+    restart: unless-stopped
+    environment:
+      PGHOST: ${STACK}-db
+      PGUSER: nexfinance
+      PGPASSWORD: ${DB_PASSWORD}
+      PGDATABASE: nexfinance
+      RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+    volumes:
+      - backups:/backups
+      - ./deploy/backup.sh:/usr/local/bin/backup.sh:ro
+    entrypoint: ["/bin/sh", "-c", "while true; do /bin/sh /usr/local/bin/backup.sh; sleep 86400; done"]
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - internal
+
+volumes:
+  pgdata:
+  backups:
+
+networks:
+  internal:
+    name: ${STACK}-internal
+  web:
+    external: true
+    name: web

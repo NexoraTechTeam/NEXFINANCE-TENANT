@@ -1,0 +1,14 @@
+name: Deploy NexFinance SaaS (production)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/saas-pipeline.yml
+    with:
+      environment: production
+      stack: nexfin-saas
+    secrets: inherit
