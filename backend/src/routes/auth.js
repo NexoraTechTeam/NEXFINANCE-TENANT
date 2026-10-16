@@ -1,156 +1,132 @@
+'use strict';
+
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcryptjs = require('bcryptjs');
+const rateLimit = require('express-rate-limit');
 const auth = require('../middleware/auth');
 const rbac = require('../middleware/rbac');
-const { users, getUserByEmail, logActivity } = require('../db');
-const router = express.Router();
+const { logActivity } = require('../lib/activity');
+const { getRequestIp, ah } = require('../lib/http');
 
-const VALID_ROLES = ['super_admin', 'admin', 'bendahara', 'kabag', 'staff', 'auditor'];
 const LOGIN_FAILED_MESSAGE = 'Email atau password salah.';
 const CURRENT_PASSWORD_FAILED_MESSAGE = 'Password saat ini salah.';
 
-const getRequestIp = (req) => (
-  req.headers['x-forwarded-for']?.split(',')[0]?.trim()
-  || req.socket?.remoteAddress
-  || '127.0.0.1'
-);
+const users = (store) => store.db.withSchema(store.schema).from('users');
 
-const maskUser = (user) => {
-  const { password, ...safe } = user;
-  return safe;
-};
-
-const buildAuthPayload = (user) => ({
-  id: user.id,
-  email: user.email,
-  role: user.role,
-  name: user.name,
+/** Public user shape (never exposes the hash). */
+const toPublicUser = (row) => ({
+  id: row.id,
+  username: row.username,
+  email: row.email,
+  role: row.role,
+  name: row.name,
+  status: row.status,
+  mustChangePassword: row.must_change_password,
 });
 
-const createToken = (user) => jwt.sign(
-  buildAuthPayload(user),
+const findByIdentifier = (store, identifier) => users(store)
+  .whereRaw('lower(email) = lower(?)', [identifier])
+  .orWhere('username', identifier)
+  .first();
+
+const createToken = (row, tenant) => jwt.sign(
+  { id: row.id, email: row.email, username: row.username, role: row.role, name: row.name, tid: tenant.id },
   process.env.JWT_SECRET,
-  { expiresIn: process.env.JWT_EXPIRY || '24h' },
+  { expiresIn: process.env.JWT_EXPIRY || '24h', audience: 'tenant' },
 );
 
-const verifyPassword = async (rawPassword, storedPassword) => {
-  if (!storedPassword) return false;
-  if (storedPassword.startsWith('$2a$') || storedPassword.startsWith('$2b$') || storedPassword.startsWith('$2y$')) {
-    return bcryptjs.compare(rawPassword, storedPassword);
-  }
-  return storedPassword === rawPassword;
-};
+function createAuthRouter(config = {}) {
+  const router = express.Router();
 
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  const ipAddress = getRequestIp(req);
-  const user = getUserByEmail(email);
-
-  if (!email || !password) {
-    return res.status(400).json({ error: 'email and password are required' });
-  }
-
-  if (!user || user.status === 'inactive') {
-    logActivity(user?.id || 'anonymous', email, 'login_failed', 'auth', `Failed login for ${email}`, { reason: 'user_not_found_or_inactive' }, { level: 'warning', ipAddress });
-    return res.status(401).json({ error: LOGIN_FAILED_MESSAGE });
-  }
-
-  const passwordValid = await verifyPassword(password, user.password);
-  if (!passwordValid) {
-    logActivity(user.id, email, 'login_failed', 'auth', `Failed login for ${email}`, { reason: 'invalid_password' }, { level: 'warning', ipAddress });
-    return res.status(401).json({ error: LOGIN_FAILED_MESSAGE });
-  }
-
-  const token = createToken(user);
-  logActivity(user.id, email, 'login', 'auth', `User ${email} logged in`, { role: user.role }, { ipAddress });
-
-  res.json({ token, user: maskUser(user) });
-});
-
-router.post('/register', async (req, res) => {
-  const { email, password, name, role } = req.body;
-  const ipAddress = getRequestIp(req);
-  const userRole = role || 'staff';
-
-  if (!email || !password) {
-    return res.status(400).json({ error: 'email and password are required' });
-  }
-  if (!VALID_ROLES.includes(userRole)) {
-    return res.status(400).json({ error: `Invalid role. Must be one of: ${VALID_ROLES.join(', ')}` });
-  }
-  if (getUserByEmail(email)) {
-    logActivity('anonymous', email, 'register_failed', 'auth', `Failed registration for ${email}`, { reason: 'email_exists' }, { level: 'warning', ipAddress });
-    return res.status(400).json({ error: 'Email already registered' });
-  }
-
-  const hashedPassword = await bcryptjs.hash(password, 10);
-  const id = `USR${String(users.length + 1).padStart(3, '0')}`;
-  const newUser = {
-    id,
-    email,
-    password: hashedPassword,
-    role: userRole,
-    name: name || email.split('@')[0],
-    status: 'active',
-  };
-
-  users.push(newUser);
-  const token = createToken(newUser);
-  logActivity(newUser.id, newUser.email, 'register', 'auth', `User ${email} registered`, { role: userRole }, { ipAddress });
-
-  res.status(201).json({ token, user: maskUser(newUser) });
-});
-
-router.post('/change-password', auth, async (req, res) => {
-  const { currentPassword, newPassword, confirmPassword } = req.body || {};
-  if (!currentPassword || !newPassword || !confirmPassword) return res.status(400).json({ error: 'currentPassword, newPassword, and confirmPassword are required' });
-  if (newPassword.length < 8) return res.status(400).json({ error: 'New password must be at least 8 characters' });
-  if (newPassword !== confirmPassword) return res.status(400).json({ error: 'New password confirmation does not match' });
-  const idx = users.findIndex((user) => user.id === req.user.id);
-  const user = idx >= 0 ? users[idx] : getUserByEmail(req.user.email);
-  if (!user || !(await verifyPassword(currentPassword, user.password))) return res.status(401).json({ error: CURRENT_PASSWORD_FAILED_MESSAGE });
-  if (currentPassword === newPassword) return res.status(400).json({ error: 'New password must be different from current password' });
-  users[idx] = { ...user, password: await bcryptjs.hash(newPassword, 10) };
-  logActivity(user.id, user.email, 'change_password', 'auth', `Password changed for ${user.email}`, {});
-  return res.json({ message: 'Password changed successfully' });
-});
-
-router.get('/me', auth, (req, res) => {
-  const user = users.find((u) => u.id === req.user.id) || getUserByEmail(req.user.email);
-  if (!user) {
-    return res.status(404).json({ error: 'User not found' });
-  }
-  const permissions = rbac.getPermissionsForRole(user.role);
-  return res.json({
-    user: maskUser(user),
-    permissions,
-    rolePermissions: rbac.PERMISSIONS,
+  const loginLimiter = rateLimit({
+    windowMs: config.loginRateLimit?.windowMs ?? 15 * 60 * 1000,
+    max: config.loginRateLimit?.max ?? 10,
+    skipSuccessfulRequests: true,
+    standardHeaders: true,
+    legacyHeaders: false,
+    validate: false,
+    keyGenerator: (req) => `${req.tenant?.id}:${getRequestIp(req)}`,
+    message: { error: 'Terlalu banyak percobaan login. Coba lagi dalam beberapa menit.' },
   });
-});
 
-router.get('/permissions', auth, (req, res) => {
-  const role = req.user?.role || 'staff';
-  return res.json({
-    role,
-    permissions: rbac.getPermissionsForRole(role),
-    rolePermissions: rbac.PERMISSIONS,
+  router.post('/login', loginLimiter, ah(async (req, res) => {
+    const { store } = req;
+    const identifier = (req.body?.email || req.body?.username || '').trim();
+    const password = req.body?.password;
+    const ipAddress = getRequestIp(req);
+
+    if (!identifier || !password) {
+      return res.status(400).json({ error: 'email and password are required' });
+    }
+
+    const user = await findByIdentifier(store, identifier);
+    if (!user || user.status === 'inactive') {
+      await logActivity(store, user?.id || 'anonymous', identifier, 'login_failed', 'auth', `Failed login for ${identifier}`, { reason: 'user_not_found_or_inactive' }, { level: 'warning', ipAddress });
+      return res.status(401).json({ error: LOGIN_FAILED_MESSAGE });
+    }
+
+    if (!(await bcryptjs.compare(password, user.password_hash))) {
+      await logActivity(store, user.id, identifier, 'login_failed', 'auth', `Failed login for ${identifier}`, { reason: 'invalid_password' }, { level: 'warning', ipAddress });
+      return res.status(401).json({ error: LOGIN_FAILED_MESSAGE });
+    }
+
+    await logActivity(store, user.id, user.email || user.username, 'login', 'auth', `User ${identifier} logged in`, { role: user.role }, { ipAddress });
+    return res.json({ token: createToken(user, req.tenant), user: toPublicUser(user) });
+  }));
+
+  router.post('/change-password', auth, ah(async (req, res) => {
+    const { store } = req;
+    const { currentPassword, newPassword, confirmPassword } = req.body || {};
+    if (!currentPassword || !newPassword || !confirmPassword) return res.status(400).json({ error: 'currentPassword, newPassword, and confirmPassword are required' });
+    if (newPassword.length < 8) return res.status(400).json({ error: 'New password must be at least 8 characters' });
+    if (newPassword !== confirmPassword) return res.status(400).json({ error: 'New password confirmation does not match' });
+
+    const user = await users(store).where({ id: req.user.id }).first();
+    if (!user || !(await bcryptjs.compare(currentPassword, user.password_hash))) {
+      return res.status(401).json({ error: CURRENT_PASSWORD_FAILED_MESSAGE });
+    }
+    if (currentPassword === newPassword) return res.status(400).json({ error: 'New password must be different from current password' });
+
+    await users(store).where({ id: user.id }).update({
+      password_hash: await bcryptjs.hash(newPassword, 10),
+      must_change_password: false,
+      updated_at: store.db.fn.now(),
+    });
+    await logActivity(store, user.id, user.email || user.username, 'change_password', 'auth', `Password changed for ${user.email || user.username}`, {});
+    return res.json({ message: 'Password changed successfully' });
+  }));
+
+  router.get('/me', auth, ah(async (req, res) => {
+    const user = await users(req.store).where({ id: req.user.id }).first();
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const matrix = await rbac.loadPermissions(req.store);
+    return res.json({
+      user: toPublicUser(user),
+      permissions: matrix[user.role] || [],
+      rolePermissions: matrix,
+    });
+  }));
+
+  router.get('/permissions', auth, ah(async (req, res) => {
+    const role = req.user?.role || 'staff';
+    const matrix = await rbac.loadPermissions(req.store);
+    return res.json({ role, permissions: matrix[role] || [], rolePermissions: matrix });
+  }));
+
+  router.get('/verify', (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ valid: false });
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET, { audience: 'tenant' });
+      if (decoded.tid !== req.tenant.id) return res.status(401).json({ valid: false });
+      return res.json({ valid: true, user: decoded });
+    } catch {
+      return res.status(401).json({ valid: false });
+    }
   });
-});
 
-router.get('/verify', (req, res) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  
-  if (!token) {
-    return res.status(401).json({ valid: false });
-  }
+  return router;
+}
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    res.json({ valid: true, user: decoded });
-  } catch {
-    res.status(401).json({ valid: false });
-  }
-});
-
-module.exports = router;
+module.exports = { createAuthRouter, toPublicUser };

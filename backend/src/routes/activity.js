@@ -1,13 +1,18 @@
+'use strict';
+
 const express = require('express');
-const router = express.Router();
 const auth = require('../middleware/auth');
 const rbac = require('../middleware/rbac');
-const { activityLogs, logActivity } = require('../db');
+const { logActivity } = require('../lib/activity');
+const { ah } = require('../lib/http');
+
+const router = express.Router();
 
 // GET /api/v1/activity
 // Query params: limit, offset, module, action, search
-router.get('/', auth, rbac('activity'), (req, res) => {
+router.get('/', auth, rbac('activity'), ah(async (req, res) => {
   try {
+    const activityLogs = await req.store.list('activity_logs');
     const limit  = Math.min(parseInt(req.query.limit)  || 50, 200);
     const offset = parseInt(req.query.offset) || 0;
     const { module, action, search } = req.query;
@@ -36,11 +41,12 @@ router.get('/', auth, rbac('activity'), (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+}));
 
 // GET /api/v1/activity/stats
-router.get('/stats', auth, rbac('activity'), (req, res) => {
+router.get('/stats', auth, rbac('activity'), ah(async (req, res) => {
   try {
+    const activityLogs = await req.store.list('activity_logs');
     // Count by module
     const byModule = {};
     // Count by level
@@ -82,25 +88,17 @@ router.get('/stats', auth, rbac('activity'), (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+}));
 
-// DELETE /api/v1/activity/clear — admin only, keep last 100
-router.delete('/clear', auth, (req, res) => {
-  try {
-    if (req.user?.role !== 'admin') {
-      return res.status(403).json({ error: 'Access denied: admin only' });
-    }
-
-    const removed = activityLogs.length > 100 ? activityLogs.length - 100 : 0;
-    if (removed > 0) {
-      activityLogs.splice(100);
-    }
-
-    logActivity(req.user.id, req.user.email, 'clear_activity_logs', 'activity', `Cleared ${removed} activity logs`, { removed, retained: activityLogs.length });
-    res.json({ message: `Cleared ${removed} old log entries. ${activityLogs.length} entries retained.` });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+// DELETE /api/v1/activity/clear — admin / super_admin, keep the latest 100
+router.delete('/clear', auth, ah(async (req, res) => {
+  if (!['admin', 'super_admin'].includes(req.user?.role)) {
+    return res.status(403).json({ error: 'Access denied: admin only' });
   }
-});
+  const latest = (await req.store.list('activity_logs')).slice(0, 100).map((l) => l.id);
+  const removed = await req.store.removeWhere('activity_logs', latest);
+  await logActivity(req.store, req.user.id, req.user.email, 'clear_activity_logs', 'activity', `Cleared ${removed} activity logs`, { removed, retained: latest.length });
+  return res.json({ message: `Cleared ${removed} old log entries. ${latest.length} entries retained.` });
+}));
 
 module.exports = router;

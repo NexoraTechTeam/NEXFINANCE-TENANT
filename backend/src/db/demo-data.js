@@ -1,8 +1,7 @@
-// Shared in-memory store — all routes import from here so dashboard sees live data
+// Demo dataset (originally the in-memory store of single-tenant NexFinance).
+// Only seeded into tenants provisioned with `seedDemo: true` (e.g. the sales demo tenant).
 
-const now = new Date();
 const m = (mo, d) => { const dt = new Date(2026, mo - 1, d); return dt.toISOString().split('T')[0]; };
-const rp = (n) => n;
 
 // ── SPP ─────────────────────────────────────────────────────────────────────
 const sppInvoices = [
@@ -32,14 +31,7 @@ const employees = [
 ];
 
 // ── Payroll History ──────────────────────────────────────────────────────────
-const calcPayroll = (emp, month) => {
-  const gross = emp.baseSalary + emp.certificationAllowance + emp.familyAllowance;
-  const bpjsKes = Math.round(gross * 0.01);
-  const bpjsTk  = Math.round(gross * 0.057);
-  const pph     = Math.round(gross * 0.05);
-  const net     = gross - bpjsKes - bpjsTk - pph;
-  return { employeeId: emp.id, employeeName: emp.name, month, baseSalary: emp.baseSalary, certificationAllowance: emp.certificationAllowance, familyAllowance: emp.familyAllowance, grossSalary: gross, bpjsKesehatan: bpjsKes, bpjsKetenagakerjaan: bpjsTk, pphTER: pph, netSalary: net, status: 'paid', paidAt: new Date().toISOString() };
-};
+const { calcPayroll } = require('../services/payroll');
 const payrollRuns = [
   calcPayroll(employees[0], 'Maret 2026'),
   calcPayroll(employees[1], 'Maret 2026'),
@@ -157,23 +149,4 @@ const activityLogs = [
   { id: 'LOG0000000015ooo', userId: 'USR002', userEmail: 'bendahara@nexfinance.com', action: 'approve_payment',   module: 'spp',           description: 'Approved batch SPP payment for 5 students Mei 2026',    metadata: { count: 5, month: 'Mei 2026' },      ipAddress: '192.168.1.11', timestamp: '2026-05-08T07:50:00.000Z', level: 'info' },
 ];
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-const getUserByEmail = (email) => users.find(u => u.email === email) || null;
-
-const logActivity = (userId, userEmail, action, module, description, metadata = {}, options = {}) => {
-  activityLogs.unshift({
-    id: `LOG${Date.now()}${Math.random().toString(36).slice(2, 5)}`,
-    userId,
-    userEmail,
-    action,
-    module,
-    description,
-    metadata,
-    ipAddress: options.ipAddress || '127.0.0.1',
-    timestamp: new Date().toISOString(),
-    level: options.level || 'info',
-  });
-  if (activityLogs.length > 500) activityLogs.splice(500);
-};
-
-module.exports = { sppInvoices, employees, payrollRuns, expenses, purchaseRequests, purchaseOrders, chartOfAccounts, journals, calcPayroll, students, users, activityLogs, getUserByEmail, logActivity };
+module.exports = { sppInvoices, employees, payrollRuns, expenses, purchaseRequests, purchaseOrders, chartOfAccounts, journals, students, users, activityLogs };

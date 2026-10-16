@@ -1,41 +1,43 @@
+'use strict';
+
 const express = require('express');
-const router = express.Router();
 const auth = require('../middleware/auth');
 const rbac = require('../middleware/rbac');
-const { chartOfAccounts, journals, logActivity } = require('../db');
+const { logActivity } = require('../lib/activity');
+const { getRequestIp, ah, today } = require('../lib/http');
 
-const getRequestIp = (req) => (
-  req.headers['x-forwarded-for']?.split(',')[0]?.trim()
-  || req.socket?.remoteAddress
-  || '127.0.0.1'
+const router = express.Router();
+
+/** COA keyed by account code: { '1000': { name, type, isak35 } } (unchanged contract). */
+const chartOfAccounts = async (store) => Object.fromEntries(
+  (await store.list('chart_of_accounts')).map(({ id, ...account }) => [id, account]),
 );
 
-router.get('/chart-of-accounts', auth, rbac('accounting'), (req, res) => {
-  res.json({ accounts: chartOfAccounts });
-});
+router.get('/chart-of-accounts', auth, rbac('accounting'), ah(async (req, res) => {
+  res.json({ accounts: await chartOfAccounts(req.store) });
+}));
 
-router.get('/journals', auth, rbac('accounting'), (req, res) => {
-  res.json({ journals: [...journals].reverse() });
-});
+router.get('/journals', auth, rbac('accounting'), ah(async (req, res) => {
+  res.json({ journals: (await req.store.list('journals')).reverse() });
+}));
 
-router.post('/journals', auth, rbac('accounting'), (req, res) => {
+router.post('/journals', auth, rbac('accounting'), ah(async (req, res) => {
   const ipAddress = getRequestIp(req);
   const { date, description, debit, credit } = req.body;
   if (!date || !description || !debit || !credit) {
     return res.status(400).json({ error: 'date, description, debit, credit are required' });
   }
-  const journal = {
-    id: `JRN${Date.now()}`,
+  const journal = await req.store.insert('journals', {
+    id: await req.store.nextId('journals'),
     date,
     description,
     debit,
     credit,
-    createdAt: new Date().toISOString().split('T')[0],
-  };
-  journals.push(journal);
-  logActivity(req.user.id, req.user.email, 'create_journal', 'accounting', `Created journal ${journal.id}`, { journalId: journal.id, date: journal.date, debit, credit }, { ipAddress });
-  res.status(201).json(journal);
-});
+    createdAt: today(),
+  });
+  await logActivity(req.store, req.user.id, req.user.email, 'create_journal', 'accounting', `Created journal ${journal.id}`, { journalId: journal.id, date: journal.date, debit, credit }, { ipAddress });
+  return res.status(201).json(journal);
+}));
 
 router.get('/reports/balance-sheet', auth, rbac('accounting'), (req, res) => {
   const assets = 650000000;

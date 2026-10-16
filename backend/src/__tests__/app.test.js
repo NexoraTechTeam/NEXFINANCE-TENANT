@@ -1,15 +1,29 @@
 'use strict';
 
-process.env.JWT_SECRET = 'test-jwt-secret-do-not-use-in-production';
-process.env.NODE_ENV = 'test';
-
+// Contract regression suite: same assertions as the single-tenant NexFinance API,
+// now executed against the persisted, seeded `demo` tenant.
 const request = require('supertest');
-const app = require('../index');
+const { bootstrap, DEMO_HOST } = require('./helpers/setup');
+
+let app;
+let knex;
+
+beforeAll(async () => {
+  ({ app, knex } = await bootstrap({ demo: true }));
+});
+
+afterAll(async () => {
+  await knex.destroy();
+});
+
+const http = new Proxy({}, {
+  get: (_, method) => (path) => request(app)[method](path).set('Host', DEMO_HOST),
+});
 
 // ── Health Check ─────────────────────────────────────────────────────────────
 describe('GET /health', () => {
   it('returns 200 with status ok', async () => {
-    const res = await request(app).get('/health');
+    const res = await http.get('/health');
     expect(res.statusCode).toBe(200);
     expect(res.body.status).toBe('ok');
     expect(res.body).toHaveProperty('timestamp');
@@ -19,7 +33,7 @@ describe('GET /health', () => {
 // ── Auth: Login ───────────────────────────────────────────────────────────────
 describe('POST /api/v1/auth/login', () => {
   it('returns 200 and a token with valid credentials', async () => {
-    const res = await request(app)
+    const res = await http
       .post('/api/v1/auth/login')
       .send({ email: 'admin@nexfinance.com', password: 'admin123' });
     expect(res.statusCode).toBe(200);
@@ -29,7 +43,7 @@ describe('POST /api/v1/auth/login', () => {
   });
 
   it('returns 401 with wrong password', async () => {
-    const res = await request(app)
+    const res = await http
       .post('/api/v1/auth/login')
       .send({ email: 'admin@nexfinance.com', password: 'wrongpassword' });
     expect(res.statusCode).toBe(401);
@@ -37,7 +51,7 @@ describe('POST /api/v1/auth/login', () => {
   });
 
   it('returns 401 with unknown email', async () => {
-    const res = await request(app)
+    const res = await http
       .post('/api/v1/auth/login')
       .send({ email: 'nobody@nexfinance.com', password: 'somepassword' });
     expect(res.statusCode).toBe(401);
@@ -45,7 +59,7 @@ describe('POST /api/v1/auth/login', () => {
   });
 
   it('returns 400 when email or password is missing', async () => {
-    const res = await request(app)
+    const res = await http
       .post('/api/v1/auth/login')
       .send({ email: 'admin@nexfinance.com' });
     expect(res.statusCode).toBe(400);
@@ -70,7 +84,7 @@ describe('Protected routes return 401 without token', () => {
 
   protectedRoutes.forEach(([method, path]) => {
     it(`${method} ${path} → 401`, async () => {
-      const res = await request(app)[method.toLowerCase()](path);
+      const res = await http[method.toLowerCase()](path);
       expect(res.statusCode).toBe(401);
     });
   });
@@ -81,14 +95,14 @@ describe('Authenticated requests', () => {
   let token;
 
   beforeAll(async () => {
-    const res = await request(app)
+    const res = await http
       .post('/api/v1/auth/login')
       .send({ email: 'admin@nexfinance.com', password: 'admin123' });
     token = res.body.token;
   });
 
   it('GET /api/v1/auth/me returns user profile', async () => {
-    const res = await request(app)
+    const res = await http
       .get('/api/v1/auth/me')
       .set('Authorization', `Bearer ${token}`);
     expect(res.statusCode).toBe(200);
@@ -98,7 +112,7 @@ describe('Authenticated requests', () => {
   });
 
   it('GET /api/v1/dashboard/kpi returns KPI data', async () => {
-    const res = await request(app)
+    const res = await http
       .get('/api/v1/dashboard/kpi')
       .set('Authorization', `Bearer ${token}`);
     expect(res.statusCode).toBe(200);
@@ -107,7 +121,7 @@ describe('Authenticated requests', () => {
   });
 
   it('GET /api/v1/spp/invoices returns invoice list', async () => {
-    const res = await request(app)
+    const res = await http
       .get('/api/v1/spp/invoices')
       .set('Authorization', `Bearer ${token}`);
     expect(res.statusCode).toBe(200);
@@ -115,7 +129,7 @@ describe('Authenticated requests', () => {
   });
 
   it('GET /api/v1/accounting/journals returns journal list', async () => {
-    const res = await request(app)
+    const res = await http
       .get('/api/v1/accounting/journals')
       .set('Authorization', `Bearer ${token}`);
     expect(res.statusCode).toBe(200);
@@ -125,16 +139,16 @@ describe('Authenticated requests', () => {
 // ── Auth: Verify endpoint ─────────────────────────────────────────────────────
 describe('GET /api/v1/auth/verify', () => {
   it('returns valid:false without token', async () => {
-    const res = await request(app).get('/api/v1/auth/verify');
+    const res = await http.get('/api/v1/auth/verify');
     expect(res.statusCode).toBe(401);
     expect(res.body.valid).toBe(false);
   });
 
   it('returns valid:true with a valid token', async () => {
-    const loginRes = await request(app)
+    const loginRes = await http
       .post('/api/v1/auth/login')
       .send({ email: 'bendahara@nexfinance.com', password: 'bendahara123' });
-    const res = await request(app)
+    const res = await http
       .get('/api/v1/auth/verify')
       .set('Authorization', `Bearer ${loginRes.body.token}`);
     expect(res.statusCode).toBe(200);
@@ -144,16 +158,16 @@ describe('GET /api/v1/auth/verify', () => {
 
 describe('Role management and password change', () => {
   const login = async (email, password) => {
-    const response = await request(app).post('/api/v1/auth/login').send({ email, password });
+    const response = await http.post('/api/v1/auth/login').send({ email, password });
     return response.body.token;
   };
 
   it('allows Admin to manage users but not role permissions', async () => {
     const token = await login('admin@nexfinance.com', 'admin123');
-    const usersResponse = await request(app)
+    const usersResponse = await http
       .get('/api/v1/master/users')
       .set('Authorization', `Bearer ${token}`);
-    const permissionsResponse = await request(app)
+    const permissionsResponse = await http
       .get('/api/v1/master/role-permissions')
       .set('Authorization', `Bearer ${token}`);
 
@@ -163,7 +177,7 @@ describe('Role management and password change', () => {
 
   it('does not allow Admin to change a user role through user management', async () => {
     const token = await login('admin@nexfinance.com', 'admin123');
-    const response = await request(app)
+    const response = await http
       .put('/api/v1/master/users/USR004')
       .set('Authorization', `Bearer ${token}`)
       .send({ name: 'Staff TU Updated', role: 'admin' });
@@ -173,14 +187,14 @@ describe('Role management and password change', () => {
 
   it('allows an authenticated user to change their own password', async () => {
     const token = await login('staff@nexfinance.com', 'staff123');
-    const changed = await request(app)
+    const changed = await http
       .post('/api/v1/auth/change-password')
       .set('Authorization', `Bearer ${token}`)
       .send({ currentPassword: 'staff123', newPassword: 'staff1234', confirmPassword: 'staff1234' });
 
     expect(changed.statusCode).toBe(200);
 
-    const newLogin = await request(app)
+    const newLogin = await http
       .post('/api/v1/auth/login')
       .send({ email: 'staff@nexfinance.com', password: 'staff1234' });
     expect(newLogin.statusCode).toBe(200);
@@ -188,7 +202,7 @@ describe('Role management and password change', () => {
 
   it('keeps the user signed in and returns a clear error when current password is wrong', async () => {
     const token = await login('bendahara@nexfinance.com', 'bendahara123');
-    const changed = await request(app)
+    const changed = await http
       .post('/api/v1/auth/change-password')
       .set('Authorization', `Bearer ${token}`)
       .send({ currentPassword: 'salah-password', newPassword: 'bendahara1234', confirmPassword: 'bendahara1234' });
@@ -196,7 +210,7 @@ describe('Role management and password change', () => {
     expect(changed.statusCode).toBe(401);
     expect(changed.body.error).toBe('Password saat ini salah.');
 
-    const profile = await request(app)
+    const profile = await http
       .get('/api/v1/auth/me')
       .set('Authorization', `Bearer ${token}`);
     expect(profile.statusCode).toBe(200);
@@ -205,7 +219,7 @@ describe('Role management and password change', () => {
   it('lets Admin create, update, and deactivate a user without choosing a role', async () => {
     const token = await login('admin@nexfinance.com', 'admin123');
     const email = `admin-crud-${Date.now()}@nexfinance.com`;
-    const created = await request(app)
+    const created = await http
       .post('/api/v1/master/users')
       .set('Authorization', `Bearer ${token}`)
       .send({ name: 'Admin CRUD User', email, password: 'securepass123' });
@@ -213,14 +227,14 @@ describe('Role management and password change', () => {
     expect(created.statusCode).toBe(201);
     expect(created.body.data.role).toBe('staff');
 
-    const updated = await request(app)
+    const updated = await http
       .put(`/api/v1/master/users/${created.body.data.id}`)
       .set('Authorization', `Bearer ${token}`)
       .send({ name: 'Updated Admin CRUD User', status: 'inactive' });
     expect(updated.statusCode).toBe(200);
     expect(updated.body.data.name).toBe('Updated Admin CRUD User');
 
-    const deleted = await request(app)
+    const deleted = await http
       .delete(`/api/v1/master/users/${created.body.data.id}`)
       .set('Authorization', `Bearer ${token}`);
     expect(deleted.statusCode).toBe(200);
@@ -229,7 +243,7 @@ describe('Role management and password change', () => {
 
   it('prevents Admin from assigning a role when creating a user', async () => {
     const token = await login('admin@nexfinance.com', 'admin123');
-    const response = await request(app)
+    const response = await http
       .post('/api/v1/master/users')
       .set('Authorization', `Bearer ${token}`)
       .send({ name: 'Role Escalation', email: `role-${Date.now()}@nexfinance.com`, password: 'securepass123', role: 'super_admin' });

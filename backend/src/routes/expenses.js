@@ -1,61 +1,63 @@
+'use strict';
+
 const express = require('express');
-const router = express.Router();
 const auth = require('../middleware/auth');
 const rbac = require('../middleware/rbac');
-const { expenses, logActivity } = require('../db');
+const { logActivity } = require('../lib/activity');
+const { getRequestIp, ah, today } = require('../lib/http');
 
-const getRequestIp = (req) => (
-  req.headers['x-forwarded-for']?.split(',')[0]?.trim()
-  || req.socket?.remoteAddress
-  || '127.0.0.1'
-);
+const router = express.Router();
 
-router.get('/', auth, rbac('expenses'), (req, res) => {
-  res.json({ expenses });
-});
+router.get('/', auth, rbac('expenses'), ah(async (req, res) => {
+  res.json({ expenses: await req.store.list('expenses') });
+}));
 
-router.post('/submit', auth, rbac('expenses'), (req, res) => {
+router.post('/submit', auth, rbac('expenses'), ah(async (req, res) => {
   const ipAddress = getRequestIp(req);
   const { description, amount, category } = req.body;
   if (!description || !amount || !category) {
     return res.status(400).json({ error: 'description, amount and category are required' });
   }
-  const expense = {
-    id: `EXP${Date.now()}`,
+  const expense = await req.store.insert('expenses', {
+    id: await req.store.nextId('expenses'),
     description,
     amount: Number(amount),
     category,
     status: 'pending',
     submittedBy: req.user.email,
-    submittedAt: new Date().toISOString().split('T')[0],
+    submittedAt: today(),
     approvals: [],
-  };
-  expenses.unshift(expense);
-  logActivity(req.user.id, req.user.email, 'submit_expense', 'expenses', `Submitted expense ${expense.id}`, { expenseId: expense.id, amount: expense.amount, category: expense.category }, { ipAddress });
-  res.status(201).json(expense);
-});
+  });
+  await logActivity(req.store, req.user.id, req.user.email, 'submit_expense', 'expenses', `Submitted expense ${expense.id}`, { expenseId: expense.id, amount: expense.amount, category: expense.category }, { ipAddress });
+  return res.status(201).json(expense);
+}));
 
-router.post('/:id/approve', auth, rbac('expenses'), (req, res) => {
+router.post('/:id/approve', auth, rbac('expenses'), ah(async (req, res) => {
   const ipAddress = getRequestIp(req);
-  const expense = expenses.find(e => e.id === req.params.id);
+  let conflict = null;
+  const expense = await req.store.update('expenses', req.params.id, (current) => {
+    if (current.status !== 'pending') { conflict = `Cannot approve — status is ${current.status}`; return current; }
+    const approvals = [...(current.approvals || []), { approver: req.user.email, approvedAt: today() }];
+    return { ...current, approvals, status: approvals.length >= 2 ? 'approved' : current.status };
+  });
   if (!expense) return res.status(404).json({ error: 'Expense not found' });
-  if (expense.status !== 'pending') return res.status(400).json({ error: `Cannot approve — status is ${expense.status}` });
-  expense.approvals.push({ approver: req.user.email, approvedAt: new Date().toISOString().split('T')[0] });
-  if (expense.approvals.length >= 2) expense.status = 'approved';
-  logActivity(req.user.id, req.user.email, 'approve_expense', 'expenses', `Approved expense ${expense.id}`, { expenseId: expense.id, approvals: expense.approvals.length, status: expense.status }, { ipAddress });
-  res.json(expense);
-});
+  if (conflict) return res.status(400).json({ error: conflict });
+  await logActivity(req.store, req.user.id, req.user.email, 'approve_expense', 'expenses', `Approved expense ${expense.id}`, { expenseId: expense.id, approvals: expense.approvals.length, status: expense.status }, { ipAddress });
+  return res.json(expense);
+}));
 
-router.post('/:id/reject', auth, rbac('expenses'), (req, res) => {
+router.post('/:id/reject', auth, rbac('expenses'), ah(async (req, res) => {
   const ipAddress = getRequestIp(req);
-  const expense = expenses.find(e => e.id === req.params.id);
-  if (!expense) return res.status(404).json({ error: 'Expense not found' });
   const { reason } = req.body || {};
-  expense.status = 'rejected';
-  expense.rejectedAt = new Date().toISOString().split('T')[0];
-  expense.rejectedReason = reason || expense.rejectedReason || null;
-  logActivity(req.user.id, req.user.email, 'reject_expense', 'expenses', `Rejected expense ${expense.id}`, { expenseId: expense.id, reason: expense.rejectedReason }, { ipAddress, level: 'warning' });
-  res.json(expense);
-});
+  const expense = await req.store.update('expenses', req.params.id, (current) => ({
+    ...current,
+    status: 'rejected',
+    rejectedAt: today(),
+    rejectedReason: reason || current.rejectedReason || null,
+  }));
+  if (!expense) return res.status(404).json({ error: 'Expense not found' });
+  await logActivity(req.store, req.user.id, req.user.email, 'reject_expense', 'expenses', `Rejected expense ${expense.id}`, { expenseId: expense.id, reason: expense.rejectedReason }, { ipAddress, level: 'warning' });
+  return res.json(expense);
+}));
 
 module.exports = router;

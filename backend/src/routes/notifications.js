@@ -1,7 +1,7 @@
 const express = require('express');
 const auth = require('../middleware/auth');
 const rbac = require('../middleware/rbac');
-const { logActivity } = require('../db');
+const { logActivity } = require('../lib/activity');
 const { getNotificationConfig, sendEmailNotification, sendWhatsAppNotification } = require('../services/notifications');
 
 const router = express.Router();
@@ -27,7 +27,7 @@ router.post('/send', auth, rbac('notifications'), async (req, res) => {
     return res.status(400).json({ error: 'message is required' });
   }
 
-  logActivity(req.user.id, req.user.email, 'notification_attempt', 'notifications', `Notification attempt via ${channels.join(', ')}`, { channels, to, metadata }, { ipAddress });
+  await logActivity(req.store, req.user.id, req.user.email, 'notification_attempt', 'notifications', `Notification attempt via ${channels.join(', ')}`, { channels, to, metadata }, { ipAddress });
 
   const results = [];
   const errors = [];
@@ -52,11 +52,11 @@ router.post('/send', auth, rbac('notifications'), async (req, res) => {
   }
 
   if (errors.length > 0) {
-    logActivity(req.user.id, req.user.email, 'notification_failed', 'notifications', 'Notification send failed', { results, errors, channels }, { ipAddress, level: 'warning' });
+    await logActivity(req.store, req.user.id, req.user.email, 'notification_failed', 'notifications', 'Notification send failed', { results, errors, channels }, { ipAddress, level: 'warning' });
     return res.status(502).json({ status: 'failed', results, errors });
   }
 
-  logActivity(req.user.id, req.user.email, 'notification_sent', 'notifications', 'Notification sent successfully', { results, channels }, { ipAddress });
+  await logActivity(req.store, req.user.id, req.user.email, 'notification_sent', 'notifications', 'Notification sent successfully', { results, channels }, { ipAddress });
   return res.json({ status: 'success', results });
 });
 

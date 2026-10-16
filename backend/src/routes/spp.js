@@ -1,15 +1,13 @@
+'use strict';
+
 const express = require('express');
-const router = express.Router();
 const auth = require('../middleware/auth');
 const rbac = require('../middleware/rbac');
-const { sppInvoices, students, logActivity } = require('../db');
+const { logActivity } = require('../lib/activity');
+const { getRequestIp, ah } = require('../lib/http');
 const { sendEmailNotification, sendWhatsAppNotification } = require('../services/notifications');
 
-const getRequestIp = (req) => (
-  req.headers['x-forwarded-for']?.split(',')[0]?.trim()
-  || req.socket?.remoteAddress
-  || '127.0.0.1'
-);
+const router = express.Router();
 
 const enrichInvoice = (invoice) => ({
   ...invoice,
@@ -21,32 +19,26 @@ const enrichInvoice = (invoice) => ({
   payerEmail: invoice.payerEmail || invoice.email || null,
 });
 
-router.get('/invoices', auth, rbac('spp'), (req, res) => {
-  res.json({ invoices: sppInvoices.map(enrichInvoice) });
-});
+router.get('/invoices', auth, rbac('spp'), ah(async (req, res) => {
+  const invoices = await req.store.list('spp_invoices');
+  res.json({ invoices: invoices.map(enrichInvoice) });
+}));
 
-router.post('/invoices', auth, rbac('spp'), (req, res) => {
+router.post('/invoices', auth, rbac('spp'), ah(async (req, res) => {
+  const { store } = req;
   const ipAddress = getRequestIp(req);
   const {
-    studentId,
-    studentName,
-    class: className,
-    amount,
-    month,
-    payerName,
-    payerPhone,
-    payerEmail,
-    guardianName,
-    parentName,
+    studentId, studentName, class: className, amount, month,
+    payerName, payerPhone, payerEmail, guardianName, parentName,
   } = req.body;
   if (!studentId || !studentName || !amount || !month) {
     return res.status(400).json({ error: 'Missing required fields: studentId, studentName, amount, month' });
   }
-  const student = students.find((s) => s.id === studentId);
-  const invoiceId = `INV${Date.now()}`;
-  const invoice = {
-    id: invoiceId,
-    invoiceNumber: invoiceId,
+  const student = await store.get('students', studentId);
+  const id = await store.nextId('spp_invoices');
+  const invoice = await store.insert('spp_invoices', {
+    id,
+    invoiceNumber: id,
     studentId,
     studentName,
     class: className || student?.class || '-',
@@ -58,28 +50,35 @@ router.post('/invoices', auth, rbac('spp'), (req, res) => {
     payerName: payerName || guardianName || parentName || student?.guardianName || student?.parentName || null,
     payerPhone: payerPhone || student?.phone || null,
     payerEmail: payerEmail || student?.email || null,
-  };
-  sppInvoices.unshift(invoice);
-  logActivity(req.user.id, req.user.email, 'create_invoice', 'spp', `Created SPP invoice ${invoice.id} for ${invoice.studentName}`, { invoiceId: invoice.id, studentId: invoice.studentId, amount: invoice.amount, month: invoice.month }, { ipAddress });
-  res.status(201).json(enrichInvoice(invoice));
-});
+  });
+  await logActivity(store, req.user.id, req.user.email, 'create_invoice', 'spp', `Created SPP invoice ${invoice.id} for ${invoice.studentName}`, { invoiceId: invoice.id, studentId: invoice.studentId, amount: invoice.amount, month: invoice.month }, { ipAddress });
+  return res.status(201).json(enrichInvoice(invoice));
+}));
 
-router.post('/payment', auth, rbac('spp'), async (req, res) => {
+router.post('/payment', auth, rbac('spp'), ah(async (req, res) => {
+  const { store } = req;
   const ipAddress = getRequestIp(req);
   const { invoiceId, method, notify = false, notificationChannels = ['email', 'whatsapp'], payerContact = {} } = req.body;
   if (!invoiceId) return res.status(400).json({ error: 'invoiceId is required' });
-  const invoice = sppInvoices.find(i => i.id === invoiceId);
-  if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
-  if (invoice.status === 'paid') return res.status(400).json({ error: 'Invoice already paid' });
-  invoice.status = 'paid';
-  invoice.paidAt = new Date().toISOString();
-  invoice.paymentMethod = method || 'Transfer';
-  invoice.invoiceNumber = invoice.invoiceNumber || invoice.id;
-  invoice.payerName = invoice.payerName || payerContact.name || null;
-  invoice.payerPhone = invoice.payerPhone || payerContact.phone || null;
-  invoice.payerEmail = invoice.payerEmail || payerContact.email || null;
 
-  logActivity(req.user.id, req.user.email, 'record_payment', 'spp', `Recorded payment for ${invoice.studentName} (${invoice.id})`, {
+  let conflict = null;
+  const invoice = await store.update('spp_invoices', invoiceId, (current) => {
+    if (current.status === 'paid') { conflict = 'Invoice already paid'; return current; }
+    return {
+      ...current,
+      status: 'paid',
+      paidAt: new Date().toISOString(),
+      paymentMethod: method || 'Transfer',
+      invoiceNumber: current.invoiceNumber || current.id,
+      payerName: current.payerName || payerContact.name || null,
+      payerPhone: current.payerPhone || payerContact.phone || null,
+      payerEmail: current.payerEmail || payerContact.email || null,
+    };
+  });
+  if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
+  if (conflict) return res.status(400).json({ error: conflict });
+
+  await logActivity(store, req.user.id, req.user.email, 'record_payment', 'spp', `Recorded payment for ${invoice.studentName} (${invoice.id})`, {
     invoiceId: invoice.id,
     studentId: invoice.studentId,
     studentName: invoice.studentName,
@@ -119,15 +118,15 @@ router.post('/payment', auth, rbac('spp'), async (req, res) => {
     }
 
     if (errors.length > 0) {
-      logActivity(req.user.id, req.user.email, 'payment_notification_failed', 'spp', `Payment notification failed for ${invoice.id}`, { invoiceId: invoice.id, results, errors }, { ipAddress, level: 'warning' });
+      await logActivity(store, req.user.id, req.user.email, 'payment_notification_failed', 'spp', `Payment notification failed for ${invoice.id}`, { invoiceId: invoice.id, results, errors }, { ipAddress, level: 'warning' });
       return res.status(502).json({ error: 'Payment recorded but notification failed', invoice: enrichInvoice(invoice), notification: { status: 'failed', results, errors } });
     }
 
     notification = { status: 'success', results };
-    logActivity(req.user.id, req.user.email, 'payment_notification_sent', 'spp', `Payment notification sent for ${invoice.id}`, { invoiceId: invoice.id, channels }, { ipAddress });
+    await logActivity(store, req.user.id, req.user.email, 'payment_notification_sent', 'spp', `Payment notification sent for ${invoice.id}`, { invoiceId: invoice.id, channels }, { ipAddress });
   }
 
-  res.json({
+  return res.json({
     status: 'success',
     invoice: enrichInvoice(invoice),
     receipt: {
@@ -145,12 +144,13 @@ router.post('/payment', auth, rbac('spp'), async (req, res) => {
     },
     notification,
   });
-});
+}));
 
-router.get('/reports', auth, rbac('spp'), (req, res) => {
+router.get('/reports', auth, rbac('spp'), ah(async (req, res) => {
+  const sppInvoices = await req.store.list('spp_invoices');
   const total = sppInvoices.length;
-  const paid = sppInvoices.filter(i => i.status === 'paid').length;
-  const totalCollected = sppInvoices.filter(i => i.status === 'paid').reduce((s, i) => s + i.amount, 0);
+  const paid = sppInvoices.filter((i) => i.status === 'paid').length;
+  const totalCollected = sppInvoices.filter((i) => i.status === 'paid').reduce((s, i) => s + i.amount, 0);
   const totalInvoiced = sppInvoices.reduce((s, i) => s + i.amount, 0);
   res.json({
     totalStudents: total,
@@ -160,6 +160,6 @@ router.get('/reports', auth, rbac('spp'), (req, res) => {
     totalCollected,
     totalInvoiced,
   });
-});
+}));
 
 module.exports = router;

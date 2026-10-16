@@ -1,10 +1,17 @@
+'use strict';
+
 const express = require('express');
-const router = express.Router();
 const auth = require('../middleware/auth');
 const rbac = require('../middleware/rbac');
-const { sppInvoices, employees, payrollRuns, expenses, purchaseRequests, students } = require('../db');
+const { ah } = require('../lib/http');
 
-router.get('/kpi', auth, rbac('dashboard'), (req, res) => {
+const router = express.Router();
+
+const load = (store, names) => Promise.all(names.map((n) => store.list(n)));
+
+router.get('/kpi', auth, rbac('dashboard'), ah(async (req, res) => {
+  const [sppInvoices, employees, expenses, purchaseRequests, students] = await load(req.store,
+    ['spp_invoices', 'employees', 'expenses', 'purchase_requests', 'students']);
   const paidSPP = sppInvoices.filter(i => i.status === 'paid');
   const totalSPP = sppInvoices.length;
   const monthRevenue = paidSPP.reduce((s, i) => s + i.amount, 0);
@@ -24,9 +31,10 @@ router.get('/kpi', auth, rbac('dashboard'), (req, res) => {
     pendingExpenses,
     pendingPR,
   });
-});
+}));
 
-router.get('/monthly-report', auth, rbac('dashboard'), (req, res) => {
+router.get('/monthly-report', auth, rbac('dashboard'), ah(async (req, res) => {
+  const [sppInvoices, expenses, payrollRuns] = await load(req.store, ['spp_invoices', 'expenses', 'payroll_runs']);
   const paidSPP = sppInvoices.filter(i => i.status === 'paid');
   const revenue = paidSPP.reduce((s, i) => s + i.amount, 0) + 8500000;
   const expenseTotal = expenses.filter(e => e.status === 'approved').reduce((s, e) => s + e.amount, 0);
@@ -44,6 +52,6 @@ router.get('/monthly-report', auth, rbac('dashboard'), (req, res) => {
       operationalExpenses: expenseTotal,
     },
   });
-});
+}));
 
 module.exports = router;
