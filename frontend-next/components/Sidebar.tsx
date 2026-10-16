@@ -8,7 +8,10 @@ import {
   LifeBuoy,
 } from 'lucide-react';
 import { authService } from '@/lib/api';
-import BrandMark, { NexoraLogo } from '@/components/brand/BrandMark';
+import { NexoraLogo } from '@/components/brand/BrandMark';
+import TenantMark from '@/components/tenant/TenantMark';
+import { useTenant } from '@/components/tenant/TenantProvider';
+import { brandLines } from '@/lib/tenant';
 
 const NAV = [
   { label: 'Dashboard',       icon: LayoutDashboard, href: '/dashboard' },
@@ -49,6 +52,8 @@ interface SidebarProps {
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const router   = useRouter();
   const pathname = usePathname();
+  const tenant = useTenant();
+  const brand = brandLines(tenant);
   const [currentUser, setCurrentUser] = useState({ name: 'Administrator', role: 'Super Admin' });
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -131,23 +136,23 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         marginBottom: 14,
         borderBottom: '1px solid rgba(255,255,255,0.10)',
         /* subtle gradient accent at bottom of logo area */
-        background: 'linear-gradient(180deg, rgba(67, 115, 184,0.08) 0%, transparent 100%)',
+        background: 'linear-gradient(180deg, rgb(var(--brand-500-rgb) / 0.08) 0%, transparent 100%)',
         borderRadius: '12px 12px 0 0',
         marginInline: -4,
         paddingInline: 12,
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {/* Official NexFinance mark — pulses subtly */}
+            {/* School logo (or NexFinance mark) — pulses subtly */}
             <span className="nf-badge-pulse" style={{ display: 'inline-flex', borderRadius: '50%', flexShrink: 0 }}>
-              <BrandMark size={40} />
+              <TenantMark size={40} />
             </span>
             <div>
               <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', letterSpacing: '-0.3px', lineHeight: 1.2 }}>
-                NexFinance
+                {brand.title}
               </div>
               <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 3 }}>
-                Yayasan ISAk 35 · SIT
+                {brand.subtitle}
               </div>
             </div>
           </div>
@@ -165,8 +170,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           marginTop: 16,
           padding: '12px 12px 14px',
           borderRadius: 16,
-          background: 'linear-gradient(135deg, rgba(67, 115, 184,0.22) 0%, rgba(107, 79, 160,0.10) 100%)',
-          border: '1px solid rgba(143, 174, 224,0.18)',
+          background: 'linear-gradient(135deg, rgb(var(--brand-500-rgb) / 0.22) 0%, rgb(var(--nx-purple-rgb) / 0.10) 100%)',
+          border: '1px solid rgb(var(--brand-300-rgb) / 0.18)',
         }}>
           <div style={{
             display: 'inline-flex',
@@ -212,7 +217,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                   borderRadius: '50%',
                   background: 'var(--nx-gold)',
                   flexShrink: 0,
-                  boxShadow: '0 0 8px rgba(245, 183, 10, 0.65)',
+                  boxShadow: '0 0 8px rgb(var(--nx-gold-rgb) / 0.65)',
                 }} />
               )}
             </button>
@@ -278,8 +283,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             width: 36,
             height: 36,
             borderRadius: 10,
-            background: 'linear-gradient(135deg, rgba(67, 115, 184,0.55) 0%, rgba(52, 97, 168,0.55) 100%)',
-            border: '1.5px solid rgba(67, 115, 184,0.40)',
+            background: 'linear-gradient(135deg, rgb(var(--brand-500-rgb) / 0.55) 0%, rgb(var(--brand-600-rgb) / 0.55) 100%)',
+            border: '1.5px solid rgb(var(--brand-500-rgb) / 0.40)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -323,8 +328,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             {['currentPassword', 'newPassword', 'confirmPassword'].map((field) => (
               <input key={field} required minLength={field === 'currentPassword' ? 1 : 8} type="password" placeholder={field === 'currentPassword' ? 'Password saat ini' : field === 'newPassword' ? 'Password baru' : 'Konfirmasi password'} value={passwords[field as keyof typeof passwords]} onChange={(event) => setPasswords((prev) => ({ ...prev, [field]: event.target.value }))} style={{ width: '100%', marginBottom: 7, padding: '8px 9px', borderRadius: 8, border: '1px solid rgba(255,255,255,.16)', background: 'rgba(255,255,255,.08)', color: '#fff' }} />
             ))}
-            {passwordMessage && <div style={{ color: passwordMessage === PASSWORD_SUCCESS_MESSAGE ? '#c9d8f5' : '#ffaaaa', fontSize: 11, marginBottom: 7 }}>{passwordMessage}</div>}
-            <button type="submit" disabled={passwordBusy} className="nav-link" style={{ color: '#c9d8f5' }}>{passwordBusy ? 'Menyimpan...' : 'Simpan password'}</button>
+            {passwordMessage && <div style={{ color: passwordMessage === PASSWORD_SUCCESS_MESSAGE ? 'var(--brand-100)' : '#ffaaaa', fontSize: 11, marginBottom: 7 }}>{passwordMessage}</div>}
+            <button type="submit" disabled={passwordBusy} className="nav-link" style={{ color: 'var(--brand-100)' }}>{passwordBusy ? 'Menyimpan...' : 'Simpan password'}</button>
           </form>
         )}
 
@@ -339,10 +344,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           Keluar
         </button>
 
-        <div className="sidebar-powered">
-          <span>Produk dari</span>
-          <NexoraLogo height={16} />
-        </div>
+        {tenant.showPoweredBy && (
+          <div className="sidebar-powered">
+            <span>NexFinance · produk dari</span>
+            <NexoraLogo height={16} />
+          </div>
+        )}
       </div>
     </aside>
   );

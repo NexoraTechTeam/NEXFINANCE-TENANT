@@ -4,13 +4,17 @@ import { useState, useEffect, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { Menu } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
-import BrandMark from '@/components/brand/BrandMark';
+import TenantMark from '@/components/tenant/TenantMark';
+import { useTenant } from '@/components/tenant/TenantProvider';
+import { brandLines } from '@/lib/tenant';
 import HelpLauncher from '@/components/help/HelpLauncher';
+import ForcePasswordChange from '@/components/auth/ForcePasswordChange';
 import { TourProvider } from '@/components/tour/TourProvider';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const brand = brandLines(useTenant());
   const pageLabel =
     pathname === '/dashboard'
       ? 'Executive Overview'
@@ -58,7 +62,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           >
             <Menu size={20} strokeWidth={2} />
           </button>
-          <BrandMark size={30} />
+          <TenantMark size={30} />
           <span style={{
             display: 'flex',
             flexDirection: 'column',
@@ -71,7 +75,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               letterSpacing: '-0.3px',
               lineHeight: 1.1,
             }}>
-              NexFinance
+              {brand.title}
             </span>
             <span style={{
               fontSize: 11,
@@ -117,6 +121,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       </div>
 
       <HelpLauncher />
+      <ForcePasswordChange />
     </div>
     </TourProvider>
   );

@@ -5,7 +5,7 @@ const nextConfig = {
     return [
       {
         source: '/api/v1/:path*',
-        destination: `${process.env.BACKEND_URL || 'http://nexfinance-backend:5000'}/api/v1/:path*`,
+        destination: `${process.env.BACKEND_URL || 'http://nexfin-saas-backend:5000'}/api/v1/:path*`,
       },
     ];
   },

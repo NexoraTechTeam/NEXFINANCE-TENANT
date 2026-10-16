@@ -29,11 +29,22 @@ export interface FinancialReportPdfInput {
     assets: BalanceSheetItem[];
     liabilities: BalanceSheetItem[];
   };
+  /** Tenant palette (hex). Defaults to the Nexora palette. */
+  colors?: { navy?: string; primary?: string; secondary?: string };
+  /** Used in the downloaded file name, e.g. "al-musabbihin". */
+  fileSlug?: string;
 }
 
-const NAVY: RGB = [21, 45, 79];
-const BRAND: RGB = [67, 115, 184];
-const PURPLE: RGB = [107, 79, 160];
+const hexToRgb = (hex: string | undefined, fallback: RGB): RGB => {
+  if (!hex || !/^#[0-9a-f]{6}$/i.test(hex)) return fallback;
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+
+// Set per export from the tenant palette (browser-only, one export at a time).
+let NAVY: RGB = [21, 45, 79];
+let BRAND: RGB = [67, 115, 184];
+let PURPLE: RGB = [107, 79, 160];
 const GREEN: RGB = [16, 185, 129];
 const RED: RGB = [239, 68, 68];
 const SLATE: RGB = [71, 85, 105];
@@ -57,7 +68,7 @@ async function loadPdfModules() {
   return { jsPDF, autoTable };
 }
 
-function drawHeader(doc: import('jspdf').jsPDF, title: string, subtitle: string) {
+function drawHeader(doc: import('jspdf').jsPDF, title: string, subtitle: string, schoolName: string) {
   doc.setFillColor(...NAVY);
   doc.rect(0, 0, 595.28, 112, 'F');
   doc.setFillColor(...BRAND);
@@ -65,12 +76,12 @@ function drawHeader(doc: import('jspdf').jsPDF, title: string, subtitle: string)
 
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(24);
-  doc.text('NexFinance', 42, 44);
+  doc.setFontSize(schoolName.length > 34 ? 17 : 22);
+  doc.text(doc.splitTextToSize(schoolName, 330)[0], 42, 46);
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
-  doc.text('Sistem keuangan terpadu sekolah', 42, 64);
-  doc.text('Yayasan ISAk 35', 42, 80);
+  doc.text('Laporan keuangan entitas nirlaba (ISAK 35)', 42, 66);
+  doc.text('Disusun dengan NexFinance', 42, 82);
 
   const dateText = new Date().toLocaleDateString('id-ID', {
     weekday: 'long',
@@ -89,7 +100,7 @@ function drawHeader(doc: import('jspdf').jsPDF, title: string, subtitle: string)
   doc.text(dateText, 553, 46, { align: 'right' });
 }
 
-function drawFooter(doc: import('jspdf').jsPDF) {
+function drawFooter(doc: import('jspdf').jsPDF, footerLabel: string) {
   const totalPages = doc.getNumberOfPages();
 
   for (let page = 1; page <= totalPages; page += 1) {
@@ -99,7 +110,7 @@ function drawFooter(doc: import('jspdf').jsPDF) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(...SLATE);
-    doc.text('NexFinance • Exported financial report', 42, 818);
+    doc.text(`${footerLabel} • Laporan keuangan`, 42, 818);
     doc.text(`Page ${page} / ${totalPages}`, 553, 818, { align: 'right' });
   }
 }
@@ -157,6 +168,9 @@ export async function downloadFinancialReportPdf(input: FinancialReportPdfInput)
   const { jsPDF, autoTable } = await loadPdfModules();
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const pdfDoc = doc as import('jspdf').jsPDF & { lastAutoTable?: { finalY: number } };
+  NAVY = hexToRgb(input.colors?.navy, [21, 45, 79]);
+  BRAND = hexToRgb(input.colors?.primary, [67, 115, 184]);
+  PURPLE = hexToRgb(input.colors?.secondary, [107, 79, 160]);
 
   const totalPendapatan = input.monthly.reduce((sum, row) => sum + row.pendapatan, 0);
   const totalBeban = input.monthly.reduce((sum, row) => sum + row.beban, 0);
@@ -170,7 +184,8 @@ export async function downloadFinancialReportPdf(input: FinancialReportPdfInput)
   drawHeader(
     pdfDoc,
     input.reportName,
-    `${input.schoolName} • Tahun ${input.year} • Fokus tampilan: ${input.activeTabLabel}`
+    `${input.schoolName} • Tahun ${input.year} • Fokus tampilan: ${input.activeTabLabel}`,
+    input.schoolName,
   );
 
   let cursorY = drawSummaryCards(pdfDoc, [
@@ -251,7 +266,7 @@ export async function downloadFinancialReportPdf(input: FinancialReportPdfInput)
   });
 
   pdfDoc.addPage();
-  drawHeader(pdfDoc, 'Neraca Ringkas', `${input.schoolName} • Snapshot posisi keuangan ${input.year}`);
+  drawHeader(pdfDoc, 'Neraca Ringkas', `${input.schoolName} • Snapshot posisi keuangan ${input.year}`, input.schoolName);
 
   autoTable(pdfDoc, {
     startY: 182,
@@ -291,6 +306,7 @@ export async function downloadFinancialReportPdf(input: FinancialReportPdfInput)
     },
   });
 
-  drawFooter(pdfDoc);
-  pdfDoc.save(`NexFinance_Laporan_Keuangan_${input.year}.pdf`);
+  drawFooter(pdfDoc, input.schoolName);
+  const slug = (input.fileSlug || 'nexfinance').replace(/[^a-z0-9-]/gi, '');
+  pdfDoc.save(`${slug}_Laporan_Keuangan_${input.year}.pdf`);
 }

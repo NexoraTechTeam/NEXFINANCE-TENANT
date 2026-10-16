@@ -27,7 +27,8 @@ describe('official NexFinance branding', () => {
     render(<LoginPage />);
     expect(screen.getAllByRole('img', { name: 'NexFinance' }).length).toBeGreaterThanOrEqual(2);
     expect(screen.getByRole('img', { name: /Nexora/ })).toBeInTheDocument();
-    expect(screen.getByLabelText('Email')).toBeRequired();
+    expect(screen.getByLabelText(/Email atau username/)).toBeRequired();
+    expect(screen.getByLabelText(/Email atau username/)).toHaveAttribute('type', 'text');
     expect(screen.getByLabelText('Password')).toBeRequired();
   });
 });

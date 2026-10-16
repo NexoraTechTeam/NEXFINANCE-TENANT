@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { FileText, TrendingUp, BarChart2, Download, ExternalLink } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { accountingService } from '@/lib/api';
+import { useTenant } from '@/components/tenant/TenantProvider';
 import { downloadFinancialReportPdf } from '@/lib/report-pdf';
 import { toBalanceRows, toExpenseRows, toIncomeRows, toMonthlyRows, type LedgerMonth } from '@/lib/financials';
 
@@ -66,6 +67,8 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 };
 
 export default function ReportsPage() {
+  const tenant = useTenant();
+  const { palette } = tenant;
   const [activeTab, setActiveTab] = useState<'income'|'balance'|'cashflow'>('income');
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [exportError, setExportError] = useState('');
@@ -140,8 +143,8 @@ export default function ReportsPage() {
   const axisStyle = { fontSize: 13, fill: '#6b7280' };
   const activeTabLabel = reportTabs.find((tab) => tab.value === activeTab)?.label || 'Laporan';
   const complianceSummary = [
-    { label: 'Aset Bersih Tidak Terikat', value: fmt(unrestrictedFunds), color: '#4373b8' },
-    { label: 'Aset Bersih Terikat Temporer', value: fmt(restrictedFunds), color: '#6B4FA0' },
+    { label: 'Aset Bersih Tidak Terikat', value: fmt(unrestrictedFunds), color: 'var(--brand-500)' },
+    { label: 'Aset Bersih Terikat Temporer', value: fmt(restrictedFunds), color: 'var(--nx-purple)' },
     { label: 'Total Aset', value: fmt(liveAssets), color: '#10B981' },
     { label: 'Total Kewajiban', value: fmt(liveLiabilities), color: '#EF4444' },
   ];
@@ -154,8 +157,10 @@ export default function ReportsPage() {
     try {
       await downloadFinancialReportPdf({
         year: reportYear,
-        schoolName: 'Yayasan ISAk 35',
-        reportName: 'Laporan Keuangan NexFinance',
+        schoolName: tenant.name,
+        reportName: 'Laporan Keuangan',
+        colors: { navy: palette.sidebar, primary: palette.brand['500'], secondary: palette.secondary },
+        fileSlug: tenant.slug,
         activeTabLabel,
         monthly,
         income: incomeRows,
@@ -230,7 +235,7 @@ export default function ReportsPage() {
 
         /* ── ISAK35 section header accent (shared with other pages) ── */
         .isak35-section-header {
-          border-left: 3px solid #4373b8;
+          border-left: 3px solid var(--brand-500);
           padding-left: 12px;
         }
 
@@ -281,10 +286,10 @@ export default function ReportsPage() {
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
               padding: '11px 20px', borderRadius: 14,
-              background: 'linear-gradient(135deg, #6B4FA0, #5b4192)',
+              background: 'linear-gradient(135deg, var(--nx-purple), var(--nx-purple))',
               color: '#fff', border: 'none', fontSize: 14, fontWeight: 700,
               cursor: downloadingPdf ? 'wait' : 'pointer', minHeight: 46,
-              boxShadow: '0 18px 30px rgba(107, 79, 160,0.22)',
+              boxShadow: '0 18px 30px rgb(var(--nx-purple-rgb) / 0.22)',
             }}
           >
             <Download size={16} strokeWidth={1.8} />
@@ -311,12 +316,12 @@ export default function ReportsPage() {
       )}
 
       {/* ISAK35 Compliance Snapshot */}
-      <div className="card anim-fadeup" style={{ padding: 20, marginBottom: 18, background: 'linear-gradient(135deg, rgba(67, 115, 184,0.06), rgba(107, 79, 160,0.05))' }}>
+      <div className="card anim-fadeup" style={{ padding: 20, marginBottom: 18, background: 'linear-gradient(135deg, rgb(var(--brand-500-rgb) / 0.06), rgb(var(--nx-purple-rgb) / 0.05))' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
           <div style={{ flex: 1, minWidth: 200 }}>
             <div
               className="isak35-section-header"
-              style={{ fontSize: 12, fontWeight: 700, color: '#3461a8', letterSpacing: '.5px', textTransform: 'uppercase' }}
+              style={{ fontSize: 12, fontWeight: 700, color: 'var(--brand-600)', letterSpacing: '.5px', textTransform: 'uppercase' }}
             >
               ISAK 35 Compliance Snapshot
             </div>
@@ -351,8 +356,8 @@ export default function ReportsPage() {
         {[
           { label: 'Total Pendapatan YTD', value: fmt(liveRevenue),   color: '#10B981', bg: '#f0fdf6', border: '#10B98133' },
           { label: 'Total Beban YTD',      value: fmt(liveExpenses),  color: '#EF4444', bg: '#fff5f5', border: '#EF444433' },
-          { label: 'Surplus Bersih YTD',   value: fmt(liveNetIncome), color: '#4373b8', bg: '#eef3fb', border: '#4373b833' },
-          { label: 'Margin Bersih',        value: liveMargin + '%',   color: '#6B4FA0', bg: '#f3effa', border: '#6B4FA033' },
+          { label: 'Surplus Bersih YTD',   value: fmt(liveNetIncome), color: 'var(--brand-500)', bg: 'var(--brand-50)', border: 'color-mix(in srgb, var(--brand-500) 20%, transparent)' },
+          { label: 'Margin Bersih',        value: liveMargin + '%',   color: 'var(--nx-purple)', bg: 'var(--nx-purple-50)', border: 'color-mix(in srgb, var(--nx-purple) 20%, transparent)' },
         ].map((s, i) => (
           <div key={i} className="card card-hover anim-fadeup" style={{ padding: '18px 20px', background: s.bg, border: `1px solid ${s.border}`, borderTop: `4px solid ${s.color}` }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: s.color, textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 }}>{s.label}</div>
@@ -432,7 +437,7 @@ export default function ReportsPage() {
             >
               Laporan Aktivitas — YTD {reportYear}
             </div>
-            <div style={{ fontSize: 11, color: 'var(--text-4)', marginBottom: 12 }}>ISAK 35 — Entitas Nirlaba Pesantren</div>
+            <div style={{ fontSize: 11, color: 'var(--text-4)', marginBottom: 12 }}>ISAK 35 — Entitas Nirlaba</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
               {([
                 ['PENDAPATAN',      '',               '',        'header'],
@@ -443,28 +448,28 @@ export default function ReportsPage() {
                 ...expenseRows.map((item) => [item.label, item.amount, '#EF4444', ''] as [string, number, string, string]),
                 ['Total Beban',      totalBeban,      '#EF4444', 'total'],
                 ['',                 '',               '',        'spacer'],
-                ['SURPLUS BERSIH',   totalSurplus,    '#4373b8', 'final'],
+                ['SURPLUS BERSIH',   totalSurplus,    'var(--brand-500)', 'final'],
               ] as [string, number|string, string, string][]).map(([label, val, color, type], i) => {
                 if (type === 'spacer') return <div key={i} style={{ height: 12 }} />;
                 if (type === 'header') return (
                   <div key={i} style={{
-                    fontSize: 11, fontWeight: 700, color: '#4373b8',
+                    fontSize: 11, fontWeight: 700, color: 'var(--brand-500)',
                     textTransform: 'uppercase', letterSpacing: '.8px',
                     padding: '8px 12px', marginTop: 4, marginBottom: 2,
-                    background: '#eef3fb', borderRadius: 6,
-                    borderLeft: '3px solid #4373b8',
+                    background: 'var(--brand-50)', borderRadius: 6,
+                    borderLeft: '3px solid var(--brand-500)',
                   }}>{label}</div>
                 );
                 if (type === 'final') return (
                   <div key={i} style={{
                     display: 'flex', justifyContent: 'space-between',
                     padding: '12px 14px', marginTop: 4,
-                    background: 'linear-gradient(90deg, #eef3fb, #eaf0fa)',
-                    borderRadius: 10, border: '1.5px solid #4373b833',
+                    background: 'linear-gradient(90deg, var(--brand-50), var(--brand-50))',
+                    borderRadius: 10, border: '1.5px solid color-mix(in srgb, var(--brand-500) 20%, transparent)',
                     flexWrap: 'wrap', gap: 4,
                   }}>
-                    <span style={{ fontSize: 14, fontWeight: 800, color: '#4373b8' }}>{label}</span>
-                    <span style={{ fontSize: 'clamp(14px, 3vw, 15px)', fontWeight: 800, color: '#4373b8' }}>{val ? fmt(val as number) : ''}</span>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--brand-500)' }}>{label}</span>
+                    <span style={{ fontSize: 'clamp(14px, 3vw, 15px)', fontWeight: 800, color: 'var(--brand-500)' }}>{val ? fmt(val as number) : ''}</span>
                   </div>
                 );
                 return (
@@ -498,7 +503,7 @@ export default function ReportsPage() {
                   <YAxis tick={axisStyle} tickFormatter={v => `${v/1e6}Jt`} axisLine={false} tickLine={false} width={44} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 13 }} />
-                  <Line type="monotone" dataKey="surplus" name="Surplus" stroke="#4373b8" strokeWidth={2.5} dot={{ r: 5, fill: '#4373b8' }} activeDot={{ r: 7 }} />
+                  <Line type="monotone" dataKey="surplus" name="Surplus" stroke={palette.brand['500']} strokeWidth={2.5} dot={{ r: 5, fill: palette.brand['500'] }} activeDot={{ r: 7 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -551,7 +556,7 @@ export default function ReportsPage() {
             </div>
             <div className="rpt-balance-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '11px 0', borderBottom: '1px solid var(--border)', fontSize: 14, flexWrap: 'wrap', gap: 4 }}>
               <span style={{ color: 'var(--text-2)' }}>Aset Bersih (Ekuitas)</span>
-              <span style={{ fontWeight: 700, color: '#4373b8', whiteSpace: 'nowrap' }}>{fmt(equity)}</span>
+              <span style={{ fontWeight: 700, color: 'var(--brand-500)', whiteSpace: 'nowrap' }}>{fmt(equity)}</span>
             </div>
             <div className="rpt-balance-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '13px 0', marginTop: 4, borderBottom: '3px double #10B981', fontSize: 15, fontWeight: 800, flexWrap: 'wrap', gap: 4 }}>
               <span style={{ color: 'var(--text)' }}>Total Kewajiban + Ekuitas</span>
@@ -571,7 +576,7 @@ export default function ReportsPage() {
             Laporan Arus Kas — Tren Bulanan {reportYear}
           </div>
           <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 20 }}>
-            ISAK 35 — Arus kas operasional, investasi, dan pendanaan pesantren
+            ISAK 35 — Arus kas operasional, investasi, dan pendanaan
           </p>
           <div className="reports-chart-tall" style={{ height: 340 }}>
             <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={340}>
@@ -581,7 +586,7 @@ export default function ReportsPage() {
                 <YAxis tick={axisStyle} tickFormatter={v => `${v/1e6}Jt`} axisLine={false} tickLine={false} width={44} />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc' }} />
                 <Legend wrapperStyle={{ fontSize: 13, paddingTop: 8 }} />
-                <Bar dataKey="pendapatan" name="Pendapatan" fill="#4373b8" radius={[5,5,0,0]} />
+                <Bar dataKey="pendapatan" name="Pendapatan" fill={palette.brand['500']} radius={[5,5,0,0]} />
                 <Bar dataKey="beban"      name="Beban"      fill="#EF4444" radius={[5,5,0,0]} />
                 <Bar dataKey="surplus"    name="Surplus"    fill="#10B981" radius={[5,5,0,0]} />
               </BarChart>
@@ -591,10 +596,10 @@ export default function ReportsPage() {
           {/* Cash flow summary rows */}
           <div style={{ marginTop: 24, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
             {[
-              { label: 'Total Pendapatan', value: fmt(yearPendapatan), color: '#4373b8' },
+              { label: 'Total Pendapatan', value: fmt(yearPendapatan), color: 'var(--brand-500)' },
               { label: 'Total Beban', value: fmt(yearBeban), color: '#EF4444' },
               { label: 'Surplus Kumulatif', value: fmt(yearSurplus), color: '#10B981' },
-              { label: 'Margin Bersih', value: yearMargin + '%', color: '#6B4FA0' },
+              { label: 'Margin Bersih', value: yearMargin + '%', color: 'var(--nx-purple)' },
             ].map((item, i) => (
               <div key={i} style={{ padding: '12px 14px', borderRadius: 12, background: '#f8fafc', border: '1px solid var(--border)' }}>
                 <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.4px', color: item.color, marginBottom: 6 }}>{item.label}</div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTenant } from '@/components/tenant/TenantProvider';
 import { sppService } from '@/lib/api';
 import { DollarSign, TrendingUp, CheckCircle, Clock, AlertCircle, Plus, CreditCard, X, Search, Info } from 'lucide-react';
 
@@ -21,6 +22,7 @@ const badgeClass = (status: string) => {
 };
 
 export default function SPPPage() {
+  const tenant = useTenant();
   const [invoices, setInvoices]   = useState<any[]>([]);
   const [loading, setLoading]     = useState(true);
   const [filter, setFilter]       = useState('all');
@@ -71,11 +73,11 @@ export default function SPPPage() {
     });
 
   const statCards = [
-    { label: 'Total Invoice',    value: invoices.length,          color: '#4373b8', icon: DollarSign,   filter: 'all'    },
+    { label: 'Total Invoice',    value: invoices.length,          color: 'var(--brand-500)', icon: DollarSign,   filter: 'all'    },
     { label: 'Sudah Lunas',      value: paid.length,              color: '#10B981', icon: CheckCircle,  filter: 'paid'   },
     { label: 'Belum Bayar',      value: unpaid.length,            color: '#F59E0B', icon: Clock,        filter: 'unpaid' },
-    { label: 'Collection Rate',  value: rate + '%',               color: '#6B4FA0', icon: TrendingUp,   filter: 'all'    },
-    { label: 'Total Terkumpul',  value: fmtShort(totalCollected), color: '#2A4F8C', icon: DollarSign,   filter: 'paid'   },
+    { label: 'Collection Rate',  value: rate + '%',               color: 'var(--nx-purple)', icon: TrendingUp,   filter: 'all'    },
+    { label: 'Total Terkumpul',  value: fmtShort(totalCollected), color: 'var(--brand-700)', icon: DollarSign,   filter: 'paid'   },
   ];
 
   return (
@@ -94,14 +96,14 @@ export default function SPPPage() {
       <div className="page-header">
         <div>
           <h1 className="spp-page-title" style={{ fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px', marginBottom: 5 }}>Manajemen SPP</h1>
-          <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Penagihan &amp; pembayaran SPP siswa Yayasan ISAk 35</p>
+          <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Penagihan &amp; pembayaran SPP siswa {tenant.shortName}</p>
         </div>
         <button
           onClick={() => setModal('create')}
           className="spp-create-btn"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 20px', borderRadius: 10, background: '#4373b8', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer', minHeight: 44, transition: 'background 180ms ease, transform 180ms ease, box-shadow 180ms ease' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#3461a8'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 14px rgba(67, 115, 184,0.35)'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#4373b8'; (e.currentTarget as HTMLButtonElement).style.transform = ''; (e.currentTarget as HTMLButtonElement).style.boxShadow = ''; }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 20px', borderRadius: 10, background: 'var(--brand-500)', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer', minHeight: 44, transition: 'background 180ms ease, transform 180ms ease, box-shadow 180ms ease' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--brand-600)'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 14px rgb(var(--brand-500-rgb) / 0.35)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--brand-500)'; (e.currentTarget as HTMLButtonElement).style.transform = ''; (e.currentTarget as HTMLButtonElement).style.boxShadow = ''; }}
         >
           <Plus size={17} strokeWidth={2} /> Buat Invoice
         </button>
@@ -122,7 +124,7 @@ export default function SPPPage() {
                 <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '.5px' }}>{s.label}</div>
                 <div style={{
                   width: 32, height: 32, borderRadius: 8,
-                  background: `linear-gradient(135deg, ${s.color}15, ${s.color}25)`,
+                  background: `linear-gradient(135deg, color-mix(in srgb, ${s.color} 8%, transparent), color-mix(in srgb, ${s.color} 15%, transparent))`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                 }}>
                   <Icon size={16} color={s.color} strokeWidth={2} />
@@ -196,12 +198,12 @@ export default function SPPPage() {
                     style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? '#fff' : '#fafbfc', transition: 'background 150ms' }}
                   >
                     <td className="spp-col-hide" style={{ padding: '14px 16px' }}>
-                      <span style={{ background: '#eef3fb', color: '#4373b8', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, fontFamily: 'monospace' }}>{inv.id}</span>
+                      <span style={{ background: 'var(--brand-50)', color: 'var(--brand-500)', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700, fontFamily: 'monospace' }}>{inv.id}</span>
                     </td>
                     <td style={{ padding: '14px 16px', fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{inv.studentName}</td>
                     <td className="spp-col-hide" style={{ padding: '14px 16px', color: 'var(--text-2)', fontSize: 14 }}>{inv.class}</td>
                     <td style={{ padding: '14px 16px', color: 'var(--text-2)', fontSize: 14, whiteSpace: 'nowrap' }}>{inv.month}</td>
-                    <td style={{ padding: '14px 16px', fontWeight: 700, color: '#4373b8', fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(inv.amount)}</td>
+                    <td style={{ padding: '14px 16px', fontWeight: 700, color: 'var(--brand-500)', fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(inv.amount)}</td>
                     <td className="spp-col-hide" style={{ padding: '14px 16px', color: 'var(--text-3)', fontSize: 13, whiteSpace: 'nowrap' }}>{fmtDate(inv.dueDate)}</td>
                     <td style={{ padding: '14px 16px' }}>
                       <span className={badgeClass(inv.status)}>
@@ -277,8 +279,8 @@ export default function SPPPage() {
                 </select>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: '#eef3fb', border: '1px solid #dce6f6', borderRadius: 10, padding: '12px 16px', marginBottom: 24 }}>
-              <Info size={16} color="#4373b8" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'var(--brand-50)', border: '1px solid var(--brand-100)', borderRadius: 10, padding: '12px 16px', marginBottom: 24 }}>
+              <Info size={16} color="var(--brand-500)" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
               <span style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>
                 Invoice akan dibuat dengan jatuh tempo <strong>7 hari</strong> dan status <strong>Belum Bayar</strong>.
               </span>
@@ -288,7 +290,7 @@ export default function SPPPage() {
               <button
                 onClick={handleCreate}
                 disabled={submitting}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '11px 20px', borderRadius: 8, background: '#4373b8', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer', fontFamily: 'inherit', minHeight: 44, opacity: submitting ? 0.7 : 1, transition: 'background 160ms ease' }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '11px 20px', borderRadius: 8, background: 'var(--brand-500)', color: '#fff', border: 'none', fontSize: 14, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer', fontFamily: 'inherit', minHeight: 44, opacity: submitting ? 0.7 : 1, transition: 'background 160ms ease' }}
               >
                 <Plus size={16} /> {submitting ? 'Menyimpan...' : 'Buat Invoice'}
               </button>
@@ -311,7 +313,7 @@ export default function SPPPage() {
               {[['Siswa', selected.studentName], ['Kelas', selected.class], ['Bulan', selected.month], ['Jumlah', fmt(selected.amount)], ['Jatuh Tempo', fmtDate(selected.dueDate)]].map(([k, v]) => (
                 <div key={k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderBottom: '1px solid var(--border)', fontSize: 14 }}>
                   <span style={{ color: 'var(--text-3)' }}>{k}</span>
-                  <span style={{ fontWeight: 700, color: k === 'Jumlah' ? '#4373b8' : 'var(--text)' }}>{v}</span>
+                  <span style={{ fontWeight: 700, color: k === 'Jumlah' ? 'var(--brand-500)' : 'var(--text)' }}>{v}</span>
                 </div>
               ))}
             </div>
@@ -461,7 +463,7 @@ export default function SPPPage() {
 
         /* ── Table row hover ── */
         .spp-table-row:hover {
-          background: #eef3fb !important;
+          background: var(--brand-50) !important;
         }
       `}</style>
     </div>

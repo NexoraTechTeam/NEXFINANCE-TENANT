@@ -17,7 +17,10 @@ import {
   Users2,
 } from 'lucide-react';
 import { authService } from '@/lib/api';
-import BrandMark, { NexoraLogo } from '@/components/brand/BrandMark';
+import { NexoraLogo } from '@/components/brand/BrandMark';
+import TenantMark from '@/components/tenant/TenantMark';
+import { useTenant } from '@/components/tenant/TenantProvider';
+import { brandLines } from '@/lib/tenant';
 
 const features = [
   {
@@ -53,12 +56,12 @@ function getErrorMessage(error: unknown) {
     const response = (error as { response?: { data?: { error?: string } } }).response;
     if (typeof response?.data?.error === 'string') {
       return response.data.error === 'Invalid credentials'
-        ? 'Email atau password salah.'
+        ? 'Email/username atau password salah.'
         : response.data.error;
     }
   }
 
-  return 'Login gagal. Periksa email dan password Anda.';
+  return 'Login gagal. Periksa email/username dan password Anda.';
 }
 
 export default function LoginPage() {
@@ -68,6 +71,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const tenant = useTenant();
+  const brand = brandLines(tenant);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -102,10 +107,10 @@ export default function LoginPage() {
           </div>
 
           <div className="auth-brand-row">
-            <div className="auth-brand-mark"><BrandMark size={54} /></div>
+            <div className="auth-brand-mark"><TenantMark size={54} /></div>
             <div>
-              <div className="auth-brand-name">NexFinance</div>
-              <div className="auth-brand-subtitle">Yayasan ISAk 35</div>
+              <div className="auth-brand-name">{brand.title}</div>
+              <div className="auth-brand-subtitle">{brand.subtitle}</div>
             </div>
           </div>
 
@@ -146,10 +151,10 @@ export default function LoginPage() {
         <section className="glass-card auth-panel anim-fadeup">
           <div className="auth-panel-top">
             <div className="auth-panel-brand">
-              <div className="auth-brand-mark auth-brand-mark-small"><BrandMark size={42} /></div>
+              <div className="auth-brand-mark auth-brand-mark-small"><TenantMark size={42} /></div>
               <div>
-                <div className="auth-panel-brand-name">NexFinance</div>
-                <div className="auth-panel-brand-subtitle">Yayasan ISAk 35 • SIT</div>
+                <div className="auth-panel-brand-name">{brand.title}</div>
+                <div className="auth-panel-brand-subtitle">{brand.subtitle}</div>
               </div>
             </div>
 
@@ -174,7 +179,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="auth-field">
               <label htmlFor="email" className="auth-label">
-                Email
+                Email atau username
               </label>
               <div className="auth-input-wrap">
                 <span className="auth-input-icon" aria-hidden="true">
@@ -182,12 +187,15 @@ export default function LoginPage() {
                 </span>
                 <input
                   id="email"
-                  type="email"
+                  type="text"
+                  inputMode="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   className="glass-input"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Masukkan email Anda"
-                  autoComplete="email"
+                  placeholder="Masukkan email atau username"
+                  autoComplete="username"
                   required
                 />
               </div>
@@ -233,12 +241,14 @@ export default function LoginPage() {
               <ShieldCheck size={14} strokeWidth={2} />
               Protected auth flow
             </div>
-            <div className="auth-footer-note">© 2026 NexFinance • Yayasan ISAk 35</div>
+            <div className="auth-footer-note">© {new Date().getFullYear()} {tenant.name}</div>
           </div>
-          <div className="auth-powered">
-            <span>Produk dari</span>
-            <NexoraLogo height={20} />
-          </div>
+          {tenant.showPoweredBy && (
+            <div className="auth-powered">
+              <span>NexFinance — produk dari</span>
+              <NexoraLogo height={20} />
+            </div>
+          )}
         </section>
       </div>
 
@@ -264,8 +274,8 @@ export default function LoginPage() {
           100% { background-position: 0% 50%; }
         }
         @keyframes cardGlowPulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(67, 115, 184, 0); }
-          50%       { box-shadow: 0 0 18px 4px rgba(67, 115, 184, 0.18); }
+          0%, 100% { box-shadow: 0 0 0 0 rgb(var(--brand-500-rgb) / 0); }
+          50%       { box-shadow: 0 0 18px 4px rgb(var(--brand-500-rgb) / 0.18); }
         }
 
         /* ── Shell ── */
@@ -273,7 +283,7 @@ export default function LoginPage() {
           position: relative;
           min-height: 100vh;
           overflow: hidden;
-          background: linear-gradient(135deg, rgba(16, 36, 64, 0.98) 0%, rgba(12, 28, 52, 0.96) 100%);
+          background: linear-gradient(135deg, rgb(var(--nx-navy-deep-rgb) / 0.98) 0%, rgb(var(--nx-navy-deep-rgb) / 0.96) 100%);
           color: #fff;
         }
 
@@ -304,7 +314,7 @@ export default function LoginPage() {
           height: 560px;
           top: -160px;
           left: -120px;
-          background: radial-gradient(circle, rgba(67, 115, 184, 0.22) 0%, rgba(52, 97, 168, 0.1) 50%, transparent 72%);
+          background: radial-gradient(circle, rgb(var(--brand-500-rgb) / 0.22) 0%, rgb(var(--brand-600-rgb) / 0.1) 50%, transparent 72%);
           animation: orbFloat 14s ease-in-out infinite;
         }
 
@@ -313,7 +323,7 @@ export default function LoginPage() {
           height: 500px;
           right: -140px;
           bottom: -180px;
-          background: radial-gradient(circle, rgba(107, 79, 160, 0.30) 0%, rgba(107, 79, 160, 0.10) 52%, transparent 76%);
+          background: radial-gradient(circle, rgb(var(--nx-purple-rgb) / 0.30) 0%, rgb(var(--nx-purple-rgb) / 0.10) 52%, transparent 76%);
           animation: orbPulse 18s ease-in-out infinite;
         }
 
@@ -322,7 +332,7 @@ export default function LoginPage() {
           height: 280px;
           left: 48%;
           top: 26%;
-          background: radial-gradient(circle, rgba(245, 183, 10, 0.12) 0%, transparent 70%);
+          background: radial-gradient(circle, rgb(var(--nx-gold-rgb) / 0.12) 0%, transparent 70%);
           animation: orbDrift 22s ease-in-out infinite;
         }
 
@@ -340,9 +350,9 @@ export default function LoginPage() {
           gap: 8px;
           padding: 8px 14px;
           border-radius: 999px;
-          background: rgba(67, 115, 184, 0.14);
-          border: 1px solid rgba(143, 174, 224, 0.24);
-          color: #c9d8f5;
+          background: rgb(var(--brand-500-rgb) / 0.14);
+          border: 1px solid rgb(var(--brand-300-rgb) / 0.24);
+          color: var(--brand-100);
           font-size: 12px;
           font-weight: 700;
           letter-spacing: 0.38px;
@@ -366,7 +376,7 @@ export default function LoginPage() {
           justify-content: center;
           border-radius: 50%;
           background: transparent;
-          box-shadow: 0 16px 34px rgba(67, 115, 184, 0.38), 0 0 0 1px rgba(255,255,255,0.12);
+          box-shadow: 0 16px 34px rgb(var(--brand-500-rgb) / 0.38), 0 0 0 1px rgba(255,255,255,0.12);
           flex-shrink: 0;
         }
         .auth-brand-mark img { width: 100%; height: 100%; }
@@ -387,7 +397,7 @@ export default function LoginPage() {
           width: 42px;
           height: 42px;
           border-radius: 50%;
-          box-shadow: 0 12px 24px rgba(67, 115, 184, 0.3), 0 0 0 1px rgba(255,255,255,0.12);
+          box-shadow: 0 12px 24px rgb(var(--brand-500-rgb) / 0.3), 0 0 0 1px rgba(255,255,255,0.12);
         }
 
         .auth-brand-name,
@@ -417,7 +427,7 @@ export default function LoginPage() {
 
         .auth-title span {
           display: block;
-          background: linear-gradient(90deg, #a9c1ec, #c9b8ee, #ffd45c);
+          background: linear-gradient(90deg, var(--brand-200), var(--brand-200), var(--nx-gold));
           background-size: 200% auto;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -452,9 +462,9 @@ export default function LoginPage() {
         }
 
         .auth-highlight-card:hover {
-          background: rgba(67, 115, 184, 0.1);
-          border-color: rgba(143, 174, 224, 0.28);
-          box-shadow: 0 0 20px rgba(67, 115, 184, 0.15), inset 0 1px 0 rgba(255,255,255,0.06);
+          background: rgb(var(--brand-500-rgb) / 0.1);
+          border-color: rgb(var(--brand-300-rgb) / 0.28);
+          box-shadow: 0 0 20px rgb(var(--brand-500-rgb) / 0.15), inset 0 1px 0 rgba(255,255,255,0.06);
           transform: translateY(-2px);
         }
 
@@ -494,7 +504,7 @@ export default function LoginPage() {
 
         .auth-feature-card:hover {
           background: rgba(255, 255, 255, 0.07);
-          border-color: rgba(143, 174, 224, 0.2);
+          border-color: rgb(var(--brand-300-rgb) / 0.2);
           transform: translateY(-2px);
         }
 
@@ -507,10 +517,10 @@ export default function LoginPage() {
           align-items: center;
           justify-content: center;
           border-radius: 14px;
-          background: linear-gradient(135deg, rgba(67, 115, 184, 0.22) 0%, rgba(143, 174, 224, 0.12) 100%);
-          color: #c9d8f5;
-          border: 1px solid rgba(143, 174, 224, 0.22);
-          box-shadow: 0 4px 14px rgba(67, 115, 184, 0.14), inset 0 1px 0 rgba(255,255,255,0.08);
+          background: linear-gradient(135deg, rgb(var(--brand-500-rgb) / 0.22) 0%, rgb(var(--brand-300-rgb) / 0.12) 100%);
+          color: var(--brand-100);
+          border: 1px solid rgb(var(--brand-300-rgb) / 0.22);
+          box-shadow: 0 4px 14px rgb(var(--brand-500-rgb) / 0.14), inset 0 1px 0 rgba(255,255,255,0.08);
         }
 
         .auth-feature-title {
@@ -556,9 +566,9 @@ export default function LoginPage() {
           gap: 6px;
           padding: 8px 12px;
           border-radius: 999px;
-          background: rgba(67, 115, 184, 0.12);
-          border: 1px solid rgba(143, 174, 224, 0.18);
-          color: #c9d8f5;
+          background: rgb(var(--brand-500-rgb) / 0.12);
+          border: 1px solid rgb(var(--brand-300-rgb) / 0.18);
+          color: var(--brand-100);
           font-size: 12px;
           font-weight: 700;
           white-space: nowrap;
@@ -575,7 +585,7 @@ export default function LoginPage() {
           margin-bottom: 10px;
           font-size: 12px;
           font-weight: 700;
-          color: #a9c1ec;
+          color: var(--brand-200);
           letter-spacing: 0.36px;
           text-transform: uppercase;
         }
@@ -725,7 +735,7 @@ export default function LoginPage() {
         /* ── Breakpoint: tablet portrait / large mobile (820px) ── */
         @media (max-width: 820px) {
           .auth-shell {
-            background: linear-gradient(180deg, rgba(16, 36, 64, 1) 0%, rgba(14, 31, 56, 1) 100%);
+            background: linear-gradient(180deg, rgb(var(--nx-navy-deep-rgb) / 1) 0%, rgb(var(--nx-navy-deep-rgb) / 1) 100%);
           }
 
           .auth-grid {
@@ -848,7 +858,7 @@ export default function LoginPage() {
 
           .auth-title span {
             animation: none;
-            background: linear-gradient(90deg, #a9c1ec, #ffd45c);
+            background: linear-gradient(90deg, var(--brand-200), var(--nx-gold));
             background-size: 100% auto;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
