@@ -33,6 +33,7 @@
     "moment": "^2.29.4",
     "pdfkit": "^0.13.0",
     "pg": "^8.11.0",
+    "sharp": "^0.33.5",
     "uuid": "^9.0.1"
   },
   "devDependencies": {

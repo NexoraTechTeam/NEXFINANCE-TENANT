@@ -19,7 +19,7 @@ function resolveTenant(knex, { cacheTtlMs = 30_000 } = {}) {
     return tenant;
   };
 
-  return async (req, res, next) => {
+  const middleware = async (req, res, next) => {
     try {
       const forwarded = req.headers['x-forwarded-host']?.split(',')[0];
       const host = normalizeHost(forwarded || req.headers.host);
@@ -35,6 +35,9 @@ function resolveTenant(knex, { cacheTtlMs = 30_000 } = {}) {
       return next(err);
     }
   };
+  /** Drop cached lookups (after console changes to status or domains). */
+  middleware.invalidate = () => cache.clear();
+  return middleware;
 }
 
 module.exports = { resolveTenant };

@@ -5,6 +5,9 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { resolveTenant } = require('./middleware/tenant');
 const { createAuthRouter } = require('./routes/auth');
+const { createConsoleRouter } = require('./routes/console');
+const { createTenantRouter } = require('./routes/tenant');
+const { requireConsoleHost } = require('./middleware/console');
 
 /**
  * Builds the API. All tenant routes live under /api/v1 and are scoped by host.
@@ -23,7 +26,14 @@ function createApp({ knex, config = {} }) {
     res.json({ status: 'ok', timestamp: new Date() });
   });
 
-  app.use('/api/v1', resolveTenant(knex, { cacheTtlMs: config.tenantCacheTtlMs }));
+  const tenantResolver = resolveTenant(knex, { cacheTtlMs: config.tenantCacheTtlMs });
+
+  app.use('/api/v1/console',
+    requireConsoleHost(config.consoleHosts || []),
+    createConsoleRouter({ knex, config, onTenantsChanged: tenantResolver.invalidate }));
+
+  app.use('/api/v1', tenantResolver);
+  app.use('/api/v1/tenant', createTenantRouter({ knex }));
 
   app.use('/api/v1/auth', createAuthRouter(config));
   app.use('/api/v1/accounting', require('./routes/accounting'));
