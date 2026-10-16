@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import OpeningBalanceForm from '@/components/accounting/OpeningBalanceForm';
 import { accountingService } from '@/lib/api';
 import { BookOpen, Plus, List, X } from 'lucide-react';
 
@@ -29,6 +30,7 @@ export default function AccountingPage() {
   const [loading, setLoading]     = useState(true);
   const [tab, setTab]             = useState<'coa'|'journal'>('journal');
   const [modal, setModal]         = useState(false);
+  const [openingOpen, setOpeningOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast]         = useState<{msg:string;ok:boolean}|null>(null);
   const [form, setForm]           = useState({ description:'', debitAccount:'', creditAccount:'', amount:'' });
@@ -198,6 +200,9 @@ export default function AccountingPage() {
           }}
         >
           <Plus size={17} strokeWidth={2} /> Tambah Jurnal
+        </button>
+        <button type="button" className="btn-secondary acct-header-btn" onClick={() => setOpeningOpen(true)}>
+          Saldo Awal
         </button>
       </div>
 
@@ -383,6 +388,19 @@ export default function AccountingPage() {
           )
         )}
       </div>
+
+      {openingOpen && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setOpeningOpen(false)}>
+          <div className="modal-box anim-fadeup" role="dialog" aria-modal="true" aria-labelledby="ob-title" style={{ maxWidth: 620 }}>
+            <h3 id="ob-title" style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>Saldo Awal</h3>
+            <OpeningBalanceForm
+              accounts={Object.fromEntries(accounts.map((a) => [a.code, { name: a.name, type: a.type }]))}
+              onCancel={() => setOpeningOpen(false)}
+              onDone={async () => { setOpeningOpen(false); await load(); showToast('Saldo awal tersimpan'); }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Modal */}
       {modal && (

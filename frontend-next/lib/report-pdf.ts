@@ -134,8 +134,14 @@ function drawSummaryCards(
     doc.setFontSize(9.5);
     doc.setTextColor(...item.tone);
     doc.text(item.label.toUpperCase(), x + 12, y + 26, { maxWidth: width - 24 });
-    doc.setFontSize(18);
-    doc.text(item.value, x + 12, y + 50, { maxWidth: width - 24 });
+    // Shrink long amounts to fit on one line (e.g. "Rp 125.000.000").
+    let size = 18;
+    doc.setFontSize(size);
+    while (size > 9 && doc.getTextWidth(item.value) > width - 24) {
+      size -= 1;
+      doc.setFontSize(size);
+    }
+    doc.text(item.value, x + 12, y + 50);
   });
 
   return y + 94;
