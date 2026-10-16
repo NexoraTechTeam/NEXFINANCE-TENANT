@@ -6,7 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { accountingService } from '@/lib/api';
 import { useTenant } from '@/components/tenant/TenantProvider';
 import { downloadFinancialReportPdf } from '@/lib/report-pdf';
-import { toBalanceRows, toExpenseRows, toIncomeRows, toMonthlyRows, type LedgerMonth } from '@/lib/financials';
+import { axisMoney, toBalanceRows, toExpenseRows, toIncomeRows, toMonthlyRows, type LedgerMonth } from '@/lib/financials';
 
 const fmt = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n || 0);
 const short = (n: number) => n >= 1e6 ? `Rp ${(n / 1e6).toFixed(1)}Jt` : `Rp ${(n / 1e3).toFixed(0)}K`;
@@ -500,7 +500,7 @@ export default function ReportsPage() {
                 <LineChart data={monthly}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" />
                   <XAxis dataKey="bulan" tick={axisStyle} axisLine={false} tickLine={false} />
-                  <YAxis tick={axisStyle} tickFormatter={v => `${v/1e6}Jt`} axisLine={false} tickLine={false} width={44} />
+                  <YAxis tick={axisStyle} tickFormatter={axisMoney} axisLine={false} tickLine={false} width={44} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 13 }} />
                   <Line type="monotone" dataKey="surplus" name="Surplus" stroke={palette.brand['500']} strokeWidth={2.5} dot={{ r: 5, fill: palette.brand['500'] }} activeDot={{ r: 7 }} />
@@ -583,7 +583,7 @@ export default function ReportsPage() {
               <BarChart data={monthly} barGap={4}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" />
                 <XAxis dataKey="bulan" tick={axisStyle} axisLine={false} tickLine={false} />
-                <YAxis tick={axisStyle} tickFormatter={v => `${v/1e6}Jt`} axisLine={false} tickLine={false} width={44} />
+                <YAxis tick={axisStyle} tickFormatter={axisMoney} axisLine={false} tickLine={false} width={44} />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc' }} />
                 <Legend wrapperStyle={{ fontSize: 13, paddingTop: 8 }} />
                 <Bar dataKey="pendapatan" name="Pendapatan" fill={palette.brand['500']} radius={[5,5,0,0]} />

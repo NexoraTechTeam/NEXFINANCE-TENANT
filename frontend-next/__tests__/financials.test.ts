@@ -55,3 +55,20 @@ describe('no hardcoded financial figures in pages', () => {
     }
   });
 });
+
+import { axisMoney, hasActivity } from '@/lib/financials';
+
+describe('chart helpers', () => {
+  it('formats axis ticks compactly in Indonesian units', () => {
+    expect(axisMoney(0)).toBe('0');
+    expect(axisMoney(750_000)).toBe('750rb');
+    expect(axisMoney(4_000_000)).toBe('4Jt');
+    expect(axisMoney(2_500_000_000)).toBe('2.5M');
+  });
+
+  it('detects whether a series has any activity', () => {
+    expect(hasActivity([])).toBe(false);
+    expect(hasActivity([{ bulan: 'Jan', pendapatan: 0, beban: 0, surplus: 0, laba: 0 }])).toBe(false);
+    expect(hasActivity([{ bulan: 'Jan', pendapatan: 1, beban: 0, surplus: 1, laba: 1 }])).toBe(true);
+  });
+});

@@ -67,3 +67,14 @@ export function toExpenseDistribution(
 ): ValueRow[] {
   return (rows ?? []).map(({ name, value }) => ({ name, value }));
 }
+
+/** Compact axis labels: 750rb, 4Jt, 2.5M. */
+export function axisMoney(v: number): string {
+  const abs = Math.abs(v);
+  if (abs >= 1e9) return `${+(v / 1e9).toFixed(1)}M`;
+  if (abs >= 1e6) return `${+(v / 1e6).toFixed(1)}Jt`;
+  if (abs >= 1e3) return `${Math.round(v / 1e3)}rb`;
+  return `${v}`;
+}
+
+export const hasActivity = (rows: MonthlyRow[]) => rows.some((r) => r.pendapatan !== 0 || r.beban !== 0);

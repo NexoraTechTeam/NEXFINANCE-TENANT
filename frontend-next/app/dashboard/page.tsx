@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { dashboardService } from '@/lib/api';
 import { useTenant } from '@/components/tenant/TenantProvider';
-import { toExpenseDistribution, toMonthlyRows, type LedgerMonth, type MonthlyRow } from '@/lib/financials';
+import { axisMoney, hasActivity, toExpenseDistribution, toMonthlyRows, type LedgerMonth, type MonthlyRow } from '@/lib/financials';
 
 const IDR = (n: number) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n || 0);
@@ -341,7 +341,12 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="chart-container-main">
+          {!loading && !hasActivity(monthly) && (
+            <p style={{ fontSize: 13, color: 'var(--text-4)', padding: '40px 0', textAlign: 'center' }}>
+              Belum ada transaksi tahun ini. Grafik akan terisi otomatis dari tagihan SPP, penggajian, dan pengeluaran.
+            </p>
+          )}
+          <div className="chart-container-main" hidden={!hasActivity(monthly)}>
             <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={220}>
               {chartMode === 'area' ? (
                 <AreaChart data={monthly}>
@@ -357,7 +362,7 @@ export default function DashboardPage() {
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" />
                   <XAxis dataKey="bulan" tick={axisStyle} axisLine={false} tickLine={false} />
-                  <YAxis tick={axisStyle} tickFormatter={v => `${v / 1e6}Jt`} axisLine={false} tickLine={false} width={44} />
+                  <YAxis tick={axisStyle} tickFormatter={axisMoney} axisLine={false} tickLine={false} width={44} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 13, color: 'var(--text-3)', paddingTop: 8 }} />
                   <Area type="monotone" dataKey="pendapatan" name="Pendapatan" stroke={palette.brand['500']} strokeWidth={2.5} fill="url(#gPend)"  dot={{ r: 5, fill: palette.brand['500'] }} activeDot={{ r: 7 }} />
@@ -368,7 +373,7 @@ export default function DashboardPage() {
                 <BarChart data={monthly} barGap={4}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" />
                   <XAxis dataKey="bulan" tick={axisStyle} axisLine={false} tickLine={false} />
-                  <YAxis tick={axisStyle} tickFormatter={v => `${v / 1e6}Jt`} axisLine={false} tickLine={false} width={44} />
+                  <YAxis tick={axisStyle} tickFormatter={axisMoney} axisLine={false} tickLine={false} width={44} />
                   <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc' }} />
                   <Legend wrapperStyle={{ fontSize: 13, color: 'var(--text-3)', paddingTop: 8 }} />
                   <Bar dataKey="pendapatan" name="Pendapatan" fill={palette.brand['500']} radius={[5,5,0,0]} />
