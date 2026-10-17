@@ -33,6 +33,6 @@ Checklist of everything still open (as of 17 Oktober 2026). Covers both repos. T
 - [ ] **15.** Remove the legacy CRA `frontend/` and old root Docker files in NEXFINANCE after confirming nobody uses them.
 
 ## E. Telegram reminder (this list)
-- [ ] **16.** Provide a Telegram bot token + chat id as session/environment secrets `TELEGRAM_BOT_TOKEN` and
-      `TELEGRAM_CHAT_ID` (never in chat or git), then run:
-      `sh scripts/notify-telegram.sh docs/PENDING_TELEGRAM.txt`.
+- [x] **16.** Sent to Imam's Telegram via @AgentNexoraBot on 2026-10-17 (`scripts/notify-telegram.sh`).
+      Re-send after changes: `TELEGRAM_BOT_TOKEN` (env/secret, never in git) + `TELEGRAM_CHAT_ID=6687943152`,
+      then `sh scripts/notify-telegram.sh docs/PENDING_TELEGRAM.txt`.
