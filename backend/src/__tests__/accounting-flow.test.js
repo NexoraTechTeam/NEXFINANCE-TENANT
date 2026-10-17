@@ -87,7 +87,12 @@ describe('real financial numbers for a clean tenant', () => {
       .send({ description: 'Listrik', amount: 700_000, category: 'Utilitas' });
     await api.post(`/api/v1/expenses/${exp.body.id}/approve`);
     expect((await is()).detail.bebanLain).toBe(0); // one approval: still pending
-    await api.post(`/api/v1/expenses/${exp.body.id}/approve`);
+    // Second approval must come from a different person (dual control).
+    await api.post('/api/v1/master/users')
+      .send({ name: 'Bendahara', username: 'bendahara-flow', password: 'Second-Approver-1', role: 'bendahara' });
+    const second = (await request(app).post('/api/v1/auth/login').set('Host', HOST)
+      .send({ email: 'bendahara-flow', password: 'Second-Approver-1' })).body.token;
+    await request(app).post(`/api/v1/expenses/${exp.body.id}/approve`).set('Host', HOST).set('Authorization', `Bearer ${second}`);
     expect((await is()).detail.bebanLain).toBe(700_000);
 
     const pr = await api.post('/api/v1/procurement/pr').send({ description: 'Meja', quantity: 2, estimatedCost: 2_000_000 });
@@ -124,5 +129,33 @@ describe('real financial numbers for a clean tenant', () => {
     expect(res.body.series).toHaveLength(12);
     expect(res.body.expenseDistribution.length).toBeGreaterThan(0);
     expect(res.body.ytd).toMatchObject({ revenue: 1_500_000, expenses: 4_700_000, netIncome: -3_200_000 });
+  });
+
+  it('accepts purchase requests from the web form (item + reason) and keeps the legacy description field', async () => {
+    const res = await api.post('/api/v1/procurement/pr')
+      .send({ item: 'Kertas A4', quantity: 50, estimatedCost: 2_250_000, reason: 'Ujian tengah semester' });
+    expect(res.statusCode).toBe(201);
+    expect(res.body).toMatchObject({ item: 'Kertas A4', description: 'Kertas A4', reason: 'Ujian tengah semester', quantity: 50 });
+    const legacy = await api.post('/api/v1/procurement/pr').send({ description: 'Meja', quantity: 1, estimatedCost: 900_000 });
+    expect(legacy.body).toMatchObject({ item: 'Meja', description: 'Meja' });
+  });
+
+  it('accepts purchase orders from the web form (totalCost) and posts them on receipt', async () => {
+    const pr = await api.post('/api/v1/procurement/pr').send({ item: 'Proyektor', quantity: 1, estimatedCost: 5_000_000 });
+    const po = await api.post('/api/v1/procurement/po').send({ prId: pr.body.id, vendor: 'CV B', totalCost: 4_750_000 });
+    expect(po.statusCode).toBe(201);
+    expect(po.body).toMatchObject({ totalAmount: 4_750_000, totalCost: 4_750_000 });
+    const before = (await bs()).detail.persediaan;
+    await api.post(`/api/v1/procurement/po/${po.body.id}/receive`);
+    expect((await bs()).detail.persediaan).toBe(before + 4_750_000);
+  });
+
+  it('keeps the expense title from the web form and uses it in the journal', async () => {
+    const res = await api.post('/api/v1/expenses/submit')
+      .send({ title: 'Pembelian ATK', description: 'Kertas dan spidol', amount: 300_000, category: 'ATK & Supplies' });
+    expect(res.statusCode).toBe(201);
+    expect(res.body).toMatchObject({ title: 'Pembelian ATK', description: 'Kertas dan spidol' });
+    const legacy = await api.post('/api/v1/expenses/submit').send({ description: 'Air minum', amount: 50_000, category: 'Konsumsi' });
+    expect(legacy.body).toMatchObject({ title: 'Air minum', description: 'Air minum' });
   });
 });

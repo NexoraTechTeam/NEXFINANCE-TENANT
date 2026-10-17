@@ -122,7 +122,10 @@ async function resetPassword(knex, actor, id, { username, email }) {
   const tenant = await getTenant(knex, id);
   const temporaryPassword = generateTemporaryPassword();
   const updated = await knex.withSchema(tenant.schemaName).from('users')
-    .where((q) => { if (username) q.orWhere({ username }); if (email) q.orWhereRaw('lower(email) = lower(?)', [email]); })
+    // One identifier field in the Console: match it against both username and email.
+    .where((q) => {
+      for (const ident of [username, email].filter(Boolean)) q.orWhere({ username: ident }).orWhereRaw('lower(email) = lower(?)', [ident]);
+    })
     .update({
       password_hash: await bcryptjs.hash(temporaryPassword, 10),
       must_change_password: true,

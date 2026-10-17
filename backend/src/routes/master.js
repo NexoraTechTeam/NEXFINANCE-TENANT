@@ -191,7 +191,8 @@ router.post('/users', auth, adminOrSuperAdmin, ah(async (req, res) => {
     .first('id');
   if (duplicate) return res.status(409).json({ error: 'Email already registered' });
 
-  const created = await insertUser(req.store, { email, username, name, role: userRole, password });
+  // The admin knows the initial password, so the user must choose their own at first login.
+  const created = await insertUser(req.store, { email, username, name, role: userRole, password, mustChangePassword: true });
   await logActivity(req.store, req.user.id, req.user.email, 'create_user', 'master', `Created user ${email || username} with role ${userRole}`, { newUserId: created.id, role: userRole });
   return res.status(201).json({ data: toPublicUser(created) });
 }));

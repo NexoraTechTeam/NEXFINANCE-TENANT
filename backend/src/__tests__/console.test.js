@@ -154,10 +154,23 @@ describe('tenant lifecycle from the console', () => {
     expect(login.body.user.mustChangePassword).toBe(true);
   });
 
+  it('resets any school user by email typed into the username field', async () => {
+    const login = await tenantApi('al-musabbihin.nexfinance.test').post('/api/v1/auth/login')
+      .send({ email: 'admin-almusabbihin', password: (await consoleApi.post(`/api/v1/console/tenants/${tenantId}/reset-password`).send({ username: 'admin-almusabbihin' })).body.temporaryPassword });
+    const token = login.body.token;
+    await tenantApi('al-musabbihin.nexfinance.test').post('/api/v1/master/users').set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Bendahara', email: 'Bendahara@Al-Musabbihin.sch.id', password: 'Initial-123', role: 'bendahara' }).expect(201);
+    const res = await consoleApi.post(`/api/v1/console/tenants/${tenantId}/reset-password`).send({ username: 'bendahara@al-musabbihin.sch.id' });
+    expect(res.statusCode).toBe(200);
+    const relog = await tenantApi('al-musabbihin.nexfinance.test').post('/api/v1/auth/login')
+      .send({ email: 'bendahara@al-musabbihin.sch.id', password: res.body.temporaryPassword });
+    expect(relog.statusCode).toBe(200);
+  });
+
   it('lists tenants with domains and user counts, and keeps an audit trail', async () => {
     const list = await consoleApi.get('/api/v1/console/tenants');
     expect(list.statusCode).toBe(200);
-    expect(list.body.tenants[0]).toMatchObject({ slug: 'al-musabbihin', userCount: 1 });
+    expect(list.body.tenants[0]).toMatchObject({ slug: 'al-musabbihin', userCount: 2 });
     expect(list.body.tenants[0].domains).toContain('al-musabbihin.nexfinance.test');
 
     const audit = await consoleApi.get('/api/v1/console/audit');

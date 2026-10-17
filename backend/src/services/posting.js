@@ -93,7 +93,7 @@ async function postPayroll(store, run) {
 async function postApprovedExpense(store, expense) {
   const ctx = await loadContext(store);
   return post(store, ctx, {
-    description: `Pengeluaran ${expense.category} — ${expense.description} (${expense.id})`,
+    description: `Pengeluaran ${expense.category} — ${expense.title || expense.description} (${expense.id})`,
     debit: ctx.accounts.expenseByCategory?.[expense.category] || ctx.accounts.operationalExpense,
     credit: ctx.accounts.bank,
     amount: expense.amount,

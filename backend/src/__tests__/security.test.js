@@ -85,3 +85,39 @@ describe('security hardening', () => {
     expect(res.statusCode).toBe(401);
   });
 });
+
+describe('admin-issued passwords', () => {
+  it('forces users created by an admin to replace the initial password at first login', async () => {
+    const t = (await http.post('/api/v1/auth/login').send({ email: 'superadmin@nexfinance.com', password: 'superadmin123' })).body.token;
+    const res = await http.post('/api/v1/master/users').set('Authorization', `Bearer ${t}`)
+      .send({ name: 'New Treasurer', email: 'treasurer@example.com', password: 'Initial-123', role: 'bendahara' });
+    expect(res.statusCode).toBe(201);
+    expect(res.body.data.mustChangePassword).toBe(true);
+    const login = await http.post('/api/v1/auth/login').send({ email: 'treasurer@example.com', password: 'Initial-123' });
+    expect(login.statusCode).toBe(200);
+    expect(login.body.user.mustChangePassword).toBe(true);
+  });
+});
+
+describe('expense dual control', () => {
+  it('needs two different approvers — the same person cannot approve twice', async () => {
+    const t = async (email, password) => (await http.post('/api/v1/auth/login').send({ email, password })).body.token;
+    const staff = await t('staff@nexfinance.com', 'staff123');
+    const created = await http.post('/api/v1/expenses/submit').set('Authorization', `Bearer ${staff}`)
+      .send({ description: 'Dual control check', amount: 100000, category: 'Operasional' });
+    expect(created.statusCode).toBe(201);
+    const id = created.body.id || created.body.data?.id;
+
+    const kabag = await t('kabag@nexfinance.com', 'kabag123');
+    const first = await http.post(`/api/v1/expenses/${id}/approve`).set('Authorization', `Bearer ${kabag}`);
+    expect(first.statusCode).toBe(200);
+    expect(first.body.status).toBe('pending');
+    const again = await http.post(`/api/v1/expenses/${id}/approve`).set('Authorization', `Bearer ${kabag}`);
+    expect(again.statusCode).toBe(409);
+
+    const bendahara = await t('bendahara@nexfinance.com', 'bendahara123');
+    const second = await http.post(`/api/v1/expenses/${id}/approve`).set('Authorization', `Bearer ${bendahara}`);
+    expect(second.statusCode).toBe(200);
+    expect(second.body.status).toBe('approved');
+  });
+});

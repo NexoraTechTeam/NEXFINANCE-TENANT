@@ -15,13 +15,17 @@ router.get('/pr', auth, rbac('procurement'), ah(async (req, res) => {
 
 router.post('/pr', auth, rbac('procurement'), ah(async (req, res) => {
   const ipAddress = getRequestIp(req);
-  const { description, quantity, estimatedCost, urgency } = req.body;
+  const { quantity, estimatedCost, urgency, reason } = req.body;
+  // The web form sends `item`; older API clients send `description`. Store both for either reader.
+  const description = req.body.item || req.body.description;
   if (!description || !quantity || !estimatedCost) {
-    return res.status(400).json({ error: 'description, quantity, estimatedCost are required' });
+    return res.status(400).json({ error: 'item (or description), quantity, estimatedCost are required' });
   }
   const pr = await req.store.insert('purchase_requests', {
     id: await req.store.nextId('purchase_requests'),
+    item: description,
     description,
+    reason: reason || '',
     quantity: Number(quantity),
     estimatedCost: Number(estimatedCost),
     urgency: urgency || 'normal',
@@ -39,15 +43,18 @@ router.get('/po', auth, rbac('procurement'), ah(async (req, res) => {
 
 router.post('/po', auth, rbac('procurement'), ah(async (req, res) => {
   const ipAddress = getRequestIp(req);
-  const { prId, vendor, totalAmount } = req.body;
+  const { prId, vendor } = req.body;
+  // The web form sends `totalCost`; API clients send `totalAmount`. Store both for either reader.
+  const totalAmount = req.body.totalAmount ?? req.body.totalCost;
   if (!prId || !vendor || !totalAmount) {
-    return res.status(400).json({ error: 'prId, vendor, totalAmount are required' });
+    return res.status(400).json({ error: 'prId, vendor, totalAmount (or totalCost) are required' });
   }
   const po = await req.store.insert('purchase_orders', {
     id: await req.store.nextId('purchase_orders'),
     prId,
     vendor,
     totalAmount: Number(totalAmount),
+    totalCost: Number(totalAmount),
     status: 'issued',
     createdAt: today(),
   });
