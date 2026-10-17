@@ -2,6 +2,15 @@
 
 Living record of state, decisions and open items. Newest entries first. Update at the end of every session.
 
+## Session handoff (end of 2026-10-17)
+- `dev` @ `ff9bc48`, CI "Test & contracts" green (backend 95, frontend 82). Nothing uncommitted.
+- **Blocked on Nexora ops (not doable from a cloud session):** `deploy/setup-github.sh staging|production`,
+  `deploy/register-runner.sh` on the VPS, DNS records → then staging deploy runs (queued job), then push `main`.
+- Docs: `docs/guide/` MD (internal, full) + PDF (tenant-shareable, 49 p.) — Imam liked the style; keep it.
+  Summary deck https://claude.ai/artifact/PVH2eiaPNo3GFGK5qmi3p1 still has 2 internal slides (quality, go-live):
+  offer a school-facing variant if it must be shared. Copy the guide to Outline manually (no Outline access).
+- Next ideas (need Imam's go): pick student from master in SPP invoice form, PR approval flow, wildcard DNS/TLS.
+
 ## E2E guide & fixes (2026-10-17, later session)
 - **User guide:** `docs/guide/PANDUAN_E2E_AL_MUSABBIHIN.md` (full, internal) + `.pdf` (49 pages, tenant-shareable: no technical info, chapters 12 go-live & 14 QA only in MD) + 51 framed screenshots in
   `docs/guide/img/`, every POV (operator → super admin → bendahara → staf → kabag → auditor), production URLs.
@@ -54,6 +63,21 @@ change → opening balance → SPP invoice/payment → dashboard Kas & Bank upda
 - `Nexora-Tech-Team/NEXFINANCE@dev` now runs the same backend core as this repo (single organisation,
   schema `t_nexfinance`). Port backend-core and `lib/financials.ts` fixes both ways.
 - `shortMoney()` (negative amounts as "-Rp 36.8Jt") ported here from NEXFINANCE.
+
+## Imam's requests & standing rules (log — keep appending)
+Verbatim intent of every rule Imam gave; the binding version is CLAUDE.md → Working agreement (also mirrored in
+`~/.claude/CLAUDE.md` of a session container). Apply them in **every repo and every session** without being asked.
+
+| Date | Request / rule (Imam's words, abridged) | Where it lives |
+| --- | --- | --- |
+| 2026-10-16 | "Jangan ganggu/menyenggol nexfinance (dev maupun main) yang sedang running. Jadikan plan dulu." | Agreement #5, isolation contract in CI |
+| 2026-10-16 | "Pengerjaan plan harus sesuai arahan dan terstruktur tanpa membuat masalah di aplikasi lain yang berjalan. Do its all with more focus, sharp and smartly. Use OODA + TDD. Lets cook!" | Agreement #3, #5 |
+| 2026-10-17 | "Do its all for me, dont ask me until its all fully completed." | Agreement #2 (autonomy) |
+| 2026-10-17 | "Catat dan dokumentasikan semuanya ke md file claude, agents, memory supaya pengerjaan berikutnya konsisten, terarah dan terstruktur" — and the same for **all future repos**, without being reminded; motto "do its all with more focus, sharp, smartly and smoothly". | Agreement #6 (CLAUDE.md + AGENTS.md + docs/MEMORY.md mandatory) |
+| 2026-10-17 | "Jangan catat ke Notion — sudah dimigrasikan ke Outline docs.nexoratech.co." | Agreement #8 |
+| 2026-10-17 | User-manual standard: E2E docs with framed screenshots + example URLs for every POV; MD (full detail, incl. technical) + PDF + sharp summary deck. | Agreement #9 |
+| 2026-10-17 | "PDF harus sharable untuk tenant — hilangkan info teknis (PostgreSQL, t_al_musabbihin, table/variable/ssh/server…); poin go-live & catatan kualitas cukup di MD. Ini ekspektasi setiap kali saya minta dokumentasi user manual/guideline." | Agreement #9, `docs/guide/tools/README.md` (leak guard) |
+| 2026-10-17 | "Cukup sampai sini dulu" — session closed after recording everything. | This log |
 
 ## Documentation standard (2026-10-17, decided by Imam)
 Whenever Imam asks for user manual / guideline docs, the expected result is the NEXFINANCE-TENANT

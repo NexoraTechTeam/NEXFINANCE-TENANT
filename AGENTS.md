@@ -61,3 +61,10 @@ sh deploy/check-isolation.sh                                               # iso
 - Operations / onboarding / backups: [docs/OPERATIONS.md](docs/OPERATIONS.md)
 - Architecture decision: [docs/adr/0001-multi-tenant-schema-per-tenant.md](docs/adr/0001-multi-tenant-schema-per-tenant.md)
 - Current state, decisions, open items: [docs/MEMORY.md](docs/MEMORY.md) — **update it at the end of every work session.**
+
+## Documentation rules
+- Team docs go to Outline (`docs.nexoratech.co`), never Notion; repo docs live in `docs/`.
+- User manuals / guidelines follow CLAUDE.md → Working agreement #9 (real E2E run per role, framed screenshots
+  with real URLs, Markdown = full internal detail, PDF = customer-shareable with no technical info and a leak guard,
+  optional summary deck). Reference implementation: NEXFINANCE-TENANT `docs/guide/` + `docs/guide/tools/`.
+- Every session ends with `docs/MEMORY.md` updated (status, decisions, Imam's requests log, open items) and committed.
