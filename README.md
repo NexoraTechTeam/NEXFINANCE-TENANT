@@ -37,6 +37,11 @@ cd frontend-next && npm test && npm run lint
 sh deploy/check-isolation.sh
 ```
 
+## User guide
+
+End-to-end guide for every role with screenshots (example tenant SIT Al Musabbihin):
+[docs/guide/PANDUAN_E2E_AL_MUSABBIHIN.md](docs/guide/PANDUAN_E2E_AL_MUSABBIHIN.md) · PDF alongside it.
+
 ## Operating
 
 Onboarding a school, domains, backups and restores: [docs/OPERATIONS.md](docs/OPERATIONS.md).

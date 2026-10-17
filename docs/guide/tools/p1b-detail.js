@@ -1,0 +1,24 @@
+const { launch, shot, local, CONSOLE, routeHttps } = require('./lib');
+(async () => {
+  const b = await launch(); const ctx = await b.newContext({ viewport: { width: 1440, height: 900 } }); await routeHttps(ctx);
+  const p = await ctx.newPage();
+  await p.goto(local(CONSOLE, '/console'));
+  await p.fill('#console-email', 'ops@nexoratech.co'); await p.fill('#console-password', 'Console-Docs-2026');
+  await p.click('button[type=submit]');
+  await p.getByRole('heading', { name: 'Sekolah (tenant)' }).waitFor();
+  await p.getByText('Sekolah Islam Terpadu Al Musabbihin').first().click();
+  await p.locator('#td-name').waitFor();
+  await p.fill('#td-headmaster', 'Ust. Ahmad Fauzi, S.Pd.I');
+  await p.fill('#td-treasurer', 'Siti Rahmawati, S.E.');
+  await p.getByRole('button', { name: 'Simpan identitas' }).click();
+  await p.getByText('Identitas tersimpan.').waitFor();
+  await p.fill('#td-domain', 'al-musabbihin.sch.id');
+  await p.getByRole('button', { name: 'Tambah', exact: true }).click();
+  await p.getByText(/Domain ditambahkan/).waitFor();
+  await p.waitForTimeout(1200);
+  await shot(p, '07-console-tenant-detail', { full: true });
+  await p.fill('#td-reset', 'admin-almusabbihin');
+  await p.locator('#td-reset').evaluate((e) => e.blur());
+  await shot(p, '09-console-reset-password-form');
+  await b.close();
+})().catch((e) => { console.error(e); process.exit(1); });
