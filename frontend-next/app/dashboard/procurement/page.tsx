@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { procurementService } from '@/lib/api';
+import { canReceivePO, poStatusKey, posFrom, prsFrom } from '@/lib/procurement';
 import { ShoppingCart, FileText, Package, CheckCircle, CheckCircle as CheckCircleIcon, Plus, X, InboxIcon, XCircle } from 'lucide-react';
 
 const fmt = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n || 0);
 
-const statusBadge = (s: string): { className: string; style?: Record<string, string>; label: string } => {
+const statusBadge = (status: string): { className: string; style?: Record<string, string>; label: string } => {
+  const s = poStatusKey(status);
   const labelMap: Record<string, string> = {
     pending:  'Pending',
     approved: 'Approved',
@@ -38,7 +40,7 @@ export default function ProcurementPage() {
   const load = useCallback(async () => {
     try {
       const [prRes, poRes] = await Promise.all([procurementService.getPRs(), procurementService.getPOs()]);
-      setPRs(prRes.data.prs || []); setPOs(poRes.data.pos || []);
+      setPRs(prsFrom(prRes.data)); setPOs(posFrom(poRes.data));
     } catch { setPRs([]); setPOs([]); }
     finally { setLoading(false); }
   }, []);
@@ -248,7 +250,7 @@ export default function ProcurementPage() {
                         <td style={{ padding: '13px 16px' }}>
                           <span style={{ background: 'var(--brand-50)', color: 'var(--brand-500)', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700 }}>{pr.id}</span>
                         </td>
-                        <td style={{ padding: '13px 16px', fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{pr.item}</td>
+                        <td style={{ padding: '13px 16px', fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{pr.item || pr.description}</td>
                         <td style={{ padding: '13px 16px', color: 'var(--text-2)', fontSize: 14 }}>{pr.quantity}</td>
                         <td style={{ padding: '13px 16px', fontWeight: 700, color: 'var(--brand-500)', fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(pr.estimatedCost)}</td>
                         <td style={{ padding: '13px 16px', color: 'var(--text-3)', fontSize: 13 }}>{pr.reason || '-'}</td>
@@ -300,12 +302,12 @@ export default function ProcurementPage() {
                           <span style={{ background: 'var(--brand-50)', color: 'var(--brand-500)', padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 700 }}>{po.id}</span>
                         </td>
                         <td style={{ padding: '13px 16px', fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{po.vendor}</td>
-                        <td style={{ padding: '13px 16px', fontWeight: 700, color: 'var(--brand-500)', fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(po.totalCost)}</td>
+                        <td style={{ padding: '13px 16px', fontWeight: 700, color: 'var(--brand-500)', fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(po.totalAmount ?? po.totalCost)}</td>
                         <td style={{ padding: '13px 16px' }}>
                           {(() => { const b = statusBadge(po.status); return <span className={b.className} style={b.style}>{b.label}</span>; })()}
                         </td>
                         <td style={{ padding: '13px 16px' }}>
-                          {po.status === 'ordered' && (
+                          {canReceivePO(po.status) && (
                             <button
                               onClick={() => handleReceive(po.id)}
                               className="action-btn proc-action-btn"

@@ -1,8 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ShieldCheck, Users, Save, Plus, Pencil, Trash2, X } from 'lucide-react';
 import { masterService } from '@/lib/api';
+import { useStoredUser } from '@/lib/use-stored-user';
 
 type AppUser = {
   id: string;
@@ -54,29 +55,9 @@ export default function RoleAccessPage() {
     setTimeout(() => setToast(null), 2600);
   };
 
-  const currentUserRole = useMemo(() => {
-    if (typeof window === 'undefined') return '';
-    try {
-      const raw = localStorage.getItem('user');
-      if (!raw) return '';
-      const parsed = JSON.parse(raw) as { role?: string };
-      return parsed.role || '';
-    } catch {
-      return '';
-    }
-  }, []);
-
-  const currentUserId = useMemo(() => {
-    if (typeof window === 'undefined') return '';
-    try {
-      const raw = localStorage.getItem('user');
-      if (!raw) return '';
-      const parsed = JSON.parse(raw) as { id?: string };
-      return parsed.id || '';
-    } catch {
-      return '';
-    }
-  }, []);
+  const storedUser = useStoredUser();
+  const currentUserRole = storedUser?.role || '';
+  const currentUserId = storedUser?.id || '';
 
   const isSuperAdmin = currentUserRole === 'super_admin';
 

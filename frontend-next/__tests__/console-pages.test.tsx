@@ -71,7 +71,7 @@ describe('TenantDetail', () => {
     api.getTenant.mockResolvedValue(TENANT);
     api.resetPassword.mockResolvedValue({ temporaryPassword: 'New-Temp-9876' });
     render(<TenantDetail id="t1" />);
-    await user.type(await screen.findByLabelText('Username'), 'admin-almusabbihin');
+    await user.type(await screen.findByLabelText('Username atau email'), 'admin-almusabbihin');
     await user.click(screen.getByRole('button', { name: /Reset password/i }));
     expect(api.resetPassword).toHaveBeenCalledWith('t1', 'admin-almusabbihin');
     expect(await screen.findByText('New-Temp-9876')).toBeInTheDocument();

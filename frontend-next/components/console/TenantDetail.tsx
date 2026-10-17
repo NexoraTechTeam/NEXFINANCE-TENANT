@@ -173,8 +173,8 @@ export default function TenantDetail({ id }: { id: string }) {
           <Section id="sec-access" title="Akses admin" icon={KeyRound}>
             <form onSubmit={(e) => { e.preventDefault(); if (resetUser.trim()) { setTempPassword(''); run(async () => { const r = await consoleApi.resetPassword(id, resetUser.trim()); setTempPassword(r.temporaryPassword); }, 'Password direset.'); } }}
               style={{ display: 'grid', gap: 8 }}>
-              <label className="form-label" htmlFor="td-reset">Username</label>
-              <input id="td-reset" className="form-input" value={resetUser} onChange={(e) => setResetUser(e.target.value)} placeholder="admin-…" />
+              <label className="form-label" htmlFor="td-reset">Username atau email</label>
+              <input id="td-reset" className="form-input" value={resetUser} onChange={(e) => setResetUser(e.target.value)} placeholder="admin-… atau nama@sekolah.sch.id" />
               <button type="submit" className="tour-btn" style={{ justifySelf: 'start' }}>Reset password</button>
             </form>
             {tempPassword && (

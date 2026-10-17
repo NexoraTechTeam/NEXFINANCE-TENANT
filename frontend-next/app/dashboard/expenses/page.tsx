@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { expenseService } from '@/lib/api';
+import { apiErrorMessage, approvalMessage } from '@/lib/expense-approval';
 import { FileText, CheckCircle, XCircle, Clock, Plus, DollarSign, X, InboxIcon } from 'lucide-react';
 
 const fmt = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n || 0);
@@ -49,13 +50,13 @@ export default function ExpensesPage() {
   };
 
   const handleApprove = async (id: string) => {
-    try { await expenseService.approve(id); await load(); showToast('Pengeluaran disetujui.'); }
-    catch { showToast('Gagal menyetujui.', false); }
+    try { const res = await expenseService.approve(id); await load(); showToast(approvalMessage(res.data)); }
+    catch (err) { showToast(apiErrorMessage(err, 'Gagal menyetujui.'), false); }
   };
 
   const handleReject = async (id: string) => {
     try { await expenseService.reject(id); await load(); showToast('Pengeluaran ditolak.'); }
-    catch { showToast('Gagal menolak.', false); }
+    catch (err) { showToast(apiErrorMessage(err, 'Gagal menolak.'), false); }
   };
 
   const pending  = expenses.filter(e => e.status === 'pending');
@@ -256,7 +257,7 @@ export default function ExpensesPage() {
                     <tr key={e.id} style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? '#fff' : '#fafbfc', transition: 'background 150ms' }}
                       className="exp-table-row"
                     >
-                      <td style={{ padding: '13px 16px', fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{e.title}</td>
+                      <td style={{ padding: '13px 16px', fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{e.title || e.description}</td>
                       <td style={{ padding: '13px 16px', color: 'var(--text-2)', fontSize: 14 }}>{e.category}</td>
                       <td style={{ padding: '13px 16px', fontWeight: 700, color: 'var(--brand-500)', fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(e.amount)}</td>
                       <td style={{ padding: '13px 16px', color: 'var(--text-3)', fontSize: 13, whiteSpace: 'nowrap' }}>{e.submittedAt ? new Date(e.submittedAt).toLocaleDateString('id-ID') : '-'}</td>
