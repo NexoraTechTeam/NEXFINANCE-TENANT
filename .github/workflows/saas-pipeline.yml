@@ -160,6 +160,20 @@ jobs:
             sleep 5
           done
 
+      - name: Onboard tenants from docs/tenants (idempotent)
+        env:
+          ONBOARD_TENANTS: ${{ vars.ONBOARD_TENANTS }}
+        run: |
+          set -e
+          for slug in $(echo "$ONBOARD_TENANTS" | tr ',' ' '); do
+            case "$slug" in *[!a-z0-9-]* | "") echo "invalid slug: $slug"; exit 1 ;; esac
+            [ -f "$APP_DIR/docs/tenants/$slug/tenant.json" ] || { echo "missing docs/tenants/$slug/tenant.json"; exit 1; }
+            docker exec "$STACK-backend" rm -rf "/tmp/onboard-$slug"
+            docker cp "$APP_DIR/docs/tenants/$slug" "$STACK-backend:/tmp/onboard-$slug"
+            # The one-time admin password is never printed here; issue it from Console → Reset password.
+            docker exec "$STACK-backend" node scripts/onboard-tenant.js --if-missing --no-password "/tmp/onboard-$slug/tenant.json"
+          done
+
       - name: Smoke test every host
         env:
           SAAS_HOSTS: ${{ vars.SAAS_HOSTS }}

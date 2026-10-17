@@ -10,7 +10,20 @@
 | App dir on VPS | `/home/github-runner/apps/nexfin-saas-staging` | `/home/github-runner/apps/nexfin-saas` |
 | GitHub environment | `staging` | `production` |
 
-### One-time setup (per GitHub environment)
+### One-time setup — scripted (3 commands)
+1. **GitHub** (repo admin, local machine with `gh auth login`):
+   `sh deploy/setup-github.sh staging ops@nexoratech.co` (and later `production`).
+   Creates the environment, generates `SAAS_JWT_SECRET` / `SAAS_DB_PASSWORD` / console password
+   (printed once), sets the variables below incl. `ONBOARD_TENANTS=al-musabbihin`, and lists the DNS hosts.
+2. **Runner** (on the VPS, as the runner user):
+   `RUNNER_TOKEN=<token> sh deploy/register-runner.sh` — its own directory and service; existing runners untouched.
+3. **DNS:** A records for the hosts printed in step 1, then re-run the deploy workflow.
+
+With `ONBOARD_TENANTS` set, every deploy creates the listed tenants from `docs/tenants/<slug>/tenant.json`
+if they do not exist yet (logo → palette, admin user). The temporary admin password is never printed in CI:
+issue it from Console → tenant → **Reset password**.
+
+### One-time setup — reference (per GitHub environment)
 - **Secrets:** `SAAS_JWT_SECRET`, `SAAS_DB_PASSWORD`, `SAAS_CONSOLE_ADMIN_EMAIL`, `SAAS_CONSOLE_ADMIN_PASSWORD`.
 - **Variables:**
   - `CONSOLE_HOSTS` — e.g. `console.nexfinance.nexoratech.co` (staging: `console-staging.nexfinance.nexoratech.co`)
