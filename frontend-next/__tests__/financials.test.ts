@@ -72,3 +72,16 @@ describe('chart helpers', () => {
     expect(hasActivity([{ bulan: 'Jan', pendapatan: 1, beban: 0, surplus: 1, laba: 1 }])).toBe(true);
   });
 });
+
+import { shortMoney } from '@/lib/financials';
+
+describe('shortMoney', () => {
+  it('abbreviates positive and negative amounts symmetrically', () => {
+    expect(shortMoney(2_500_000_000)).toBe('Rp 2.5M');
+    expect(shortMoney(45_000_000)).toBe('Rp 45.0Jt');
+    expect(shortMoney(750_000)).toBe('Rp 750K');
+    expect(shortMoney(-36_800_000)).toBe('-Rp 36.8Jt');
+    expect(shortMoney(-750_000)).toBe('-Rp 750K');
+    expect(shortMoney(0)).toBe('Rp 0K');
+  });
+});

@@ -77,4 +77,13 @@ export function axisMoney(v: number): string {
   return `${v}`;
 }
 
+/** Card/tooltip amounts: Rp 2.5M, Rp 45.0Jt, Rp 750K; negatives keep the sign in front (-Rp 36.8Jt). */
+export function shortMoney(n: number): string {
+  const abs = Math.abs(n || 0);
+  const body = abs >= 1e9 ? `Rp ${(abs / 1e9).toFixed(1)}M`
+    : abs >= 1e6 ? `Rp ${(abs / 1e6).toFixed(1)}Jt`
+    : `Rp ${(abs / 1e3).toFixed(0)}K`;
+  return n < 0 ? `-${body}` : body;
+}
+
 export const hasActivity = (rows: MonthlyRow[]) => rows.some((r) => r.pendapatan !== 0 || r.beban !== 0);

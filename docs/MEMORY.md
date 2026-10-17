@@ -35,6 +35,11 @@ Console login → wizard → tenant created with logo palette → tenant login b
 change → opening balance → SPP invoice/payment → dashboard Kas & Bank updated → PDF with school letterhead
 (`al-musabbihin_Laporan_Keuangan_<year>.pdf`).
 
+## Sibling repo sync (2026-10-17)
+- `Nexora-Tech-Team/NEXFINANCE@dev` now runs the same backend core as this repo (single organisation,
+  schema `t_nexfinance`). Port backend-core and `lib/financials.ts` fixes both ways.
+- `shortMoney()` (negative amounts as "-Rp 36.8Jt") ported here from NEXFINANCE.
+
 ## Lessons / gotchas
 - Local clones made with `--depth` cannot be pushed to a new remote: `git fetch --unshallow <source>` first.
 - `knex.withSchema()` + joins double-prefix: use `from('platform.tenant_domains as d')`.
@@ -42,6 +47,7 @@ change → opening balance → SPP invoice/payment → dashboard Kas & Bank upda
 - jsdom lacks `URL.createObjectURL` and the `background` shorthand.
 - In POSIX sh, `exit` inside a `| while` pipeline only exits the subshell — use `for` loops.
 - `grep --exclude` after `--` is treated as a pattern; isolation script uses an allow-marker instead.
+- Never `pkill -f <pattern>` in agent shells — it can kill the agent's own shell; filter PIDs.
 - Cloud sessions cannot manage GitHub environments/secrets/runners (proxy 403) — provide operator scripts.
 
 ## Open items / ideas (need user approval)

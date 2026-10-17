@@ -14,14 +14,11 @@ import {
 } from 'lucide-react';
 import { dashboardService } from '@/lib/api';
 import { useTenant } from '@/components/tenant/TenantProvider';
-import { axisMoney, hasActivity, toExpenseDistribution, toMonthlyRows, type LedgerMonth, type MonthlyRow } from '@/lib/financials';
+import { axisMoney, shortMoney, hasActivity, toExpenseDistribution, toMonthlyRows, type LedgerMonth, type MonthlyRow } from '@/lib/financials';
 
 const IDR = (n: number) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n || 0);
-const short = (n: number) =>
-  n >= 1e9 ? `Rp ${(n / 1e9).toFixed(1)}M`
-  : n >= 1e6 ? `Rp ${(n / 1e6).toFixed(1)}Jt`
-  : `Rp ${(n / 1e3).toFixed(0)}K`;
+const short = shortMoney;
 
 
 

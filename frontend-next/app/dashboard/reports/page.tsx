@@ -6,10 +6,10 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { accountingService } from '@/lib/api';
 import { useTenant } from '@/components/tenant/TenantProvider';
 import { downloadFinancialReportPdf } from '@/lib/report-pdf';
-import { axisMoney, toBalanceRows, toExpenseRows, toIncomeRows, toMonthlyRows, type LedgerMonth } from '@/lib/financials';
+import { axisMoney, shortMoney, toBalanceRows, toExpenseRows, toIncomeRows, toMonthlyRows, type LedgerMonth } from '@/lib/financials';
 
 const fmt = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n || 0);
-const short = (n: number) => n >= 1e6 ? `Rp ${(n / 1e6).toFixed(1)}Jt` : `Rp ${(n / 1e3).toFixed(0)}K`;
+const short = shortMoney;
 
 const reportTabs = [
   { value: 'income', label: 'Laporan Aktivitas', icon: FileText },
