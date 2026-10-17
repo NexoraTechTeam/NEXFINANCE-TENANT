@@ -22,6 +22,7 @@ Standing instruction from Imam (2026-10-17), so it never has to be repeated:
    `docs/MEMORY.md` and commit it at the end of every session.
 7. **Reporting:** concise, with evidence (test counts, CI run, live check) and a plain list of what is
    blocked and what Imam must do.
+8. **Docs location:** team documentation lives in Outline (`docs.nexoratech.co`); never write to Notion.
 
 ## Claude Code specifics
 - The user communicates in Bahasa Indonesia; answer in Indonesian, keep code/commits in English.
