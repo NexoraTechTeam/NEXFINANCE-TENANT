@@ -1,0 +1,62 @@
+# AGENTS.md — NexFinance Tenant (SaaS)
+
+Guidance for any coding agent (Claude Code, Codex, Copilot …) working in this repository.
+Read this file and [docs/MEMORY.md](docs/MEMORY.md) (project state & decision log) before changing anything.
+
+## What this repository is
+- **Repo:** `NexoraTechTeam/NEXFINANCE-TENANT` (branches `dev` → staging, `main` → production).
+- Multi-tenant SaaS edition of NexFinance (school finance: SPP, payroll, expenses, procurement,
+  ISAK 35 accounting & reports) by **Nexora**. Cloned from `Nexora-Tech-Team/NEXFINANCE@dev (5f7458c)`
+  with full history, then converted to multi-tenant.
+- **Sibling repo:** `Nexora-Tech-Team/NEXFINANCE` = original single-tenant product used for sales/demo
+  (`nexfinance.nexoratech.co`, `dev-nexfinance.nexoratech.co`). It is a separate product with its own
+  deploys. Never push to it, deploy it, or touch its containers from this repo.
+- First client: **SIT Al Musabbihin** (`docs/tenants/al-musabbihin/`), admin `admin-almusabbihin` (super_admin).
+
+## Architecture (see docs/adr/0001)
+| Part | Path | Key facts |
+| --- | --- | --- |
+| API | `backend/` | Express + knex + pg. **Schema per tenant** (`t_<slug>`), registry in schema `platform`. Tenant resolved from `x-forwarded-host`/`Host` (`middleware/tenant.js`). Domain data lives in `records` (JSONB) per collection via `db/store.js`. |
+| Auth | `routes/auth.js`, `middleware/auth.js` | JWT `aud=tenant` + `tid` must match the host's tenant. Console JWT `aud=console`. Login by username **or** email, rate-limited. No public register. `must_change_password` enforced. |
+| RBAC | `middleware/rbac.js` | Role → modules stored per tenant (`role_permissions`). |
+| Ledger | `services/ledger.js`, `services/posting.js` | Accrual journal auto-posted from SPP, payroll, approved expenses, received POs, opening balance. Reports/dashboard computed from journals — **never hardcode figures**. |
+| Branding | `services/palette.js`, `services/branding.js`, `routes/tenant.js` | Logo → WCAG-AA palette (sharp). Public `GET /api/v1/tenant/config`. |
+| Console (CMS) | `routes/console.js`, `frontend-next/app/console/**` | Only on `CONSOLE_HOSTS`. Create/edit tenants, logo/palette, domains, suspend, reset admin password, audit. |
+| Web | `frontend-next/` | Next.js 14 app router. Tenant theme injected SSR in `app/layout.tsx` (CSS vars + `-rgb` channels). Colours only via tokens (`var(--brand-*)`, `rgb(var(--x-rgb)/a)`); a guard test fails on raw brand hex. |
+| Deploy | `docker-compose.saas.yml`, `.github/workflows/`, `deploy/` | Stack `nexfin-saas` (prod) / `nexfin-saas-staging`, shared Traefik (`web`, `myresolver`). |
+
+## Commands
+```bash
+# Backend tests need Postgres. Local throwaway cluster (port 55432):
+#   su postgres -c "/usr/lib/postgresql/16/bin/initdb -D /var/tmp/pgtest/data -A trust -U postgres"
+#   su postgres -c "/usr/lib/postgresql/16/bin/pg_ctl -D /var/tmp/pgtest/data -o '-p 55432 -k /tmp' start"
+#   psql -h 127.0.0.1 -p 55432 -U postgres -c 'create database nexfin_saas_test'
+cd backend && npm ci && npm run lint && npx eslint scripts && npm test      # jest runInBand
+cd frontend-next && npm ci && npm run lint && npx tsc --noEmit && npm test # vitest
+sh deploy/check-isolation.sh                                               # isolation contract
+```
+`TEST_DATABASE_URL` defaults to `postgres://postgres@127.0.0.1:55432/nexfin_saas_test`.
+
+## Working method (mandatory)
+- **OODA + TDD:** observe (read code/state) → orient → decide (smallest change) → act: failing test first,
+  implement, then lint + typecheck + tests green before every commit.
+- Small, focused commits on `dev` with conventional prefixes (`feat(...)`, `fix(...)`, `chore`, `docs`).
+- Keep API response shapes backward compatible; add fields instead of renaming.
+- UI copy is **Bahasa Indonesia**; code, comments and commit messages in English.
+- Neutral wording for schools ("sekolah", "entitas nirlaba"), never "pesantren"/"Yayasan ISAk 35" hardcoded —
+  tenant identity comes from config.
+
+## Guardrails (never break)
+1. Every compose/Traefik/container/volume/app-dir name starts with `nexfin-saas`; every `docker compose`
+   call uses `-p "$STACK"`. `deploy/check-isolation.sh` enforces this in CI — extend it, never weaken it.
+2. Deploy jobs record the NexFinance containers' start time before/after and fail if they changed.
+3. Push to `main` (production) only after staging (`dev`) deployed green.
+4. No secrets or one-time passwords in logs, commits or docs. CI onboarding uses `--no-password`;
+   passwords are issued from Console → Reset password.
+5. Do not modify the shared Traefik configuration; wildcard DNS/TLS needs explicit approval.
+6. New tenant = Console wizard (or `docs/tenants/<slug>/tenant.json` + `ONBOARD_TENANTS`), never code changes.
+
+## Where things are documented
+- Operations / onboarding / backups: [docs/OPERATIONS.md](docs/OPERATIONS.md)
+- Architecture decision: [docs/adr/0001-multi-tenant-schema-per-tenant.md](docs/adr/0001-multi-tenant-schema-per-tenant.md)
+- Current state, decisions, open items: [docs/MEMORY.md](docs/MEMORY.md) — **update it at the end of every work session.**
