@@ -1,0 +1,26 @@
+📌 PENDING NexFinance — per 17 Okt 2026
+
+A. Go-live Tenant (SIT Al Musabbihin) — tim Nexora
+1. Jalankan: sh deploy/setup-github.sh staging ops@nexoratech.co (simpan password console yg tampil sekali)
+2. Di VPS: RUNNER_TOKEN=… sh deploy/register-runner.sh
+3. DNS → IP VPS: console-staging.nexfinance.nexoratech.co & al-musabbihin.staging.nexfinance.nexoratech.co
+4. Tunggu deploy staging hijau → uji alur (bab 3 panduan)
+5. setup-github.sh production + DNS produksi → minta Claude push dev → main
+6. Console → Reset password admin-almusabbihin → kirim ke sekolah (kanal aman)
+7. Nanti: domain al-musabbihin.sch.id
+
+B. NexFinance (demo)
+8. Approve merge dev → master (user login ulang sekali)
+
+C. Dokumen
+9. Share slide deck (atau minta versi untuk sekolah)
+10. Salin panduan MD + PDF ke Outline (docs.nexoratech.co)
+
+D. Ide (butuh keputusan)
+11. Invoice SPP pilih siswa dari master
+12. Alur persetujuan PR
+13. Wildcard DNS/TLS tenant baru
+14. Data demo lebih kaya
+15. Hapus frontend CRA lama
+
+Detail: NEXFINANCE-TENANT/docs/PENDING_TASKS.md

@@ -3,6 +3,7 @@
 Living record of state, decisions and open items. Newest entries first. Update at the end of every session.
 
 ## Session handoff (end of 2026-10-17)
+- **Pending checklist (both repos):** `docs/PENDING_TASKS.md`; Telegram version `docs/PENDING_TELEGRAM.txt`, send with `scripts/notify-telegram.sh` once `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID` are set as session secrets (not available on 2026-10-17, so it was not sent yet).
 - `dev` @ `ff9bc48`, CI "Test & contracts" green (backend 95, frontend 82). Nothing uncommitted.
 - **Blocked on Nexora ops (not doable from a cloud session):** `deploy/setup-github.sh staging|production`,
   `deploy/register-runner.sh` on the VPS, DNS records → then staging deploy runs (queued job), then push `main`.
