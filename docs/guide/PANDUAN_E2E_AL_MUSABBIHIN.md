@@ -12,6 +12,11 @@
 > **Cara membaca dokumen ini.** Bagian 1–3 memberi gambaran umum (untuk semua orang). Bagian 4–9 adalah
 > manual per peran (POV) — cukup baca bagian sesuai peran Anda. Bagian 10–13 adalah referensi (hak akses,
 > jurnal otomatis, checklist go-live, FAQ).
+>
+> **Dua versi dari satu sumber.** File Markdown ini adalah versi **lengkap (internal Nexora)**, termasuk detail
+> teknis, checklist go-live dan catatan kualitas. Versi **PDF** dibangun dari file ini untuk **dibagikan ke
+> sekolah**: blok bertanda *Internal Nexora* serta bagian 12 dan 14 tidak ikut, dan build PDF gagal bila
+> masih ada istilah teknis (lihat `tools/README.md`).
 
 ---
 
@@ -38,12 +43,16 @@
 NexFinance Tenant menjalankan **satu aplikasi untuk banyak sekolah**. Setiap sekolah (tenant) punya:
 
 - **alamat sendiri** — subdomain `<slug>.nexfinance.nexoratech.co`, opsional domain sekolah sendiri;
-- **database terpisah** — satu schema PostgreSQL per sekolah (`t_al_musabbihin`), data tidak pernah tercampur;
+- **data terpisah** — data setiap sekolah disimpan terpisah dan tidak pernah tercampur dengan sekolah lain;
 - **identitas sendiri** — nama, logo, warna tema (dibuat otomatis dari logo), kop laporan PDF;
 - **pengguna & hak akses sendiri** — 6 peran (Super Admin, Administrator, Bendahara, Kepala Bagian, Staf, Auditor).
 
-Sekolah baru disiapkan oleh **Operator Nexora** lewat **Console** (CMS master) dalam ±3 menit — tanpa
-mengubah kode dan tanpa deploy ulang aplikasi.
+Sekolah baru disiapkan oleh **Operator Nexora** lewat **Console** (CMS master) dalam ±3 menit dan
+langsung bisa dipakai.
+
+<!-- internal -->
+> **🔧 Internal Nexora (tidak ikut di PDF tenant):** satu schema PostgreSQL per sekolah (`t_al_musabbihin`) + registry `platform`; tenant dikenali dari host. Onboarding tidak butuh perubahan kode maupun deploy ulang (kecuali menambah host baru ke `SAAS_HOSTS` selama belum ada wildcard DNS/TLS).
+<!-- /internal -->
 
 | Peran | Siapa | Bekerja di | Tugas utama |
 | --- | --- | --- | --- |
@@ -54,16 +63,25 @@ mengubah kode dan tanpa deploy ulang aplikasi.
 | Staf | Rina Marlina | Aplikasi sekolah | Mengajukan pengeluaran |
 | Auditor | Dewi Kusuma | Aplikasi sekolah | Melihat laporan & akuntansi (baca saja) |
 
-## 2. Alamat (URL) & lingkungan
+## 2. Alamat (URL)
 
-| Kebutuhan | Produksi | Staging (uji) |
+| Kebutuhan | Alamat | Dipakai oleh |
 | --- | --- | --- |
-| Console operator | `https://console.nexfinance.nexoratech.co/console` | `https://console-staging.nexfinance.nexoratech.co/console` |
-| Aplikasi Al Musabbihin | `https://al-musabbihin.nexfinance.nexoratech.co` | `https://al-musabbihin.staging.nexfinance.nexoratech.co` |
-| Login sekolah | `https://al-musabbihin.nexfinance.nexoratech.co/login` | `…staging…/login` |
-| Dashboard | `https://al-musabbihin.nexfinance.nexoratech.co/dashboard` | `…staging…/dashboard` |
-| Domain sekolah (nanti) | `https://al-musabbihin.sch.id` | — |
-| Sekolah berikutnya | `https://<slug>.nexfinance.nexoratech.co` | `https://<slug>.staging.nexfinance.nexoratech.co` |
+| Aplikasi SIT Al Musabbihin | `https://al-musabbihin.nexfinance.nexoratech.co` | Semua pengguna sekolah |
+| Halaman login | `https://al-musabbihin.nexfinance.nexoratech.co/login` | Semua pengguna sekolah |
+| Dashboard | `https://al-musabbihin.nexfinance.nexoratech.co/dashboard` | Semua pengguna sekolah |
+| Domain sekolah (menyusul) | `https://al-musabbihin.sch.id` | Semua pengguna sekolah |
+| Console | `https://console.nexfinance.nexoratech.co/console` | Khusus tim Nexora |
+
+<!-- internal -->
+> **🔧 Internal Nexora (tidak ikut di PDF tenant):** lingkungan uji (staging) dan pola alamat:
+
+| Kebutuhan | Produksi | Staging |
+| --- | --- | --- |
+| Console | `console.nexfinance.nexoratech.co` | `console-staging.nexfinance.nexoratech.co` |
+| Aplikasi sekolah | `al-musabbihin.nexfinance.nexoratech.co` | `al-musabbihin.staging.nexfinance.nexoratech.co` |
+| Sekolah berikutnya | `<slug>.nexfinance.nexoratech.co` | `<slug>.staging.nexfinance.nexoratech.co` |
+<!-- /internal -->
 
 Halaman di aplikasi sekolah (semua di bawah `https://al-musabbihin.nexfinance.nexoratech.co`):
 
@@ -76,8 +94,12 @@ Halaman di aplikasi sekolah (semua di bawah `https://al-musabbihin.nexfinance.ne
 | Pengadaan | `/dashboard/procurement` | Master Karyawan | `/dashboard/master/employees` |
 | Bantuan | `/dashboard/help` | Role & Akses | `/dashboard/master/access` |
 
-> Domain sekolah sendiri (`al-musabbihin.sch.id`) cukup ditambahkan di Console + A record DNS oleh sekolah +
-> ditambahkan ke variabel deploy `SAAS_HOSTS`. Detail: `docs/OPERATIONS.md`.
+> Domain milik sekolah (`al-musabbihin.sch.id`) dapat diaktifkan bersama tim Nexora — pengelola domain sekolah
+> cukup mengikuti instruksi singkat yang kami kirimkan.
+
+<!-- internal -->
+> **🔧 Internal Nexora (tidak ikut di PDF tenant):** domain sekolah = tambah di Console → domain + A record DNS (oleh sekolah) → tambahkan ke `SAAS_HOSTS` → deploy ulang. Detail: `docs/OPERATIONS.md`.
+<!-- /internal -->
 
 ## 3. Alur end-to-end dalam satu halaman
 
@@ -97,11 +119,16 @@ Halaman di aplikasi sekolah (semua di bawah `https://al-musabbihin.nexfinance.ne
 
 ## 4. POV Operator Nexora — Console (CMS master)
 
-**Alamat:** `https://console.nexfinance.nexoratech.co/console` · **Akun:** email operator Nexora
-(dibuat otomatis saat deploy dari secret `SAAS_CONSOLE_ADMIN_EMAIL` / `SAAS_CONSOLE_ADMIN_PASSWORD`).
+Bagian ini menunjukkan bagaimana tim Nexora menyiapkan sekolah Anda di **Console** — dari data sekolah,
+logo dan warna, sampai akun admin pertama.
 
-> Console hanya bisa dibuka di host console. Membuka `/console` dari domain sekolah akan menghasilkan 404 —
-> pengguna sekolah tidak pernah melihat Console.
+**Alamat:** `https://console.nexfinance.nexoratech.co/console` · **Akun:** akun operator Nexora.
+
+> Console khusus untuk tim Nexora. Pengguna sekolah tidak memerlukan dan tidak dapat membukanya.
+
+<!-- internal -->
+> **🔧 Internal Nexora (tidak ikut di PDF tenant):** akun operator dibuat otomatis saat deploy dari secret `SAAS_CONSOLE_ADMIN_EMAIL` / `SAAS_CONSOLE_ADMIN_PASSWORD`. `/console` di host sekolah selalu 404 (`requireConsoleHost`).
+<!-- /internal -->
 
 ### 4.1 Login Console
 1. Buka alamat Console, isi email & password operator, klik **Masuk**.
@@ -116,11 +143,11 @@ Halaman di aplikasi sekolah (semua di bawah `https://al-musabbihin.nexfinance.ne
 ### 4.2 Wizard "Tenant baru" — langkah 1: Identitas sekolah
 Klik **Tenant baru**. Isi:
 
-| Field | Contoh Al Musabbihin | Keterangan |
+| Isian | Contoh Al Musabbihin | Keterangan |
 | --- | --- | --- |
 | Nama sekolah | Sekolah Islam Terpadu Al Musabbihin | Tampil di kop laporan & judul halaman |
 | Nama singkat | SIT Al Musabbihin | Tampil di sidebar & login |
-| Slug | `al-musabbihin` | Menentukan subdomain & nama schema. **Huruf kecil, angka, tanda minus. Tidak bisa diubah.** |
+| Slug | `al-musabbihin` | Menentukan alamat sekolah. **Huruf kecil, angka, tanda minus. Tidak bisa diubah.** |
 | Kota, Alamat, NPSN | Bandung · Jl. Contoh Pendidikan No. 1 · 20200001 | Untuk kop laporan |
 
 ![Wizard langkah 1 — identitas](img/03-console-wizard-identity.jpg)
@@ -137,7 +164,7 @@ Klik **Tenant baru**. Isi:
 ![Wizard langkah 2 — logo & palet](img/04-console-wizard-logo-palette.jpg)
 
 ### 4.4 Langkah 3: Admin & domain
-| Field | Contoh |
+| Isian | Contoh |
 | --- | --- |
 | Username admin | `admin-almusabbihin` (peran **Super Admin**) |
 | Nama admin | Administrator Al Musabbihin |
@@ -155,8 +182,12 @@ menggantinya saat login pertama.
 
 ![Tenant berhasil dibuat](img/06-console-created.jpg)
 
-Yang terjadi otomatis di belakang layar (atomik — gagal satu, batal semua):
-schema database `t_al_musabbihin` + Chart of Accounts ISAK 35 + 6 peran & hak aksesnya + akun admin.
+Saat tenant dibuat, sistem langsung menyiapkan **bagan akun (Chart of Accounts) ISAK 35**, **6 peran beserta
+hak aksesnya**, dan **akun admin** sekolah — semuanya sekaligus.
+
+<!-- internal -->
+> **🔧 Internal Nexora (tidak ikut di PDF tenant):** provisioning atomik dalam satu transaksi: schema `t_al_musabbihin` + COA + role_permissions + admin; gagal satu langkah → semuanya di-rollback.
+<!-- /internal -->
 
 ### 4.6 Kelola tenant
 Klik nama sekolah di daftar untuk membuka halaman kelola:
@@ -180,12 +211,13 @@ Daftar tenant setelah Al Musabbihin dibuat:
 
 ![Daftar tenant](img/08-console-list.jpg)
 
-### 4.7 Jejak audit & otomatisasi
-- Semua aksi Console (buat tenant, ubah logo, domain, reset password, status) tercatat dan bisa diambil di
-  `GET /api/v1/console/audit` (dengan token operator).
-- Alternatif tanpa klik: simpan `docs/tenants/<slug>/tenant.json` + `logo.png` di repo dan isi variabel
-  `ONBOARD_TENANTS=al-musabbihin` di environment GitHub — setiap deploy membuat tenant yang belum ada
-  (password sementara **tidak** dicetak di log; terbitkan lewat **Reset password**).
+### 4.7 Jejak audit
+Setiap tindakan tim Nexora di Console (membuat sekolah, mengubah logo atau domain, reset password,
+menonaktifkan) tercatat lengkap dengan waktu dan pelakunya.
+
+<!-- internal -->
+> **🔧 Internal Nexora (tidak ikut di PDF tenant):** audit di `GET /api/v1/console/audit` (token operator). Onboarding tanpa klik: `docs/tenants/<slug>/tenant.json` + `logo.png` di repo, variabel `ONBOARD_TENANTS=al-musabbihin` di environment GitHub — setiap deploy membuat tenant yang belum ada (password sementara **tidak** dicetak di log; terbitkan lewat **Reset password**).
+<!-- /internal -->
 
 ---
 
@@ -444,7 +476,10 @@ Dapat diubah Super Admin per sekolah (Role & Akses → klik badge).
 Setiap jurnal otomatis mencatat sumbernya (ID invoice/slip/pengeluaran/PO) dan **tidak pernah terposting
 dua kali** untuk dokumen yang sama.
 
+<!-- internal -->
 ## 12. Checklist go-live Al Musabbihin
+
+> **🔧 Internal Nexora** — bagian ini tidak ikut di PDF tenant.
 
 **Tim Nexora (sekali, ±30 menit):**
 - [ ] `sh deploy/setup-github.sh staging ops@nexoratech.co` lalu `… production …` (environment, secrets, variabel).
@@ -464,22 +499,34 @@ dua kali** untuk dokumen yang sama.
 
 **Nanti (opsional):** domain `al-musabbihin.sch.id` — sekolah membuat A record, operator menambah domain di
 Console dan di `SAAS_HOSTS`, lalu deploy ulang.
+<!-- /internal -->
 
 ## 13. FAQ & troubleshooting
 
 | Pertanyaan / gejala | Jawaban |
 | --- | --- |
-| Lupa password admin sekolah | Operator: Console → tenant → **Reset password** → kirim password sementara baru. |
-| Lupa password user lain (bendahara, staf, …) | Hubungi operator Nexora: Console → tenant → **Reset password** → isi **email atau username** user tersebut. Password sementara baru tampil sekali; user wajib menggantinya. |
-| "Tenant not found" saat membuka alamat sekolah | Domain belum terdaftar di Console atau DNS/`SAAS_HOSTS` belum diatur. |
-| "Layanan untuk sekolah ini sedang dinonaktifkan" | Tenant berstatus nonaktif — operator mengaktifkan di Console. |
-| Terlalu banyak percobaan login | Tunggu beberapa menit (pembatasan login per alamat IP). |
-| Angka dashboard nol | Isi **Saldo Awal** dan lakukan transaksi; tidak ada angka contoh untuk sekolah baru. |
-| Pengeluaran tidak berubah jadi Disetujui | Butuh 2 persetujuan dari **2 orang berbeda** (mis. Kabag lalu Bendahara). |
-| Warna/logo tidak sesuai | Console → Logo & tema → unggah ulang logo atau atur warna manual → Simpan warna. |
-| Ingin memindahkan data satu sekolah | Backup per sekolah tersedia (schema terpisah) — lihat `docs/OPERATIONS.md` bagian Backups & restore. |
+| Lupa password admin sekolah | Hubungi tim Nexora. Kami menerbitkan password sementara baru yang wajib Anda ganti saat login. |
+| Lupa password user lain (bendahara, staf, …) | Hubungi tim Nexora dengan menyebutkan email atau username user tersebut. Password sementara baru wajib diganti saat login. |
+| Muncul "Tenant not found" saat membuka alamat sekolah | Alamat belum aktif atau salah ketik. Periksa alamatnya, lalu hubungi tim Nexora bila masih muncul. |
+| Muncul "Layanan untuk sekolah ini sedang dinonaktifkan" | Layanan sekolah sedang dinonaktifkan. Hubungi tim Nexora. |
+| Terlalu banyak percobaan login | Demi keamanan, login dikunci sementara. Tunggu beberapa menit lalu coba lagi. |
+| Angka dashboard masih nol | Isi **Saldo Awal** dan mulai bertransaksi — sekolah baru tidak memakai angka contoh. |
+| Pengeluaran tidak berubah menjadi Disetujui | Butuh 2 persetujuan dari **2 orang berbeda** (mis. Kepala Bagian lalu Bendahara). |
+| Ingin mengganti logo atau warna aplikasi | Kirim logo baru ke tim Nexora — warna tema dibuat ulang otomatis dari logo. |
+| Keamanan dan cadangan data | Data sekolah dicadangkan otomatis setiap hari. Hubungi tim Nexora untuk ekspor atau pemulihan data. |
 
+<!-- internal -->
+> **🔧 Internal Nexora (jawaban teknis):** reset password → Console → tenant → **Reset password** (username
+> atau email). "Tenant not found" → host belum terdaftar di Console atau DNS/`SAAS_HOSTS` belum diatur.
+> Nonaktif → Console → **Aktifkan**. Login dikunci → rate-limit per tenant + IP (`LOGIN_RATE_LIMIT_MAX`).
+> Logo/warna → Console → Logo & tema. Backup → `pg_dump` per schema harian (retensi 14 hari), restore per
+> sekolah: `docs/OPERATIONS.md` → Backups & restore.
+<!-- /internal -->
+
+<!-- internal -->
 ## 14. Catatan kualitas uji E2E
+
+> **🔧 Internal Nexora** — bagian ini tidak ikut di PDF tenant.
 
 Dokumen ini dihasilkan dari uji end-to-end penuh lintas 6 peran di atas database bersih. Selama uji, cacat
 berikut ditemukan **dan diperbaiki** (dengan test otomatis) sebelum dokumen final dibuat:
@@ -498,3 +545,4 @@ berikut ditemukan **dan diperbaiki** (dengan test otomatis) sebelum dokumen fina
 
 **Rekomendasi berikutnya (belum dikerjakan):** pilih siswa dari master saat membuat invoice SPP (saat ini
 ID & nama diketik), alur persetujuan PR, dan wildcard DNS/TLS agar tenant baru langsung online tanpa deploy.
+<!-- /internal -->

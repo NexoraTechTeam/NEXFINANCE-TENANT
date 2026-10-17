@@ -23,6 +23,19 @@ Standing instruction from Imam (2026-10-17), so it never has to be repeated:
 7. **Reporting:** concise, with evidence (test counts, CI run, live check) and a plain list of what is
    blocked and what Imam must do.
 8. **Docs location:** team documentation lives in Outline (`docs.nexoratech.co`); never write to Notion.
+9. **User manual / guideline documentation — standard deliverable whenever Imam asks for docs** (reference
+   implementation: NEXFINANCE-TENANT `docs/guide/` + `docs/guide/tools/`):
+   - Drive the real app end-to-end per role/POV on a clean database with an example tenant; every screenshot
+     framed with a browser bar showing the real production URL; secrets/temporary passwords blurred; figures
+     come from that run. Fix every defect the run reveals (TDD) before publishing.
+   - **Markdown = full internal version**: everything incl. technical details, go-live checklist and QA
+     findings; technical parts sit in `<!-- internal -->…<!-- /internal -->` blocks / internal-only chapters.
+   - **PDF = shareable with the tenant/customer**: cover with logos, TOC, header/footer with page numbers,
+     framed screenshots, per-POV steps, URL table, access matrix, FAQ — and **no technical information**
+     (database/schema/table names, env variables, secrets, SSH/servers/VPS, deploy/CI, API paths, repo).
+     Internal blocks are stripped, chapters renumbered, and the build fails on any leaked term.
+   - A sharp summary slide deck (≤15 slides, Slides artifact) when a deck is requested.
+   - Keep the generator scripts in the repo so the docs are regenerated after UI changes.
 
 ## Claude Code specifics
 - The user communicates in Bahasa Indonesia; answer in Indonesian, keep code/commits in English.

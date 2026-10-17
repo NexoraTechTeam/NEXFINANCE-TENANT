@@ -4,6 +4,8 @@ md = (G / 'PANDUAN_E2E_AL_MUSABBIHIN.md').read_text()
 # Drop the markdown title block + TOC: the PDF gets its own cover and TOC.
 body_md = md.split('## 1. Ringkasan', 1)[1]
 body_md = '## 1. Ringkasan' + body_md
+# Tenant-shareable PDF: drop internal (technical / Nexora-only) blocks; the Markdown keeps them.
+body_md = re.sub(r'<!-- internal -->.*?<!-- /internal -->', '', body_md, flags=re.S)
 html = markdown.markdown(body_md, extensions=['tables', 'toc', 'sane_lists', 'attr_list'])
 # Wrap images as figures with captions.
 from PIL import Image as _I
@@ -14,6 +16,12 @@ def _fig(m):
     return f'<figure class="{cls}"><img src="{src}" alt="{alt}"><figcaption>{alt}</figcaption></figure>'
 html = re.sub(r'<p><img alt="([^"]*)" src="([^"]+)" ?/?></p>', _fig, html)
 html = html.replace('[ ]', '<span class="box"></span>')
+# Renumber chapters after internal ones were removed (Markdown keeps its own numbering).
+_n = [0]
+def _renum(m):
+    _n[0] += 1
+    return f'<h2 id="{m.group(1)}">{_n[0]}. {m.group(2)}</h2>'
+html = re.sub(r'<h2 id="([^"]+)">\d+\.\s*([^<]+)</h2>', _renum, html)
 toc = ''.join(f'<li><a href="#{a}">{t}</a></li>' for a, t in re.findall(r'<h2 id="([^"]+)">([^<]+)</h2>', html))
 def b64(p): return 'data:image/png;base64,' + base64.b64encode(pathlib.Path(p).read_bytes()).decode()
 logo_school = b64(str(G.parent / 'tenants/al-musabbihin/logo.png'))
@@ -74,14 +82,26 @@ a {{ color: var(--brand); }}
   <div class="sub">Dari setup tenant di Console sampai sekolah beroperasi penuh — studi kasus <b>SIT Al Musabbihin</b>, untuk semua peran: Operator Nexora, Super Admin, Bendahara, Kepala Bagian, Staf, dan Auditor.</div>
   <div class="meta">
     <div><b>Tenant contoh</b>al-musabbihin.nexfinance.nexoratech.co</div>
-    <div><b>Console</b>console.nexfinance.nexoratech.co</div>
+    <div><b>Disiapkan oleh</b>Tim Nexora · nexoratech.co</div>
     <div><b>Versi</b>1.0 · 17 Oktober 2026</div>
   </div>
 </section>
 <section class="toc"><h2 style="page-break-before:avoid">Daftar isi</h2><ul style="list-style:none;padding-left:0">{toc}</ul>
-<p class="note">Semua screenshot berasal dari uji end-to-end otomatis pada build <code>dev</code> dengan database PostgreSQL nyata dan nama host produksi. Angka-angka di dalamnya adalah hasil transaksi nyata dalam uji tersebut.</p></section>
+<p class="note">Semua screenshot diambil langsung dari aplikasi NexFinance dengan contoh data SIT Al Musabbihin. Alamat yang tampil di bilah browser adalah alamat yang Anda pakai sehari-hari; angka-angka di dalamnya adalah hasil transaksi contoh.</p></section>
 {html}
 </body></html>'''
+# Leak guard: the PDF goes to schools, so it must not carry infrastructure or code details.
+FORBIDDEN = [r'postgre', r'\bschema', r't_al_', r'saas_', r'onboard_tenants', r'\bdeploy', r'\bserver', r'\bssh\b',
+             r'database', r'/api/', r'\bapi\b', r'docs/', r'playwright', r'\bsecret', r'\brunner', r'\bdns\b', r'\bvps\b',
+             r'github', r'\benv\b', r'variabel', r'traefik', r'docker', r'\brepo\b', r'\bbuild\b', r'\btoken', r'migrat',
+             r'\bendpoint', r'frontend', r'backend', r'\bfield\b', r'\bstaging']
+_text = re.sub(r'<[^>]+>', ' ', re.sub(r'<style>.*?</style>|<img[^>]*>', ' ', doc, flags=re.S))
+_leaks = sorted({m.group(0) for pat in FORBIDDEN for m in re.finditer(pat, _text, flags=re.I)})
+if _leaks:
+    for pat in FORBIDDEN:
+        for m in re.finditer(pat, _text, flags=re.I):
+            print('LEAK', repr(m.group(0)), '…' + _text[max(0, m.start() - 60):m.end() + 40].replace('\n', ' ') + '…')
+    sys.exit(f'Tenant PDF would expose technical terms: {_leaks} — wrap them in <!-- internal --> blocks.')
 head, rest = doc.split('<section class="cover">', 1)
 cover, body = rest.split('</section>', 1)
 (G / '_print_cover.html').write_text(head.replace('@page {{','@page {{').replace('@page { size: A4; margin: 18mm 15mm 18mm 15mm; }','@page { size: A4; margin: 0; }') + '<section class="cover">' + cover + '</section></body></html>')

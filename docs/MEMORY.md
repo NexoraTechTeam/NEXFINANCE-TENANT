@@ -3,7 +3,7 @@
 Living record of state, decisions and open items. Newest entries first. Update at the end of every session.
 
 ## E2E guide & fixes (2026-10-17, later session)
-- **User guide:** `docs/guide/PANDUAN_E2E_AL_MUSABBIHIN.md` + `.pdf` (51 pages) + 51 framed screenshots in
+- **User guide:** `docs/guide/PANDUAN_E2E_AL_MUSABBIHIN.md` (full, internal) + `.pdf` (49 pages, tenant-shareable: no technical info, chapters 12 go-live & 14 QA only in MD) + 51 framed screenshots in
   `docs/guide/img/`, every POV (operator → super admin → bendahara → staf → kabag → auditor), production URLs.
   Regenerate with `docs/guide/tools/run-all.sh` after UI changes. Summary deck (14 slides) is a claude.ai
   Slides artifact: https://claude.ai/artifact/PVH2eiaPNo3GFGK5qmi3p1 (private until shared by Imam).
@@ -54,6 +54,13 @@ change → opening balance → SPP invoice/payment → dashboard Kas & Bank upda
 - `Nexora-Tech-Team/NEXFINANCE@dev` now runs the same backend core as this repo (single organisation,
   schema `t_nexfinance`). Port backend-core and `lib/financials.ts` fixes both ways.
 - `shortMoney()` (negative amounts as "-Rp 36.8Jt") ported here from NEXFINANCE.
+
+## Documentation standard (2026-10-17, decided by Imam)
+Whenever Imam asks for user manual / guideline docs, the expected result is the NEXFINANCE-TENANT
+`docs/guide/` style: real end-to-end run per role, screenshots framed with a browser bar showing the real URL,
+**Markdown = full internal detail (incl. technical, go-live checklist, QA notes in internal blocks)**,
+**PDF = tenant-shareable (cover, TOC, page numbers, no technical info; build fails on leaks)**, optional
+summary deck. Full rule: CLAUDE.md → Working agreement #9.
 
 ## Working agreement
 Imam's standing rules for every repo/session are in `CLAUDE.md` → "Working agreement".
