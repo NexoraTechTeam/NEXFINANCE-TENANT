@@ -38,6 +38,7 @@ sh deploy/check-isolation.sh                                               # iso
 `TEST_DATABASE_URL` defaults to `postgres://postgres@127.0.0.1:55432/nexfin_saas_test`.
 
 ## Working method (mandatory)
+- Follow the **Working agreement** in CLAUDE.md (applies to every repo).
 - **OODA + TDD:** observe (read code/state) → orient → decide (smallest change) → act: failing test first,
   implement, then lint + typecheck + tests green before every commit.
 - Small, focused commits on `dev` with conventional prefixes (`feat(...)`, `fix(...)`, `chore`, `docs`).

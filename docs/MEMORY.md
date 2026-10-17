@@ -40,6 +40,10 @@ change → opening balance → SPP invoice/payment → dashboard Kas & Bank upda
   schema `t_nexfinance`). Port backend-core and `lib/financials.ts` fixes both ways.
 - `shortMoney()` (negative amounts as "-Rp 36.8Jt") ported here from NEXFINANCE.
 
+## Working agreement
+Imam's standing rules for every repo/session are in `CLAUDE.md` → "Working agreement". Notion Memory could
+not store them (workspace free block limit reached, 2026-10-17).
+
 ## Lessons / gotchas
 - Local clones made with `--depth` cannot be pushed to a new remote: `git fetch --unshallow <source>` first.
 - `knex.withSchema()` + joins double-prefix: use `from('platform.tenant_domains as d')`.

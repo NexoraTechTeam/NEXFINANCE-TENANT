@@ -3,6 +3,26 @@
 @AGENTS.md
 @docs/MEMORY.md
 
+## Working agreement (Imam — applies to EVERY repository, every session)
+Standing instruction from Imam (2026-10-17), so it never has to be repeated:
+"do its all with more focus, sharp, smartly and smoothly".
+
+1. **Language:** reply in Bahasa Indonesia; code, comments and commits in English.
+2. **Autonomy:** finish the whole task before reporting; ask only when truly blocked or the decision is
+   genuinely Imam's. Do not stop at a plan when execution was requested.
+3. **OODA + TDD always:** observe the real state first → orient → decide the smallest sound change →
+   failing test first → implement → lint + typecheck + tests + build (+ E2E for UI/API) green before any push.
+4. **Delivery:** small conventional commits; push to the branch Imam names (usually `dev`); production
+   (`main`/`master`) only after the dev/staging deploy is verified live.
+5. **Never disrupt running apps:** other stacks on the shared VPS, other repos and branches stay untouched;
+   enforce with isolation checks in CI.
+6. **Project memory files — mandatory in every repo:** `CLAUDE.md` (imports `AGENTS.md` + `docs/MEMORY.md`
+   and contains this agreement), `AGENTS.md` (architecture, commands, method, guardrails) and
+   `docs/MEMORY.md` (status, decisions, lessons, open items). Create them at the start if missing; update
+   `docs/MEMORY.md` and commit it at the end of every session.
+7. **Reporting:** concise, with evidence (test counts, CI run, live check) and a plain list of what is
+   blocked and what Imam must do.
+
 ## Claude Code specifics
 - The user communicates in Bahasa Indonesia; answer in Indonesian, keep code/commits in English.
 - Use OODA + TDD for every change (see AGENTS.md → Working method) and report verification evidence.
