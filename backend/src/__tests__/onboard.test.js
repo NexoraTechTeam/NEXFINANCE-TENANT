@@ -49,4 +49,11 @@ describe('scripted tenant onboarding', () => {
     expect(result.admin).toEqual({ username: 'admin-almusabbihin' });
     expect(JSON.stringify(result)).not.toMatch(/temporaryPassword/);
   });
+
+  it('uses the {label} domain pattern of production (almusabbihin-nexfinance…)', async () => {
+    await knex.raw('DROP SCHEMA t_al_musabbihin CASCADE');
+    await knex.withSchema('platform').from('tenants').where({ slug: 'al-musabbihin' }).del();
+    const result = await onboard(knex, SPEC_FILE, { config: { tenantBaseDomain: '{label}-nexfinance.test' }, showPassword: false });
+    expect(result.domains).toEqual(['almusabbihin-nexfinance.test']);
+  });
 });

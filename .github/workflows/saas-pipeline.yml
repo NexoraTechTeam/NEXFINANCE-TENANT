@@ -39,8 +39,10 @@ jobs:
             backend/package-lock.json
             frontend-next/package-lock.json
 
-      - name: Isolation contract (never touch NexFinance stacks)
-        run: sh deploy/check-isolation.sh
+      - name: Isolation contract (never touch NexFinance stacks) + deploy script tests
+        run: |
+          sh deploy/check-isolation.sh
+          for t in deploy/tests/*.test.sh scripts/tests/*.test.sh; do sh "$t"; done
 
       - name: Backend — install, lint, test
         working-directory: backend
@@ -92,17 +94,36 @@ jobs:
           case "$STACK" in nexfin-saas*) ;; *) echo "Refusing stack '$STACK'"; exit 1 ;; esac
           case "$APP_DIR" in /home/github-runner/apps/nexfin-saas*) ;; *) echo "Refusing APP_DIR '$APP_DIR'"; exit 1 ;; esac
 
-      - name: Validate required secrets and variables
+      - name: Resolve settings and secrets (GitHub values win, otherwise defaults / persisted on the VPS)
         env:
-          JWT_SECRET: ${{ secrets.SAAS_JWT_SECRET }}
-          DB_PASSWORD: ${{ secrets.SAAS_DB_PASSWORD }}
+          ENVIRONMENT: ${{ inputs.environment }}
           SAAS_HOSTS: ${{ vars.SAAS_HOSTS }}
           CONSOLE_HOSTS: ${{ vars.CONSOLE_HOSTS }}
           TENANT_BASE_DOMAIN: ${{ vars.TENANT_BASE_DOMAIN }}
+          ONBOARD_TENANTS: ${{ vars.ONBOARD_TENANTS }}
+          DEMO_TENANT_HOSTS: ${{ vars.DEMO_TENANT_HOSTS }}
+          CONSOLE_ADMIN_EMAIL: ${{ secrets.SAAS_CONSOLE_ADMIN_EMAIL }}
+          GH_JWT_SECRET: ${{ secrets.SAAS_JWT_SECRET }}
+          GH_DB_PASSWORD: ${{ secrets.SAAS_DB_PASSWORD }}
+          GH_CONSOLE_ADMIN_PASSWORD: ${{ secrets.SAAS_CONSOLE_ADMIN_PASSWORD }}
         run: |
-          for v in JWT_SECRET DB_PASSWORD SAAS_HOSTS CONSOLE_HOSTS TENANT_BASE_DOMAIN; do
-            eval "val=\${$v:-}"; [ -n "$val" ] || { echo "Missing $v"; exit 1; }
+          set -e
+          SECRETS_DIR="/home/github-runner/apps/$STACK.secrets"
+          case "$SECRETS_DIR" in /home/github-runner/apps/nexfin-saas*.secrets) ;; *) echo "Refusing $SECRETS_DIR"; exit 1 ;; esac
+          settings="$(sh deploy/env-defaults.sh "$ENVIRONMENT")"
+          echo "$settings"
+          echo "$settings" >> "$GITHUB_ENV"
+          SAAS_HOSTS="$(echo "$settings" | grep '^SAAS_HOSTS=' | cut -d= -f2-)"
+          sh deploy/traefik-rule.sh "$SAAS_HOSTS" >/dev/null
+          JWT_SECRET="$(sh deploy/ensure-secret.sh "$SECRETS_DIR/jwt_secret" "$GH_JWT_SECRET")"
+          # Postgres keeps the password it was initialised with: once stored on the VPS it is never replaced.
+          [ -s "$SECRETS_DIR/db_password" ] && GH_DB_PASSWORD=""
+          DB_PASSWORD="$(sh deploy/ensure-secret.sh "$SECRETS_DIR/db_password" "$GH_DB_PASSWORD")"
+          CONSOLE_ADMIN_PASSWORD="$(sh deploy/ensure-secret.sh "$SECRETS_DIR/console_admin_password" "$GH_CONSOLE_ADMIN_PASSWORD")"
+          for v in JWT_SECRET DB_PASSWORD CONSOLE_ADMIN_PASSWORD; do
+            eval "val=\$$v"; echo "::add-mask::$val"; echo "$v=$val" >> "$GITHUB_ENV"
           done
+          echo "Console admin password is stored on the VPS in $SECRETS_DIR/console_admin_password (used only for the first operator)."
 
       - name: Record running NexFinance containers (must stay untouched)
         run: |
@@ -111,15 +132,6 @@ jobs:
           done > /tmp/${STACK}-neighbours.before
 
       - name: Sync code and write environment
-        env:
-          JWT_SECRET: ${{ secrets.SAAS_JWT_SECRET }}
-          DB_PASSWORD: ${{ secrets.SAAS_DB_PASSWORD }}
-          CONSOLE_ADMIN_EMAIL: ${{ secrets.SAAS_CONSOLE_ADMIN_EMAIL }}
-          CONSOLE_ADMIN_PASSWORD: ${{ secrets.SAAS_CONSOLE_ADMIN_PASSWORD }}
-          SAAS_HOSTS: ${{ vars.SAAS_HOSTS }}
-          CONSOLE_HOSTS: ${{ vars.CONSOLE_HOSTS }}
-          TENANT_BASE_DOMAIN: ${{ vars.TENANT_BASE_DOMAIN }}
-          DEMO_TENANT_HOSTS: ${{ vars.DEMO_TENANT_HOSTS }}
         run: |
           set -e
           RULE="$(sh deploy/traefik-rule.sh "$SAAS_HOSTS")"
@@ -161,8 +173,6 @@ jobs:
           done
 
       - name: Onboard tenants from docs/tenants (idempotent)
-        env:
-          ONBOARD_TENANTS: ${{ vars.ONBOARD_TENANTS }}
         run: |
           set -e
           for slug in $(echo "$ONBOARD_TENANTS" | tr ',' ' '); do
@@ -175,17 +185,22 @@ jobs:
           done
 
       - name: Smoke test every host
-        env:
-          SAAS_HOSTS: ${{ vars.SAAS_HOSTS }}
-          CONSOLE_HOSTS: ${{ vars.CONSOLE_HOSTS }}
         run: |
           set -e
           for host in $(echo "$SAAS_HOSTS" | tr ',' ' '); do
             case ",$CONSOLE_HOSTS," in *",$host,"*) path=/console ;; *) path=/login ;; esac
-            for attempt in $(seq 1 12); do
+            # Inside the stack first (works before DNS exists), then through Traefik + TLS when DNS resolves.
+            docker exec "$STACK-frontend" wget -qO /dev/null --header "Host: $host" "http://localhost:3000$path" \
+              && echo "✓ internal $host$path" || { echo "✗ internal $host$path"; exit 1; }
+            if [ "$path" = /login ]; then
+              docker exec "$STACK-backend" curl -sf -H "x-forwarded-host: $host" http://localhost:5000/api/v1/tenant/config >/dev/null \
+                && echo "✓ tenant registered for $host" || { echo "✗ no active tenant for $host"; exit 1; }
+            fi
+            if ! getent hosts "$host" >/dev/null; then echo "⚠ no DNS record for $host yet — public check skipped"; continue; fi
+            for attempt in $(seq 1 24); do
               code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 "https://$host$path" || true)"
-              [ "$code" = 200 ] && { echo "✓ $host$path"; break; }
-              [ "$attempt" -eq 12 ] && { echo "✗ $host$path → ${code:-curl-error}"; exit 1; }
+              [ "$code" = 200 ] && { echo "✓ https://$host$path"; break; }
+              [ "$attempt" -eq 24 ] && { echo "✗ https://$host$path → ${code:-curl-error}"; exit 1; }
               sleep 5
             done
           done

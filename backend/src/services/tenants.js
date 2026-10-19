@@ -153,6 +153,16 @@ async function findTenantByHost(knex, host) {
   return row ? toTenant(row) : null;
 }
 
+/**
+ * Default domain of a new tenant. `base` is either a parent domain (`<slug>.<base>`) or a pattern with
+ * `{label}` (slug without hyphens) or `{slug}`, e.g. `{label}-nexfinance.nexoratech.co`.
+ */
+function tenantDomain(slug, base) {
+  if (!slug || !base) return null;
+  if (!/\{(label|slug)\}/.test(base)) return `${slug}.${base}`;
+  return base.replace(/\{label\}/g, slug.replace(/-/g, '')).replace(/\{slug\}/g, slug);
+}
+
 async function setTenantStatus(knex, tenantId, status) {
   await knex.withSchema('platform').from('tenants').where({ id: tenantId })
     .update({ status, updated_at: knex.fn.now() });
@@ -160,5 +170,5 @@ async function setTenantStatus(knex, tenantId, status) {
 
 module.exports = {
   provisionTenant, findTenantByHost, setTenantStatus, insertUser, normalizeHost,
-  schemaNameFor, generateTemporaryPassword, toTenant, SLUG_RE, DOMAIN_RE,
+  schemaNameFor, generateTemporaryPassword, tenantDomain, toTenant, SLUG_RE, DOMAIN_RE,
 };

@@ -2,7 +2,7 @@
 
 const bcryptjs = require('bcryptjs');
 const {
-  provisionTenant, toTenant, normalizeHost, DOMAIN_RE, generateTemporaryPassword,
+  provisionTenant, toTenant, normalizeHost, DOMAIN_RE, generateTemporaryPassword, tenantDomain,
 } = require('./tenants');
 const { normaliseLogo, paletteFromLogo, paletteFromColors, httpError } = require('./branding');
 
@@ -52,7 +52,7 @@ async function listTenants(knex) {
 }
 
 async function createTenant(knex, actor, input, { tenantBaseDomain } = {}) {
-  const defaultDomain = tenantBaseDomain && input.slug ? `${input.slug}.${tenantBaseDomain}` : null;
+  const defaultDomain = tenantDomain(input.slug, tenantBaseDomain);
   const domains = [...new Set([defaultDomain, ...(input.domains || [])].filter(Boolean))];
   try {
     const result = await provisionTenant(knex, { ...input, domains });

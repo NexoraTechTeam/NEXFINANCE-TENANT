@@ -59,13 +59,13 @@ describe('TenantWizard', () => {
     });
     api.uploadLogo.mockResolvedValue({ tenant: { id: 't1' } });
 
-    render(<TenantWizard baseDomain="nexfinance.nexoratech.co" />);
+    render(<TenantWizard baseDomain="{label}-nexfinance.nexoratech.co" />);
 
     await user.type(screen.getByLabelText('Nama sekolah'), 'Sekolah Islam Terpadu Al Musabbihin');
     await user.clear(screen.getByLabelText('Slug'));
     await user.type(screen.getByLabelText('Slug'), 'al-musabbihin');
     await user.type(screen.getByLabelText('Nama singkat'), 'SIT Al Musabbihin');
-    expect(screen.getByText('al-musabbihin.nexfinance.nexoratech.co')).toBeInTheDocument();
+    expect(screen.getByText('almusabbihin-nexfinance.nexoratech.co')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Lanjut' }));
 
     const file = new File([new Uint8Array([137, 80, 78, 71])], 'logo.png', { type: 'image/png' });

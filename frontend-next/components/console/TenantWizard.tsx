@@ -6,6 +6,7 @@ import { Check, Copy, ImageUp, School, UserCog } from 'lucide-react';
 import PalettePreview from '@/components/console/PalettePreview';
 import { consoleApi, consoleError, slugify, SLUG_RE } from '@/lib/console-api';
 import { DEFAULT_PALETTE, type Palette } from '@/lib/theme';
+import { tenantDomain } from '@/lib/tenant-domain';
 
 const STEPS = [
   { title: 'Identitas sekolah', icon: School },
@@ -43,7 +44,7 @@ export default function TenantWizard({ baseDomain }: { baseDomain: string | null
   }, [slug, usernameTouched]);
   useEffect(() => () => { if (logoUrl) URL.revokeObjectURL(logoUrl); }, [logoUrl]);
 
-  const defaultDomain = useMemo(() => (baseDomain && slug ? `${slug}.${baseDomain}` : null), [baseDomain, slug]);
+  const defaultDomain = useMemo(() => tenantDomain(slug, baseDomain), [baseDomain, slug]);
   const displayName = info.shortName || name;
 
   const next = () => {

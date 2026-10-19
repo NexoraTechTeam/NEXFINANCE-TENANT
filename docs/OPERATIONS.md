@@ -10,32 +10,49 @@
 | App dir on VPS | `/home/github-runner/apps/nexfin-saas-staging` | `/home/github-runner/apps/nexfin-saas` |
 | GitHub environment | `staging` | `production` |
 
-### One-time setup — scripted (3 commands)
-1. **GitHub** (repo admin, local machine with `gh auth login`):
-   `sh deploy/setup-github.sh staging ops@nexoratech.co` (and later `production`).
-   Creates the environment, generates `SAAS_JWT_SECRET` / `SAAS_DB_PASSWORD` / console password
-   (printed once), sets the variables below incl. `ONBOARD_TENANTS=al-musabbihin`, and lists the DNS hosts.
-2. **Runner** (on the VPS, as the runner user):
-   `RUNNER_TOKEN=<token> sh deploy/register-runner.sh` — its own directory and service; existing runners untouched.
-3. **DNS:** A records for the hosts printed in step 1, then re-run the deploy workflow.
+| Hosts (defaults) | `console-nexfinance-staging.nexoratech.co`, `almusabbihin-nexfinance-staging.nexoratech.co` | `console-nexfinance.nexoratech.co`, `almusabbihin-nexfinance.nexoratech.co` |
+| Secrets on VPS | `/home/github-runner/apps/nexfin-saas-staging.secrets/` | `/home/github-runner/apps/nexfin-saas.secrets/` |
+
+### Zero-touch deploys (since 2026-10-19)
+Deploys need **no GitHub setup**: `deploy/env-defaults.sh` provides the hosts/variables per environment and
+`deploy/ensure-secret.sh` generates `jwt_secret`, `db_password` and `console_admin_password` once on the VPS
+(mode 600, outside the rsync'd app dir) and reuses them. GitHub environment variables/secrets, when set, win —
+except the DB password, which never changes once Postgres was initialised with it.
+
+**Only one-time operator step — register the runner** (on the VPS, as the user in the docker group, `github-runner`):
+```bash
+# token: GitHub → NexoraTechTeam/NEXFINANCE-TENANT → Settings → Actions → Runners → New self-hosted runner
+curl -fsSL https://raw.githubusercontent.com/NexoraTechTeam/NEXFINANCE-TENANT/dev/deploy/register-runner.sh -o /tmp/register-runner.sh
+RUNNER_TOKEN=<token> sh /tmp/register-runner.sh
+```
+(If the repo is private, copy `deploy/register-runner.sh` to the VPS instead of curl.) Own directory and service;
+existing runners (NexFinance) untouched. Then re-run the queued/cancelled deploy (Actions → Re-run) or push.
+
+**First console login:** `ops@nexoratech.co` + the password in `…/nexfin-saas.secrets/console_admin_password`
+(`sudo cat` it on the VPS). It only seeds the first operator; the Console has no change-password screen yet,
+so treat that file as the operator credential and keep it private.
+
+DNS: production hosts already point to the VPS (2026-10-19). Staging hosts are optional — without DNS the
+staging deploy still verifies every host inside the stack and skips the public HTTPS check.
+
+### Optional — manage settings in GitHub
+`sh deploy/setup-github.sh staging|production ops@nexoratech.co` (repo admin, `gh auth login`) creates the
+environment, JWT secret, console credentials and the variables below.
+
+- **Variables:** `CONSOLE_HOSTS`, `TENANT_BASE_DOMAIN` (parent domain → `<slug>.<base>`, or a pattern with
+  `{label}` = slug without hyphens / `{slug}`; default `{label}-nexfinance[-staging].nexoratech.co`), `SAAS_HOSTS`
+  (every host Traefik routes, comma-separated), `ONBOARD_TENANTS` (default `al-musabbihin`), `DEMO_TENANT_HOSTS`.
+- **Secrets:** `SAAS_JWT_SECRET`, `SAAS_CONSOLE_ADMIN_EMAIL`, `SAAS_CONSOLE_ADMIN_PASSWORD` (`SAAS_DB_PASSWORD` only
+  before the first deploy).
+- `deploy/traefik-rule.sh` refuses the NexFinance product hosts (`nexfinance.nexoratech.co`, `dev-…`).
 
 With `ONBOARD_TENANTS` set, every deploy creates the listed tenants from `docs/tenants/<slug>/tenant.json`
 if they do not exist yet (logo → palette, admin user). The temporary admin password is never printed in CI:
 issue it from Console → tenant → **Reset password**.
 
-### One-time setup — reference (per GitHub environment)
-- **Secrets:** `SAAS_JWT_SECRET`, `SAAS_DB_PASSWORD`, `SAAS_CONSOLE_ADMIN_EMAIL`, `SAAS_CONSOLE_ADMIN_PASSWORD`.
-- **Variables:**
-  - `CONSOLE_HOSTS` — e.g. `console.nexfinance.nexoratech.co` (staging: `console-staging.nexfinance.nexoratech.co`)
-  - `TENANT_BASE_DOMAIN` — e.g. `nexfinance.nexoratech.co` (staging: `staging.nexfinance.nexoratech.co`)
-  - `SAAS_HOSTS` — every host Traefik should route: console + each school, comma-separated
-  - `DEMO_TENANT_HOSTS` — optional sales demo tenant host(s)
-- **Runner:** the self-hosted VPS runner must be available to this repository (org-level runner, or register it for the repo).
-- **DNS:** A records (or a wildcard `*.nexfinance.nexoratech.co`) pointing to the VPS.
-
 ## Onboarding a school (example: SIT Al Musabbihin)
 
-1. DNS: `al-musabbihin.nexfinance.nexoratech.co` → VPS.
+1. DNS: `almusabbihin-nexfinance.nexoratech.co` → VPS (pattern `<slug without hyphens>-nexfinance.nexoratech.co`).
 2. Add the host to the environment variable `SAAS_HOSTS` and re-run the deploy workflow
    (registers the Traefik route + TLS certificate; the app itself needs no change).
 3. Console → **Tenant baru**:

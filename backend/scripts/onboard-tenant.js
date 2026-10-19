@@ -4,7 +4,7 @@
 /**
  * Reproducible tenant onboarding (same service the Console UI uses).
  *
- *   DATABASE_URL=... TENANT_BASE_DOMAIN=nexfinance.nexoratech.co \
+ *   DATABASE_URL=... TENANT_BASE_DOMAIN='{label}-nexfinance.nexoratech.co' \
  *   node scripts/onboard-tenant.js [--if-missing] [--no-password] ../docs/tenants/al-musabbihin/tenant.json
  *
  * The JSON may reference a logo file (relative to the JSON).

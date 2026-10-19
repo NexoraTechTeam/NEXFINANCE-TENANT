@@ -1,5 +1,7 @@
 #!/bin/sh
-# One-time GitHub setup for a deploy environment (run by a repo admin, needs `gh auth login`).
+# OPTIONAL GitHub setup for a deploy environment (run by a repo admin, needs `gh auth login`).
+# Deploys already work without it: hosts come from deploy/env-defaults.sh and secrets are generated
+# once on the VPS (/home/github-runner/apps/<stack>.secrets). Use this only to manage them in GitHub.
 #
 #   sh deploy/setup-github.sh staging    ops@nexoratech.co
 #   sh deploy/setup-github.sh production ops@nexoratech.co
@@ -13,20 +15,9 @@ set -eu
 ENV_NAME="${1:?usage: setup-github.sh <staging|production> <console-admin-email>}"
 ADMIN_EMAIL="${2:?usage: setup-github.sh <staging|production> <console-admin-email>}"
 REPO="${REPO:-NexoraTechTeam/NEXFINANCE-TENANT}"
-BASE="${BASE_DOMAIN:-nexfinance.nexoratech.co}"
-
-case "$ENV_NAME" in
-  staging)
-    : "${CONSOLE_HOSTS:=console-staging.$BASE}"
-    : "${TENANT_BASE_DOMAIN:=staging.$BASE}" ;;
-  production)
-    : "${CONSOLE_HOSTS:=console.$BASE}"
-    : "${TENANT_BASE_DOMAIN:=$BASE}" ;;
-  *) echo "environment must be staging or production" >&2; exit 1 ;;
-esac
-: "${ONBOARD_TENANTS:=al-musabbihin}"
-: "${SAAS_HOSTS:=$CONSOLE_HOSTS, al-musabbihin.$TENANT_BASE_DOMAIN}"
-: "${DEMO_TENANT_HOSTS:=}"
+case "$ENV_NAME" in staging | production) ;; *) echo "environment must be staging or production" >&2; exit 1 ;; esac
+# Same defaults the deploy uses (deploy/env-defaults.sh); values already exported here win.
+eval "$(sh "$(dirname "$0")/env-defaults.sh" "$ENV_NAME" | sed "s/^\([A-Z_]*\)=\(.*\)$/\1='\2'/")"
 
 command -v gh >/dev/null || { echo "install the GitHub CLI first: https://cli.github.com" >&2; exit 1; }
 command -v openssl >/dev/null || { echo "openssl is required" >&2; exit 1; }
@@ -44,7 +35,6 @@ put_secret() {
 }
 
 put_secret SAAS_JWT_SECRET "$(openssl rand -hex 48)" || true
-put_secret SAAS_DB_PASSWORD "$(openssl rand -hex 24)" || true
 put_secret SAAS_CONSOLE_ADMIN_EMAIL "$ADMIN_EMAIL" || true
 CONSOLE_PASSWORD="$(openssl rand -base64 18 | tr -d '/+=' | cut -c1-20)Aa1"
 if put_secret SAAS_CONSOLE_ADMIN_PASSWORD "$CONSOLE_PASSWORD"; then
@@ -62,6 +52,6 @@ for pair in "SAAS_HOSTS=$SAAS_HOSTS" "CONSOLE_HOSTS=$CONSOLE_HOSTS" "TENANT_BASE
 done
 
 echo
-echo "DNS: point these hosts to the VPS (or one wildcard *.$TENANT_BASE_DOMAIN):"
+echo "DNS: point these hosts to the VPS:"
 for h in $(echo "$SAAS_HOSTS" | tr ',' ' '); do echo "  $h"; done
 echo "Then re-run the deploy: gh workflow run deploy-saas$( [ "$ENV_NAME" = staging ] && echo -staging).yml --repo $REPO --ref $( [ "$ENV_NAME" = staging ] && echo dev || echo main)"
