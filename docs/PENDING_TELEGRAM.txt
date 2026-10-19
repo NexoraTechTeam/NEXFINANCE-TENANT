@@ -1,29 +1,25 @@
 📌 PENDING NexFinance — update 19 Okt 2026
 
-A. Go-live Tenant (SIT Al Musabbihin)
-Host produksi: console-nexfinance.nexoratech.co & almusabbihin-nexfinance.nexoratech.co (DNS ✅)
-Deploy kini otomatis (host + secret dibuat sendiri).
-1. SATU-SATUNYA langkah manual — di VPS (user github-runner):
-   RUNNER_TOKEN=… sh deploy/register-runner.sh
-   (token: repo NEXFINANCE-TENANT → Settings → Actions → Runners → New self-hosted runner)
-2. Re-run deploy staging → hijau
-3. Minta Claude push dev → main (produksi)
-4. Login Console: ops@nexoratech.co + isi file /home/github-runner/apps/nexfin-saas.secrets/console_admin_password
-5. Console → Al Musabbihin → Reset password admin-almusabbihin → kirim ke sekolah (kanal aman)
-6. Nanti: domain al-musabbihin.sch.id
+✅ LIVE: console-nexfinance.nexoratech.co/console & almusabbihin-nexfinance.nexoratech.co
+
+A. Tenant (SIT Al Musabbihin)
+1. Login Console (kredensial sudah dikirim terpisah) → Al Musabbihin → Reset password admin-almusabbihin → kirim ke sekolah (kanal aman)
+2. Opsional: daftarkan runner repo TENANT (deploy/register-runner.sh) → hapus branch ops/tenant-deploy di NEXFINANCE
+3. Nanti: domain al-musabbihin.sch.id
+4. Fitur ganti password Console (belum ada)
 
 B. NexFinance (demo)
-7. Approve merge dev → master
+5. Approve merge dev → master
 
 C. Dokumen
-8. Share slide deck / versi sekolah
-9. Salin panduan MD + PDF ke Outline
+6. Share slide deck / versi sekolah
+7. Salin panduan MD + PDF ke Outline
 
 D. Ide (butuh keputusan)
-10. Invoice SPP pilih siswa dari master
-11. Alur persetujuan PR
-12. Wildcard DNS/TLS tenant baru
-13. Data demo lebih kaya
-14. Hapus frontend CRA lama
+8. Invoice SPP pilih siswa dari master
+9. Alur persetujuan PR
+10. Wildcard DNS/TLS tenant baru
+11. Data demo lebih kaya
+12. Hapus frontend CRA lama
 
 Detail: NEXFINANCE-TENANT/docs/PENDING_TASKS.md

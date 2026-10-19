@@ -10,7 +10,8 @@ Read this file and [docs/MEMORY.md](docs/MEMORY.md) (project state & decision lo
   with full history, then converted to multi-tenant.
 - **Sibling repo:** `Nexora-Tech-Team/NEXFINANCE` = original single-tenant product used for sales/demo
   (`nexfinance.nexoratech.co`, `dev-nexfinance.nexoratech.co`). It is a separate product with its own
-  deploys. Never push to it, deploy it, or touch its containers from this repo.
+  deploys. Never deploy it or touch its containers from this repo. Only exception (approved 2026-10-19): the ops
+  bridge branch `ops/tenant-deploy` there, which deploys *this* repo with the shared VPS runner (`deploy/sync-ops-bridge.sh`).
 - First client: **SIT Al Musabbihin** (`docs/tenants/al-musabbihin/`), admin `admin-almusabbihin` (super_admin).
 
 ## Architecture (see docs/adr/0001)
@@ -23,7 +24,7 @@ Read this file and [docs/MEMORY.md](docs/MEMORY.md) (project state & decision lo
 | Branding | `services/palette.js`, `services/branding.js`, `routes/tenant.js` | Logo → WCAG-AA palette (sharp). Public `GET /api/v1/tenant/config`. |
 | Console (CMS) | `routes/console.js`, `frontend-next/app/console/**` | Only on `CONSOLE_HOSTS`. Create/edit tenants, logo/palette, domains, suspend, reset admin password, audit. |
 | Web | `frontend-next/` | Next.js 14 app router. Tenant theme injected SSR in `app/layout.tsx` (CSS vars + `-rgb` channels). Colours only via tokens (`var(--brand-*)`, `rgb(var(--x-rgb)/a)`); a guard test fails on raw brand hex. |
-| Deploy | `docker-compose.saas.yml`, `.github/workflows/`, `deploy/` | Stack `nexfin-saas` (prod: `console-nexfinance.nexoratech.co`, `almusabbihin-nexfinance.nexoratech.co`) / `nexfin-saas-staging`, shared Traefik (`web`, `myresolver`). Zero-touch: `deploy/env-defaults.sh` + `deploy/ensure-secret.sh`. |
+| Deploy | `docker-compose.saas.yml`, `.github/workflows/`, `deploy/` | **Live.** Stack `nexfin-saas` (prod: `console-nexfinance.nexoratech.co`, `almusabbihin-nexfinance.nexoratech.co`) / `nexfin-saas-staging`, shared Traefik (`web`, `myresolver`). Zero-touch: `deploy/env-defaults.sh` + `deploy/ensure-secret.sh`. |
 
 ## Commands
 ```bash

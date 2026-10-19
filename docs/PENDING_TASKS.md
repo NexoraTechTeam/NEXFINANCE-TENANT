@@ -2,22 +2,15 @@
 
 Checklist of everything still open (updated 19 Oktober 2026). Covers both repos. Tick items here (and in
 `docs/MEMORY.md`) when done. A short version for Telegram lives in `docs/PENDING_TELEGRAM.txt`
-(send it with `scripts/notify-telegram.sh`).## A. Go-live NexFinance Tenant (SIT Al Musabbihin) — tim Nexora
-Production hosts (decided 2026-10-19): **`console-nexfinance.nexoratech.co`** (Console) and
-**`almusabbihin-nexfinance.nexoratech.co`** (school). Deploys are now zero-touch (hosts + secrets automatic).
-- [x] **1.** ~~setup-github.sh~~ — no longer needed (optional, see `docs/OPERATIONS.md`).
-- [ ] **2.** **The only manual step:** on the VPS, as `github-runner`: `RUNNER_TOKEN=<token> sh deploy/register-runner.sh`
-      (token: repo Settings → Actions → Runners → New self-hosted runner). No runner serves org `NexoraTechTeam` yet,
-      so every deploy job waits and is cancelled.
-- [x] **3.** DNS A records for both production hosts → `72.61.209.201` (verified 2026-10-19).
-      Staging hosts (`console-nexfinance-staging…`, `almusabbihin-nexfinance-staging…`) optional.
-- [ ] **4.** After the runner is online: re-run the latest "Deploy NexFinance SaaS (staging)" run → green.
-- [ ] **5.** Ask Claude to push `dev` → `main` → production deploy creates the Al Musabbihin tenant and TLS certs.
-- [ ] **6.** Console login `ops@nexoratech.co` + password in `/home/github-runner/apps/nexfin-saas.secrets/console_admin_password`
-      → Al Musabbihin → **Reset password** `admin-almusabbihin` → send it to the school over a secure channel.
-- [ ] **7.** Later: custom domain `al-musabbihin.sch.id` (school A record + Console → Domain + `SAAS_HOSTS`).
-
-
+(send it with `scripts/notify-telegram.sh`).## A. NexFinance Tenant (SIT Al Musabbihin) — LIVE since 19 Oktober 2026
+Console https://console-nexfinance.nexoratech.co/console · school https://almusabbihin-nexfinance.nexoratech.co
+- [x] **1–5.** Hosts, DNS, staging + production deploy, TLS (deployed via the ops bridge, see `docs/OPERATIONS.md`).
+- [ ] **6.** Imam: Console login (credentials sent via Telegram) → Al Musabbihin → **Reset password** `admin-almusabbihin`
+      → send it to the school over a secure channel.
+- [ ] **7.** Optional: register a runner for this repo (`deploy/register-runner.sh`) and delete the bridge branch
+      `ops/tenant-deploy` in NEXFINANCE. Until then, redeploy with `sh deploy/sync-ops-bridge.sh <work-dir>`.
+- [ ] **7b.** Later: custom domain `al-musabbihin.sch.id` (school A record + Console → Domain + `SAAS_HOSTS`).
+- [ ] **7c.** Console has no change-password screen yet (operator password = generated one).
 
 ## B. NexFinance (demo product)
 - [ ] **8.** Decide/approve merging `dev` → `master` (production gets its own database; all users log in again once).
