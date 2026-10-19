@@ -23,7 +23,7 @@ Read this file and [docs/MEMORY.md](docs/MEMORY.md) (project state & decision lo
 | Branding | `services/palette.js`, `services/branding.js`, `routes/tenant.js` | Logo → WCAG-AA palette (sharp). Public `GET /api/v1/tenant/config`. |
 | Console (CMS) | `routes/console.js`, `frontend-next/app/console/**` | Only on `CONSOLE_HOSTS`. Create/edit tenants, logo/palette, domains, suspend, reset admin password, audit. |
 | Web | `frontend-next/` | Next.js 14 app router. Tenant theme injected SSR in `app/layout.tsx` (CSS vars + `-rgb` channels). Colours only via tokens (`var(--brand-*)`, `rgb(var(--x-rgb)/a)`); a guard test fails on raw brand hex. |
-| Deploy | `docker-compose.saas.yml`, `.github/workflows/`, `deploy/` | Stack `nexfin-saas` (prod) / `nexfin-saas-staging`, shared Traefik (`web`, `myresolver`). |
+| Deploy | `docker-compose.saas.yml`, `.github/workflows/`, `deploy/` | Stack `nexfin-saas` (prod: `console-nexfinance.nexoratech.co`, `almusabbihin-nexfinance.nexoratech.co`) / `nexfin-saas-staging`, shared Traefik (`web`, `myresolver`). Zero-touch: `deploy/env-defaults.sh` + `deploy/ensure-secret.sh`. |
 
 ## Commands
 ```bash
@@ -34,6 +34,7 @@ Read this file and [docs/MEMORY.md](docs/MEMORY.md) (project state & decision lo
 cd backend && npm ci && npm run lint && npx eslint scripts && npm test      # jest runInBand
 cd frontend-next && npm ci && npm run lint && npx tsc --noEmit && npm test # vitest
 sh deploy/check-isolation.sh                                               # isolation contract
+for t in deploy/tests/*.test.sh scripts/tests/*.test.sh; do sh $t; done   # deploy script tests
 ```
 `TEST_DATABASE_URL` defaults to `postgres://postgres@127.0.0.1:55432/nexfin_saas_test`.
 

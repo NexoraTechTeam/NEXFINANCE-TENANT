@@ -81,7 +81,7 @@ a {{ color: var(--brand); }}
   <h1>NexFinance Tenant</h1>
   <div class="sub">Dari setup tenant di Console sampai sekolah beroperasi penuh — studi kasus <b>SIT Al Musabbihin</b>, untuk semua peran: Operator Nexora, Super Admin, Bendahara, Kepala Bagian, Staf, dan Auditor.</div>
   <div class="meta">
-    <div><b>Tenant contoh</b>al-musabbihin.nexfinance.nexoratech.co</div>
+    <div><b>Tenant contoh</b>almusabbihin-nexfinance.nexoratech.co</div>
     <div><b>Disiapkan oleh</b>Tim Nexora · nexoratech.co</div>
     <div><b>Versi</b>1.0 · 17 Oktober 2026</div>
   </div>

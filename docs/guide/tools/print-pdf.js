@@ -1,7 +1,8 @@
 const { chromium } = require('playwright-core');
 (async () => {
   const [html, out, plain] = process.argv.slice(2);
-  const b = await chromium.launch(); const p = await b.newPage();
+  const exe = [process.env.CHROMIUM_PATH, '/opt/pw-browsers/chromium'].find((x) => x && require('fs').existsSync(x));
+  const b = await chromium.launch({ executablePath: exe }); const p = await b.newPage();
   await p.goto('file://' + html, { waitUntil: 'networkidle' });
   await p.pdf({ path: out, format: 'A4', printBackground: true, displayHeaderFooter: !plain,
     headerTemplate: '<div style="font-size:7px;width:100%;padding:0 15mm;color:#8a97a8;font-family:Inter,sans-serif;display:flex;justify-content:space-between"><span>NexFinance — Panduan Pengguna</span><span>SIT Al Musabbihin</span></div>',

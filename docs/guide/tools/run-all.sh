@@ -8,7 +8,7 @@ for pid in $(pgrep -x node); do tr '\0' ' ' < /proc/$pid/cmdline | grep -q "src/
 sleep 1
 psql -h 127.0.0.1 -p 55432 -U postgres -qc "drop database if exists nexfin_docs" -c "create database nexfin_docs"
 cd "$REPO/backend"
-DATABASE_URL=postgres://postgres@127.0.0.1:55432/nexfin_docs JWT_SECRET=docs-secret PORT=5080 CONSOLE_HOSTS=console.nexfinance.nexoratech.co TENANT_BASE_DOMAIN=nexfinance.nexoratech.co CONSOLE_ADMIN_EMAIL=ops@nexoratech.co CONSOLE_ADMIN_NAME="Nexora Ops" CONSOLE_ADMIN_PASSWORD=Console-Docs-2026 LOGIN_RATE_LIMIT_MAX=1000 nohup node src/index.js > $SP/logs/be.log 2>&1 &
+DATABASE_URL=postgres://postgres@127.0.0.1:55432/nexfin_docs JWT_SECRET=docs-secret PORT=5080 CONSOLE_HOSTS=console-nexfinance.nexoratech.co TENANT_BASE_DOMAIN='{label}-nexfinance.nexoratech.co' CONSOLE_ADMIN_EMAIL=ops@nexoratech.co CONSOLE_ADMIN_NAME="Nexora Ops" CONSOLE_ADMIN_PASSWORD=Console-Docs-2026 LOGIN_RATE_LIMIT_MAX=1000 nohup node src/index.js > $SP/logs/be.log 2>&1 &
 sleep 5
 cd "$TOOLS"; mkdir -p "$SP/shots"; export OUT="$SP/shots"
 node p1-console.js; node p1b-detail.js

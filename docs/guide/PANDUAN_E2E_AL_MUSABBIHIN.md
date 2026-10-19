@@ -42,7 +42,7 @@
 
 NexFinance Tenant menjalankan **satu aplikasi untuk banyak sekolah**. Setiap sekolah (tenant) punya:
 
-- **alamat sendiri** — subdomain `<slug>.nexfinance.nexoratech.co`, opsional domain sekolah sendiri;
+- **alamat sendiri** — alamat `<nama-sekolah>-nexfinance.nexoratech.co`, opsional domain sekolah sendiri;
 - **data terpisah** — data setiap sekolah disimpan terpisah dan tidak pernah tercampur dengan sekolah lain;
 - **identitas sendiri** — nama, logo, warna tema (dibuat otomatis dari logo), kop laporan PDF;
 - **pengguna & hak akses sendiri** — 6 peran (Super Admin, Administrator, Bendahara, Kepala Bagian, Staf, Auditor).
@@ -67,23 +67,23 @@ langsung bisa dipakai.
 
 | Kebutuhan | Alamat | Dipakai oleh |
 | --- | --- | --- |
-| Aplikasi SIT Al Musabbihin | `https://al-musabbihin.nexfinance.nexoratech.co` | Semua pengguna sekolah |
-| Halaman login | `https://al-musabbihin.nexfinance.nexoratech.co/login` | Semua pengguna sekolah |
-| Dashboard | `https://al-musabbihin.nexfinance.nexoratech.co/dashboard` | Semua pengguna sekolah |
+| Aplikasi SIT Al Musabbihin | `https://almusabbihin-nexfinance.nexoratech.co` | Semua pengguna sekolah |
+| Halaman login | `https://almusabbihin-nexfinance.nexoratech.co/login` | Semua pengguna sekolah |
+| Dashboard | `https://almusabbihin-nexfinance.nexoratech.co/dashboard` | Semua pengguna sekolah |
 | Domain sekolah (menyusul) | `https://al-musabbihin.sch.id` | Semua pengguna sekolah |
-| Console | `https://console.nexfinance.nexoratech.co/console` | Khusus tim Nexora |
+| Console | `https://console-nexfinance.nexoratech.co/console` | Khusus tim Nexora |
 
 <!-- internal -->
 > **🔧 Internal Nexora (tidak ikut di PDF tenant):** lingkungan uji (staging) dan pola alamat:
 
 | Kebutuhan | Produksi | Staging |
 | --- | --- | --- |
-| Console | `console.nexfinance.nexoratech.co` | `console-staging.nexfinance.nexoratech.co` |
-| Aplikasi sekolah | `al-musabbihin.nexfinance.nexoratech.co` | `al-musabbihin.staging.nexfinance.nexoratech.co` |
-| Sekolah berikutnya | `<slug>.nexfinance.nexoratech.co` | `<slug>.staging.nexfinance.nexoratech.co` |
+| Console | `console-nexfinance.nexoratech.co` | `console-nexfinance-staging.nexoratech.co` |
+| Aplikasi sekolah | `almusabbihin-nexfinance.nexoratech.co` | `almusabbihin-nexfinance-staging.nexoratech.co` |
+| Sekolah berikutnya | `<slug tanpa tanda minus>-nexfinance.nexoratech.co` | `<slug tanpa tanda minus>-nexfinance-staging.nexoratech.co` |
 <!-- /internal -->
 
-Halaman di aplikasi sekolah (semua di bawah `https://al-musabbihin.nexfinance.nexoratech.co`):
+Halaman di aplikasi sekolah (semua di bawah `https://almusabbihin-nexfinance.nexoratech.co`):
 
 | Menu | Path | Menu | Path |
 | --- | --- | --- | --- |
@@ -122,7 +122,7 @@ Halaman di aplikasi sekolah (semua di bawah `https://al-musabbihin.nexfinance.ne
 Bagian ini menunjukkan bagaimana tim Nexora menyiapkan sekolah Anda di **Console** — dari data sekolah,
 logo dan warna, sampai akun admin pertama.
 
-**Alamat:** `https://console.nexfinance.nexoratech.co/console` · **Akun:** akun operator Nexora.
+**Alamat:** `https://console-nexfinance.nexoratech.co/console` · **Akun:** akun operator Nexora.
 
 > Console khusus untuk tim Nexora. Pengguna sekolah tidak memerlukan dan tidak dapat membukanya.
 
@@ -171,7 +171,7 @@ Klik **Tenant baru**. Isi:
 | Email admin (opsional) | admin@al-musabbihin.sch.id |
 | Domain sekolah (opsional) | `al-musabbihin.sch.id` — bisa juga ditambahkan nanti |
 
-Subdomain `al-musabbihin.nexfinance.nexoratech.co` dibuat otomatis. Klik **Buat tenant**.
+Alamat `almusabbihin-nexfinance.nexoratech.co` dibuat otomatis. Klik **Buat tenant**.
 
 ![Wizard langkah 3 — admin & domain](img/05-console-wizard-admin-domain.jpg)
 
@@ -223,7 +223,7 @@ menonaktifkan) tercatat lengkap dengan waktu dan pelakunya.
 
 ## 5. POV Admin Sekolah (Super Admin)
 
-**Alamat:** `https://al-musabbihin.nexfinance.nexoratech.co/login` · **Akun:** `admin-almusabbihin`
+**Alamat:** `https://almusabbihin-nexfinance.nexoratech.co/login` · **Akun:** `admin-almusabbihin`
 
 ### 5.1 Login pertama
 Halaman login sudah memakai **logo, nama, dan warna sekolah**. Login bisa memakai **email atau username**.
@@ -482,10 +482,10 @@ dua kali** untuk dokumen yang sama.
 > **🔧 Internal Nexora** — bagian ini tidak ikut di PDF tenant.
 
 **Tim Nexora (sekali, ±30 menit):**
-- [ ] `sh deploy/setup-github.sh staging ops@nexoratech.co` lalu `… production …` (environment, secrets, variabel).
-- [ ] Daftarkan runner VPS untuk repo: `RUNNER_TOKEN=… sh deploy/register-runner.sh`.
-- [ ] DNS A record: `console.nexfinance.nexoratech.co`, `al-musabbihin.nexfinance.nexoratech.co`
-      (+ host staging) → IP VPS.
+- [x] DNS A record: `console-nexfinance.nexoratech.co`, `almusabbihin-nexfinance.nexoratech.co` → IP VPS (2026-10-19).
+- [ ] Daftarkan runner VPS untuk repo: `RUNNER_TOKEN=… sh deploy/register-runner.sh` (satu-satunya langkah manual;
+      host & secret otomatis — lihat `docs/OPERATIONS.md`).
+- [ ] Login Console pertama: `ops@nexoratech.co` + isi file `…/nexfin-saas.secrets/console_admin_password` di VPS.
 - [ ] Deploy staging hijau → uji alur bagian 3 di staging → push `main` (produksi).
 - [ ] Console: pastikan tenant Al Musabbihin aktif, identitas & logo lengkap, **Reset password** admin →
       kirim lewat kanal aman.

@@ -1,20 +1,23 @@
 # Pending tasks — NexFinance & NexFinance Tenant
 
-Checklist of everything still open (as of 17 Oktober 2026). Covers both repos. Tick items here (and in
+Checklist of everything still open (updated 19 Oktober 2026). Covers both repos. Tick items here (and in
 `docs/MEMORY.md`) when done. A short version for Telegram lives in `docs/PENDING_TELEGRAM.txt`
-(send it with `scripts/notify-telegram.sh`).
-
-## A. Go-live NexFinance Tenant (SIT Al Musabbihin) — tim Nexora
-- [ ] **1.** On a laptop with `gh auth login`: `sh deploy/setup-github.sh staging ops@nexoratech.co`
-      (creates the environment, secrets and variables; save the console password it prints once).
-- [ ] **2.** On the VPS, as the runner user: `RUNNER_TOKEN=<token> sh deploy/register-runner.sh`
-      (token: repo Settings → Actions → Runners → New self-hosted runner).
-- [ ] **3.** DNS A records → VPS IP: `console-staging.nexfinance.nexoratech.co`,
-      `al-musabbihin.staging.nexfinance.nexoratech.co` (production later: `console.` and `al-musabbihin.`).
-- [ ] **4.** Wait for the staging deploy to turn green, then test the flow in the guide (chapter 3).
-- [ ] **5.** `sh deploy/setup-github.sh production ops@nexoratech.co` + production DNS → ask Claude to push `dev` → `main`.
-- [ ] **6.** Console → Al Musabbihin → **Reset password** `admin-almusabbihin` → send it to the school over a secure channel.
+(send it with `scripts/notify-telegram.sh`).## A. Go-live NexFinance Tenant (SIT Al Musabbihin) — tim Nexora
+Production hosts (decided 2026-10-19): **`console-nexfinance.nexoratech.co`** (Console) and
+**`almusabbihin-nexfinance.nexoratech.co`** (school). Deploys are now zero-touch (hosts + secrets automatic).
+- [x] **1.** ~~setup-github.sh~~ — no longer needed (optional, see `docs/OPERATIONS.md`).
+- [ ] **2.** **The only manual step:** on the VPS, as `github-runner`: `RUNNER_TOKEN=<token> sh deploy/register-runner.sh`
+      (token: repo Settings → Actions → Runners → New self-hosted runner). No runner serves org `NexoraTechTeam` yet,
+      so every deploy job waits and is cancelled.
+- [x] **3.** DNS A records for both production hosts → `72.61.209.201` (verified 2026-10-19).
+      Staging hosts (`console-nexfinance-staging…`, `almusabbihin-nexfinance-staging…`) optional.
+- [ ] **4.** After the runner is online: re-run the latest "Deploy NexFinance SaaS (staging)" run → green.
+- [ ] **5.** Ask Claude to push `dev` → `main` → production deploy creates the Al Musabbihin tenant and TLS certs.
+- [ ] **6.** Console login `ops@nexoratech.co` + password in `/home/github-runner/apps/nexfin-saas.secrets/console_admin_password`
+      → Al Musabbihin → **Reset password** `admin-almusabbihin` → send it to the school over a secure channel.
 - [ ] **7.** Later: custom domain `al-musabbihin.sch.id` (school A record + Console → Domain + `SAAS_HOSTS`).
+
+
 
 ## B. NexFinance (demo product)
 - [ ] **8.** Decide/approve merging `dev` → `master` (production gets its own database; all users log in again once).

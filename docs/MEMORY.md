@@ -2,6 +2,21 @@
 
 Living record of state, decisions and open items. Newest entries first. Update at the end of every session.
 
+## Session 2026-10-19 — production hosts + zero-touch deploy
+- Imam: "setupkan NEXFINANCE-TENANT ke console-nexfinance.nexoratech.co dan almusabbihin-nexfinance.nexoratech.co".
+  DNS for both already → `72.61.209.201` (VPS); Traefik serves its default cert until the stack runs.
+- Flat hosts (one level under nexoratech.co): `TENANT_BASE_DOMAIN` accepts `{label}` (slug without hyphens) /
+  `{slug}` patterns → default `{label}-nexfinance[-staging].nexoratech.co` (backend `tenantDomain`, frontend
+  `lib/tenant-domain.ts`, same tests).
+- Deploys are **zero-touch**: `deploy/env-defaults.sh` (hosts/vars per environment, GitHub vars win) +
+  `deploy/ensure-secret.sh` (JWT, DB, console password generated once in `/home/github-runner/apps/<stack>.secrets/`;
+  DB password never replaced once initialised). `setup-github.sh` is optional now.
+- Smoke test: every host inside the stack (frontend + backend tenant config), public HTTPS only when DNS resolves.
+  `traefik-rule.sh` refuses `nexfinance.nexoratech.co` / `dev-nexfinance.nexoratech.co`.
+- **Still blocked:** no self-hosted runner for org `NexoraTechTeam` (deploy jobs queue, then get cancelled).
+  Imam must run `deploy/register-runner.sh` once on the VPS. Then staging green → push `dev:main`.
+- Guide regenerated with the new URLs (docs/guide). Docs tooling uses the pre-installed Chromium.
+
 ## Session handoff (end of 2026-10-17)
 - **Pending checklist (both repos):** `docs/PENDING_TASKS.md`; Telegram version `docs/PENDING_TELEGRAM.txt`, send with `scripts/notify-telegram.sh` once `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID` are set as session secrets (not available on 2026-10-17, so it was not sent yet).
 - `dev` @ `ff9bc48`, CI "Test & contracts" green (backend 95, frontend 82). Nothing uncommitted.
@@ -47,6 +62,7 @@ Living record of state, decisions and open items. Newest entries first. Update a
 | 2026-10-16 | Palette generated from the uploaded logo by default (editable in Console). |
 | 2026-10-16 | The original NEXFINANCE product stays the sales/demo product; SaaS work never touches its stacks. |
 | 2026-10-17 | Repo is `NexoraTechTeam/NEXFINANCE-TENANT` (not `Nexora-Tech-Team/NEXFINANCE-SAAS`). Local working copy was named `NEXFINANCE-SAAS`. |
+| 2026-10-19 | Production hosts `console-nexfinance.nexoratech.co` + `almusabbihin-nexfinance.nexoratech.co` (flat, no nested subdomain); staging `*-nexfinance-staging.nexoratech.co`. Deploys need no GitHub setup. |
 | 2026-10-17 | Tenants listed in env var `ONBOARD_TENANTS` are created idempotently by each deploy from `docs/tenants/<slug>/tenant.json`; temp passwords never printed in CI. |
 
 ## Al-Musabbihin facts
@@ -79,6 +95,8 @@ Verbatim intent of every rule Imam gave; the binding version is CLAUDE.md → Wo
 | 2026-10-17 | User-manual standard: E2E docs with framed screenshots + example URLs for every POV; MD (full detail, incl. technical) + PDF + sharp summary deck. | Agreement #9 |
 | 2026-10-17 | "PDF harus sharable untuk tenant — hilangkan info teknis (PostgreSQL, t_al_musabbihin, table/variable/ssh/server…); poin go-live & catatan kualitas cukup di MD. Ini ekspektasi setiap kali saya minta dokumentasi user manual/guideline." | Agreement #9, `docs/guide/tools/README.md` (leak guard) |
 | 2026-10-17 | "Cukup sampai sini dulu" — session closed after recording everything. | This log |
+| 2026-10-17 | "Task yg masih pending dicatat dan kirimkan ke telegrambot" — pending list goes to Imam's Telegram (@AgentNexoraBot, chat 6687943152) via `scripts/notify-telegram.sh`; token only as env secret, never in git. | `docs/PENDING_TASKS.md` |
+| 2026-10-19 | "Setupkan NEXFINANCE-TENANT ke console-nexfinance.nexoratech.co & almusabbihin-nexfinance.nexoratech.co". | Decisions, `deploy/env-defaults.sh` |
 
 ## Documentation standard (2026-10-17, decided by Imam)
 Whenever Imam asks for user manual / guideline docs, the expected result is the NEXFINANCE-TENANT

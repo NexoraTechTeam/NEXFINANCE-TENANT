@@ -5,7 +5,7 @@ app through every role (operator → super admin → bendahara → staf → kaba
 so the guide never drifts from the product.
 
 Prerequisites (local): Postgres on `127.0.0.1:55432` (see AGENTS.md), `npm ci` in `backend/` and `frontend-next/`,
-the frontend dev server on port 3060 (`BACKEND_URL=http://127.0.0.1:5080 CONSOLE_HOSTS=console.nexfinance.nexoratech.co npx next dev -p 3060`),
+the frontend dev server on port 3060 (`BACKEND_URL=http://127.0.0.1:5080 CONSOLE_HOSTS=console-nexfinance.nexoratech.co npx next dev -p 3060`),
 `npm i playwright-core` in this folder, Python 3 with `pillow` + `markdown`, and `pdftoppm`/`pdfunite` (poppler).
 
 ```bash

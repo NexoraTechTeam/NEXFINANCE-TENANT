@@ -2,13 +2,15 @@ const fs = require('fs');
 const { chromium } = require('playwright-core');
 const OUT = process.env.OUT;
 const PORT = 3060;
-const CONSOLE = 'console.nexfinance.nexoratech.co';
-const TENANT = 'al-musabbihin.nexfinance.nexoratech.co';
+const CONSOLE = 'console-nexfinance.nexoratech.co';
+const TENANT = 'almusabbihin-nexfinance.nexoratech.co';
 const manifestPath = `${OUT}/manifest.json`;
 const manifest = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath)) : {};
 const local = (host, path = '/') => `http://${host}:${PORT}${path}`;
 async function launch() {
-  return chromium.launch({ args: [`--host-resolver-rules=MAP *.nexoratech.co 127.0.0.1`] });
+  // Prefer a pre-installed Chromium (CHROMIUM_PATH or the cloud image's) so a newer playwright-core needs no download.
+  const preinstalled = [process.env.CHROMIUM_PATH, '/opt/pw-browsers/chromium'].find((p) => p && fs.existsSync(p) && fs.statSync(p).isFile());
+  return chromium.launch({ executablePath: preinstalled, args: [`--host-resolver-rules=MAP *.nexoratech.co 127.0.0.1`] });
 }
 async function shot(page, name, { full = false, mask = [] } = {}) {
   await page.waitForTimeout(500);
