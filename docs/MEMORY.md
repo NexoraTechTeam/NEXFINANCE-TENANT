@@ -16,6 +16,11 @@ Living record of state, decisions and open items. Newest entries first. Update a
 - **Still blocked:** no self-hosted runner for org `NexoraTechTeam` (deploy jobs queue, then get cancelled).
   Imam must run `deploy/register-runner.sh` once on the VPS. Then staging green → push `dev:main`.
 - Guide regenerated with the new URLs (docs/guide). Docs tooling uses the pre-installed Chromium.
+- 2026-10-19 later: Imam opened the console → Traefik "404 page not found" (no router: stack never deployed,
+  no runner). Full production rehearsal in a local Docker daemon passed (images build, stack healthy,
+  onboarding created al-musabbihin on `almusabbihin-nexfinance.nexoratech.co`, console login + list render, no errors).
+  Deploying through the NEXFINANCE repo's VPS runner (orphan ops branch) was refused by the session's
+  permission guard as a CI bypass → needs Imam's explicit approval, or the runner registration.
 
 ## Session handoff (end of 2026-10-17)
 - **Pending checklist (both repos):** `docs/PENDING_TASKS.md`; Telegram version `docs/PENDING_TELEGRAM.txt`, send with `scripts/notify-telegram.sh` once `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID` are set as session secrets (not available on 2026-10-17, so it was not sent yet).
