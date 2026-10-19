@@ -42,12 +42,8 @@ snapshot of this repo plus `.github/workflows/tenant-bridge.yml`: staging → pr
 credential. It has no NexFinance code/workflows, passes no repository secrets, and every deploy job verifies the
 NexFinance containers were not restarted.
 
-Redeploy after changes here: copy the tree into the branch and push it.
-```bash
-B=$(mktemp -d) && git archive HEAD | tar -x -C "$B"
-git -C <nexfinance-clone> fetch origin ops/tenant-deploy && git -C <nexfinance-clone> show origin/ops/tenant-deploy:.github/workflows/tenant-bridge.yml > "$B/.github/workflows/tenant-bridge.yml"
-#  …also copy ops/handover.pub.pem, delete deploy-saas*.yml, drop the `environment:` line of saas-pipeline.yml, commit, push to ops/tenant-deploy
-```
+Redeploy after changes here (commit first): `sh deploy/sync-ops-bridge.sh /tmp/nexfin-ops-bridge` — replaces the
+snapshot with this repo's HEAD, keeps the bridge workflow + handover key, runs the isolation contract and pushes.
 Once `deploy/register-runner.sh` has run, delete the branch `ops/tenant-deploy` and use `dev`/`main` here again.
 
 ### Optional — manage settings in GitHub
