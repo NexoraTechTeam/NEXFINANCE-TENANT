@@ -35,6 +35,21 @@ so treat that file as the operator credential and keep it private.
 DNS: production hosts already point to the VPS (2026-10-19). Staging hosts are optional — without DNS the
 staging deploy still verifies every host inside the stack and skips the public HTTPS check.
 
+### Interim deploy path — ops bridge (since 2026-10-19)
+Until this repo has its own runner, deploys run through the VPS runner of `Nexora-Tech-Team/NEXFINANCE`
+on its orphan branch **`ops/tenant-deploy`** (approved by Imam: "Just do its all for me"). The branch holds a
+snapshot of this repo plus `.github/workflows/tenant-bridge.yml`: staging → production → encrypted console
+credential. It has no NexFinance code/workflows, passes no repository secrets, and every deploy job verifies the
+NexFinance containers were not restarted.
+
+Redeploy after changes here: copy the tree into the branch and push it.
+```bash
+B=$(mktemp -d) && git archive HEAD | tar -x -C "$B"
+git -C <nexfinance-clone> fetch origin ops/tenant-deploy && git -C <nexfinance-clone> show origin/ops/tenant-deploy:.github/workflows/tenant-bridge.yml > "$B/.github/workflows/tenant-bridge.yml"
+#  …also copy ops/handover.pub.pem, delete deploy-saas*.yml, drop the `environment:` line of saas-pipeline.yml, commit, push to ops/tenant-deploy
+```
+Once `deploy/register-runner.sh` has run, delete the branch `ops/tenant-deploy` and use `dev`/`main` here again.
+
 ### Optional — manage settings in GitHub
 `sh deploy/setup-github.sh staging|production ops@nexoratech.co` (repo admin, `gh auth login`) creates the
 environment, JWT secret, console credentials and the variables below.

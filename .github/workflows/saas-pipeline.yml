@@ -162,13 +162,13 @@ jobs:
         run: |
           set -e
           for i in $(seq 1 24); do
-            docker exec "$STACK-backend" curl -sf http://localhost:5000/health >/dev/null && break
-            [ "$i" -eq 24 ] && { cd "$APP_DIR"; docker compose -p "$STACK" --env-file .env.saas -f docker-compose.saas.yml logs --tail=80; exit 1; }
+            docker exec "$STACK-backend" curl -sf http://127.0.0.1:5000/health >/dev/null && break
+            [ "$i" -eq 24 ] && { docker exec "$STACK-backend" curl -sS http://127.0.0.1:5000/health 2>&1 | tail -3; cd "$APP_DIR"; docker compose -p "$STACK" --env-file .env.saas -f docker-compose.saas.yml logs --tail=80; exit 1; }
             sleep 5
           done
           for i in $(seq 1 24); do
-            docker exec "$STACK-frontend" wget -qO- http://localhost:3000/login >/dev/null 2>&1 && break
-            [ "$i" -eq 24 ] && { cd "$APP_DIR"; docker compose -p "$STACK" --env-file .env.saas -f docker-compose.saas.yml logs --tail=80; exit 1; }
+            docker exec "$STACK-frontend" wget -qO- http://127.0.0.1:3000/login >/dev/null 2>&1 && break
+            [ "$i" -eq 24 ] && { docker exec "$STACK-frontend" wget -O- http://127.0.0.1:3000/login 2>&1 | tail -3; cd "$APP_DIR"; docker compose -p "$STACK" --env-file .env.saas -f docker-compose.saas.yml logs --tail=80; exit 1; }
             sleep 5
           done
 
@@ -190,10 +190,10 @@ jobs:
           for host in $(echo "$SAAS_HOSTS" | tr ',' ' '); do
             case ",$CONSOLE_HOSTS," in *",$host,"*) path=/console ;; *) path=/login ;; esac
             # Inside the stack first (works before DNS exists), then through Traefik + TLS when DNS resolves.
-            docker exec "$STACK-frontend" wget -qO /dev/null --header "Host: $host" "http://localhost:3000$path" \
+            docker exec "$STACK-frontend" wget -qO /dev/null --header "Host: $host" "http://127.0.0.1:3000$path" \
               && echo "✓ internal $host$path" || { echo "✗ internal $host$path"; exit 1; }
             if [ "$path" = /login ]; then
-              docker exec "$STACK-backend" curl -sf -H "x-forwarded-host: $host" http://localhost:5000/api/v1/tenant/config >/dev/null \
+              docker exec "$STACK-backend" curl -sf -H "x-forwarded-host: $host" http://127.0.0.1:5000/api/v1/tenant/config >/dev/null \
                 && echo "✓ tenant registered for $host" || { echo "✗ no active tenant for $host"; exit 1; }
             fi
             if ! getent hosts "$host" >/dev/null; then echo "⚠ no DNS record for $host yet — public check skipped"; continue; fi
