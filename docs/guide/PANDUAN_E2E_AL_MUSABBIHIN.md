@@ -6,7 +6,7 @@
 | **Produk** | NexFinance Tenant (SaaS multi-tenant) — oleh Nexora |
 | **Repo** | `NexoraTechTeam/NEXFINANCE-TENANT` |
 | **Tenant contoh** | Sekolah Islam Terpadu Al Musabbihin (`al-musabbihin`) |
-| **Versi dokumen** | 1.0 — 17 Oktober 2026 |
+| **Versi dokumen** | 1.1 — 20 Oktober 2026 (aplikasi live sejak 19 Oktober 2026) |
 | **Sumber screenshot** | Uji end-to-end otomatis (Playwright) pada build `dev`, database PostgreSQL nyata, nama host produksi. Semua angka di dokumen ini adalah hasil transaksi nyata dalam uji tersebut. |
 
 > **Cara membaca dokumen ini.** Bagian 1–3 memberi gambaran umum (untuk semua orang). Bagian 4–9 adalah
@@ -64,6 +64,9 @@ langsung bisa dipakai.
 | Auditor | Dewi Kusuma | Aplikasi sekolah | Melihat laporan & akuntansi (baca saja) |
 
 ## 2. Alamat (URL)
+
+> ✅ **Sudah aktif sejak 19 Oktober 2026.** Buka alamat di bawah dari browser komputer atau ponsel —
+> koneksi aman (HTTPS), tidak perlu memasang aplikasi apa pun.
 
 | Kebutuhan | Alamat | Dipakai oleh |
 | --- | --- | --- |
@@ -483,12 +486,11 @@ dua kali** untuk dokumen yang sama.
 
 **Tim Nexora (sekali, ±30 menit):**
 - [x] DNS A record: `console-nexfinance.nexoratech.co`, `almusabbihin-nexfinance.nexoratech.co` → IP VPS (2026-10-19).
-- [ ] Daftarkan runner VPS untuk repo: `RUNNER_TOKEN=… sh deploy/register-runner.sh` (satu-satunya langkah manual;
-      host & secret otomatis — lihat `docs/OPERATIONS.md`).
-- [ ] Login Console pertama: `ops@nexoratech.co` + isi file `…/nexfin-saas.secrets/console_admin_password` di VPS.
-- [ ] Deploy staging hijau → uji alur bagian 3 di staging → push `main` (produksi).
-- [ ] Console: pastikan tenant Al Musabbihin aktif, identitas & logo lengkap, **Reset password** admin →
-      kirim lewat kanal aman.
+- [x] Deploy staging → produksi hijau, TLS valid, NexFinance demo tidak tersentuh (19 Oktober 2026, lewat ops bridge
+      `ops/tenant-deploy` di repo NEXFINANCE — lihat `docs/OPERATIONS.md`).
+- [x] Login Console pertama: `ops@nexoratech.co` (password dikirim ke Imam via Telegram); tenant Al Musabbihin aktif.
+- [ ] Console → **Reset password** `admin-almusabbihin` → kirim ke sekolah lewat kanal aman.
+- [ ] Opsional: runner khusus repo ini (`deploy/register-runner.sh`), lalu hapus branch `ops/tenant-deploy`.
 
 **Sekolah (hari pertama):**
 - [ ] Admin login & ganti password, ikuti tur.

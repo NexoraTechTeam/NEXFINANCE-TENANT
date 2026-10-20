@@ -15,6 +15,8 @@ Living record of state, decisions and open items. Newest entries first. Update a
 - Console operator `ops@nexoratech.co`; password generated on the VPS (`/home/github-runner/apps/nexfin-saas.secrets/`),
   handed to Imam via Telegram (RSA-OAEP encrypted in the CI log, decrypted in-session, never stored in git).
 - `main` = production snapshot (`dev` pushed to `main` after the live check).
+- 2026-10-20: guide v1.1 (live note, go-live checklist ticked; PDF 49 p. rebuilt, leak guard clean) and summary deck
+  updated (new hosts, LIVE status slide, all 9 screenshots re-uploaded from `docs/guide/img`, deck version 8).
 
 ## Session 2026-10-19 — production hosts + zero-touch deploy
 - Imam: "setupkan NEXFINANCE-TENANT ke console-nexfinance.nexoratech.co dan almusabbihin-nexfinance.nexoratech.co".
