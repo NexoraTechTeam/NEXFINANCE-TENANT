@@ -73,6 +73,9 @@ export default function LoginPage() {
   const router = useRouter();
   const tenant = useTenant();
   const brand = brandLines(tenant);
+  const photo = tenant.loginImageUrl;
+  const photoAlt = `Foto ${tenant.shortName}`;
+  const place = tenant.schoolInfo.city;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -94,17 +97,20 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="auth-shell">
+    <main className={`auth-shell${photo ? ' has-photo' : ''}`}>
+      {photo && <div className="auth-photo-bg" style={{ backgroundImage: `url("${photo}")` }} aria-hidden="true" />}
       <div className="auth-orb auth-orb-primary" aria-hidden="true" />
       <div className="auth-orb auth-orb-secondary" aria-hidden="true" />
       <div className="auth-orb auth-orb-tertiary" aria-hidden="true" />
 
       <div className="auth-grid">
         <section className="auth-showcase anim-fadeup">
-          <div className="auth-badge">
-            <Sparkles size={14} strokeWidth={2} />
-            Premium finance workspace
-          </div>
+          {!photo && (
+            <div className="auth-badge">
+              <Sparkles size={14} strokeWidth={2} />
+              Premium finance workspace
+            </div>
+          )}
 
           <div className="auth-brand-row">
             <div className="auth-brand-mark"><TenantMark size={54} /></div>
@@ -114,6 +120,26 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {photo ? (
+            <>
+              <h1 className="auth-title auth-title-compact">
+                Selamat datang di
+                <span>{tenant.shortName}</span>
+              </h1>
+              <figure className="auth-photo-card">
+                {/* eslint-disable-next-line @next/next/no-img-element -- tenant asset served by the API */}
+                <img src={photo} alt={photoAlt} />
+                <figcaption>
+                  <span>{tenant.name}</span>
+                  {place && <span className="auth-photo-place">{place}</span>}
+                </figcaption>
+              </figure>
+              <p className="auth-copy">
+                Portal keuangan sekolah: SPP, penggajian, pengeluaran, pengadaan, dan laporan keuangan dalam satu tempat.
+              </p>
+            </>
+          ) : (
+          <>
           <h1 className="auth-title">
             Sistem keuangan sekolah yang terasa
             <span>mahal, rapi, dan profesional.</span>
@@ -146,9 +172,15 @@ export default function LoginPage() {
               </div>
             ))}
           </div>
+          </>
+          )}
         </section>
 
         <section className="glass-card auth-panel anim-fadeup">
+          {photo && (
+            // eslint-disable-next-line @next/next/no-img-element -- tenant asset served by the API
+            <img className="auth-panel-photo" src={photo} alt={photoAlt} />
+          )}
           <div className="auth-panel-top">
             <div className="auth-panel-brand">
               <div className="auth-brand-mark auth-brand-mark-small"><TenantMark size={42} /></div>
@@ -285,6 +317,58 @@ export default function LoginPage() {
           overflow: hidden;
           background: linear-gradient(135deg, rgb(var(--nx-navy-deep-rgb) / 0.98) 0%, rgb(var(--nx-navy-deep-rgb) / 0.96) 100%);
           color: #fff;
+        }
+
+        /* ── School photo (set in the Console) ── */
+        .auth-photo-bg {
+          position: absolute;
+          inset: 0;
+          background-size: cover;
+          background-position: center;
+          filter: blur(40px) saturate(1.2) brightness(0.8);
+          transform: scale(1.15);
+        }
+        .auth-shell.has-photo::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          z-index: 0;
+          background:
+            linear-gradient(100deg, rgb(var(--nx-navy-deep-rgb) / 0.96) 0%, rgb(var(--nx-navy-deep-rgb) / 0.9) 50%, rgb(var(--nx-navy-deep-rgb) / 0.84) 100%);
+        }
+        .auth-shell.has-photo .auth-orb { opacity: 0.45; }
+        .auth-title-compact {
+          font-size: clamp(34px, 3.4vw, 52px) !important;
+        }
+        .auth-photo-card {
+          margin: 22px 0 0;
+          max-width: 680px;
+          border-radius: 24px;
+          overflow: hidden;
+          border: 1px solid rgba(255, 255, 255, 0.16);
+          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+          background: rgba(255, 255, 255, 0.04);
+        }
+        .auth-photo-card img {
+          display: block;
+          width: 100%;
+          aspect-ratio: 16 / 9;
+          object-fit: cover;
+        }
+        .auth-photo-card figcaption {
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 12px 16px;
+          font-size: 13px;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.86);
+          background: rgb(var(--nx-navy-deep-rgb) / 0.72);
+        }
+        .auth-photo-place { color: rgba(255, 255, 255, 0.6); font-weight: 500; }
+        .auth-panel-photo { display: none; }
+        @media (max-width: 1080px) {
+          .auth-photo-bg { display: none; }
         }
 
         /* ── Grid ── */
@@ -779,6 +863,16 @@ export default function LoginPage() {
         @media (max-width: 560px) {
           .auth-showcase {
             display: none;
+          }
+
+          .auth-panel-photo {
+            display: block;
+            width: 100%;
+            margin: 0 0 18px;
+            aspect-ratio: 16 / 7;
+            object-fit: cover;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
           }
 
           .auth-panel {

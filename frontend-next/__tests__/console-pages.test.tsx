@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const { push, api } = vi.hoisted(() => ({
@@ -7,7 +7,7 @@ const { push, api } = vi.hoisted(() => ({
   api: {
     login: vi.fn(), me: vi.fn(), listTenants: vi.fn(), getTenant: vi.fn(), updateTenant: vi.fn(),
     resetPassword: vi.fn(), addDomain: vi.fn(), removeDomain: vi.fn(), uploadLogo: vi.fn(),
-    paletteFromColors: vi.fn(), audit: vi.fn(),
+    paletteFromColors: vi.fn(), audit: vi.fn(), uploadLoginImage: vi.fn(), removeLoginImage: vi.fn(),
   },
 }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }), usePathname: () => '/console' }));
@@ -89,5 +89,49 @@ describe('TenantDetail', () => {
     await waitFor(() => expect(api.updateTenant).toHaveBeenCalledWith('t1', expect.objectContaining({
       schoolInfo: expect.objectContaining({ shortName: 'SIT Musabbihin' }),
     })));
+  });
+
+  it('uploads, previews and removes the login page photo', async () => {
+    const user = userEvent.setup();
+    const withPhoto = { ...TENANT, branding: { ...TENANT.branding, loginImageUpdatedAt: '2026-10-20T00:00:00Z' } };
+    api.getTenant.mockResolvedValue(TENANT);
+    api.uploadLoginImage.mockResolvedValue({ tenant: withPhoto });
+    api.removeLoginImage.mockResolvedValue({ tenant: TENANT });
+    render(<TenantDetail id="t1" />);
+    const file = new File([new Uint8Array([255, 216, 255])], 'sekolah.jpg', { type: 'image/jpeg' });
+    await user.upload(await screen.findByLabelText(/Gambar halaman login/i), file);
+    expect(api.uploadLoginImage).toHaveBeenCalledWith('t1', file);
+    expect(await screen.findByRole('img', { name: /Pratinjau gambar login/i })).toHaveAttribute(
+      'src', expect.stringContaining('/api/v1/console/tenants/t1/assets/login?v='),
+    );
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    await user.click(screen.getByRole('button', { name: /Hapus gambar login/i }));
+    expect(api.removeLoginImage).toHaveBeenCalledWith('t1');
+  });
+
+  it('adjusts the sidebar colour and saves it with the palette', async () => {
+    const user = userEvent.setup();
+    api.getTenant.mockResolvedValue(TENANT);
+    api.paletteFromColors.mockResolvedValue({ ...DEFAULT_PALETTE, sidebar: '#0e3b2e' });
+    api.updateTenant.mockResolvedValue(TENANT);
+    render(<TenantDetail id="t1" />);
+    const picker = await screen.findByLabelText('Sidebar');
+    fireEvent.input(picker, { target: { value: '#0e3b2e' } });
+    await waitFor(() => expect(api.paletteFromColors).toHaveBeenCalledWith(expect.objectContaining({ sidebar: '#0e3b2e' })));
+    await user.click(screen.getByRole('button', { name: /Simpan warna/i }));
+    await waitFor(() => expect(api.updateTenant).toHaveBeenCalledWith('t1', {
+      branding: { palette: expect.objectContaining({ sidebar: '#0e3b2e' }) },
+    }));
+  });
+
+  it('can replace the logo while keeping the current colours', async () => {
+    const user = userEvent.setup();
+    api.getTenant.mockResolvedValue(TENANT);
+    api.uploadLogo.mockResolvedValue({ tenant: TENANT });
+    render(<TenantDetail id="t1" />);
+    await user.click(await screen.findByLabelText(/Pertahankan warna/i));
+    const file = new File([new Uint8Array([137, 80, 78, 71])], 'logo.png', { type: 'image/png' });
+    await user.upload(screen.getByLabelText(/Ganti logo/i), file);
+    expect(api.uploadLogo).toHaveBeenCalledWith('t1', file, { keepPalette: true });
   });
 });

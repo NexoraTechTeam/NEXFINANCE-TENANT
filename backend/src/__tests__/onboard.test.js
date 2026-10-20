@@ -56,4 +56,24 @@ describe('scripted tenant onboarding', () => {
     const result = await onboard(knex, SPEC_FILE, { config: { tenantBaseDomain: '{label}-nexfinance.test' }, showPassword: false });
     expect(result.domains).toEqual(['almusabbihin-nexfinance.test']);
   });
+
+  it('adds a login image from the spec to an existing tenant that has none (idempotent deploys)', async () => {
+    // Production state before this feature: the tenant exists without a login image.
+    await knex.withSchema('platform').from('tenant_assets').where({ kind: 'login' }).del();
+    await knex.raw("UPDATE platform.tenants SET branding = branding - 'loginImageUpdatedAt' - 'loginImageRemoved' WHERE slug = 'al-musabbihin'");
+    const dir = path.dirname(SPEC_FILE);
+
+    const first = await onboard(knex, path.join(dir, 'tenant.json'), { config, ifMissing: true });
+    expect(first).toEqual({ status: 'updated', tenant: 'al-musabbihin', added: ['loginImage'] });
+    const again = await onboard(knex, path.join(dir, 'tenant.json'), { config, ifMissing: true });
+    expect(again).toEqual({ status: 'exists', tenant: 'al-musabbihin' });
+    const row = await knex.withSchema('platform').from('tenant_assets').where({ kind: 'login' }).first('content_type');
+    expect(row.content_type).toBe('image/jpeg');
+
+    // An operator who removed the photo in the Console keeps it removed on the next deploy.
+    const { id } = await knex.withSchema('platform').from('tenants').where({ slug: 'al-musabbihin' }).first('id');
+    await require('../services/console').removeLoginImage(knex, 'ops', id);
+    expect(await onboard(knex, path.join(dir, 'tenant.json'), { config, ifMissing: true }))
+      .toEqual({ status: 'exists', tenant: 'al-musabbihin' });
+  });
 });

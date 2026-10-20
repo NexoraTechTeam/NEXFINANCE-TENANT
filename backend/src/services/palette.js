@@ -118,14 +118,30 @@ function buildRamp(primaryHex) {
   return { brand, hue: base.h };
 }
 
-function buildPalette({ primary, secondary, accent, source = 'manual' } = {}) {
+/** Sidebar background: a manual choice is kept when white menu text stays AA-readable, else darkened. */
+function sidebarColors(hue, manual) {
+  if (!manual) {
+    return {
+      sidebar: hslToHex(adjustUntil({ h: hue, s: 0.55, l: 0.18 }, (hex) => contrastRatio('#ffffff', hex) >= 9)),
+      sidebarDeep: hslToHex({ h: hue, s: 0.6, l: 0.12 }),
+    };
+  }
+  const chosen = toHex(parseHex(manual));
+  const base = hexToHsl(chosen);
+  const readable = contrastRatio('#ffffff', chosen) >= 4.5
+    ? chosen : hslToHex(adjustUntil(base, (hex) => contrastRatio('#ffffff', hex) >= 4.5));
+  const l = hexToHsl(readable).l;
+  return { sidebar: readable, sidebarDeep: hslToHex({ ...hexToHsl(readable), l: clamp(l * 0.7, 0.04, l - 0.02) }) };
+}
+
+function buildPalette({ primary, secondary, accent, sidebar: manualSidebar, source = 'manual' } = {}) {
   const primaryHex = toHex(parseHex(primary));
   const { brand, hue } = buildRamp(primaryHex);
   const secondaryHex = secondary
     ? toHex(parseHex(secondary))
     : hslToHex({ h: hue + 150, s: 0.55, l: 0.45 });
 
-  const sidebar = hslToHex(adjustUntil({ h: hue, s: 0.55, l: 0.18 }, (hex) => contrastRatio('#ffffff', hex) >= 9));
+  const { sidebar, sidebarDeep } = sidebarColors(hue, manualSidebar);
   const accentBase = hexToHsl(accent ? toHex(parseHex(accent)) : secondaryHex);
   const accentHex = hslToHex(adjustUntil(accentBase, (hex) => contrastRatio(hex, sidebar) >= 3.2, 0.01));
 
@@ -135,7 +151,7 @@ function buildPalette({ primary, secondary, accent, source = 'manual' } = {}) {
     secondary: secondaryHex,
     accent: accentHex,
     sidebar,
-    sidebarDeep: hslToHex({ h: hue, s: 0.6, l: 0.12 }),
+    sidebarDeep,
     brand,
   };
 }

@@ -10,7 +10,7 @@ export interface ConsoleTenant {
   name: string;
   status: 'active' | 'suspended';
   schoolInfo: Record<string, string>;
-  branding: { palette?: Palette; showPoweredBy?: boolean; logoUpdatedAt?: string };
+  branding: { palette?: Palette; showPoweredBy?: boolean; logoUpdatedAt?: string; loginImageUpdatedAt?: string };
   modules: string[];
   domains: string[];
   userCount?: number;
@@ -59,7 +59,10 @@ export const consoleApi = {
   uploadLogo: async (id: string, file: Blob, { keepPalette = false } = {}) =>
     (await http.put(`/tenants/${id}/logo${keepPalette ? '?keepPalette=1' : ''}`, file, image(file))).data as { tenant: ConsoleTenant },
   previewPalette: async (file: Blob) => (await http.post('/palette/preview', file, image(file))).data.palette as Palette,
-  paletteFromColors: async (colors: { primary: string; secondary?: string; accent?: string }) =>
+  uploadLoginImage: async (id: string, file: Blob) =>
+    (await http.put(`/tenants/${id}/login-image`, file, image(file))).data as { tenant: ConsoleTenant },
+  removeLoginImage: async (id: string) => (await http.delete(`/tenants/${id}/login-image`)).data as { tenant: ConsoleTenant },
+  paletteFromColors: async (colors: { primary: string; secondary?: string; accent?: string; sidebar?: string }) =>
     (await http.post('/palette/from-colors', colors)).data.palette as Palette,
   addDomain: async (id: string, domain: string) => (await http.post(`/tenants/${id}/domains`, { domain })).data.tenant as ConsoleTenant,
   removeDomain: async (id: string, domain: string) => (await http.delete(`/tenants/${id}/domains/${encodeURIComponent(domain)}`)).data.tenant as ConsoleTenant,

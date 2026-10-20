@@ -3,12 +3,14 @@
   "name": "Sekolah Islam Terpadu Al Musabbihin",
   "schoolInfo": {
     "shortName": "SIT Al Musabbihin",
-    "website": "al-musabbihin.sch.id"
+    "website": "al-musabbihin.sch.id",
+    "city": "Medan"
   },
   "admin": {
     "username": "admin-almusabbihin",
     "name": "Administrator Al Musabbihin",
     "role": "super_admin"
   },
-  "logo": "logo.png"
+  "logo": "logo.png",
+  "loginImage": "login.jpg"
 }

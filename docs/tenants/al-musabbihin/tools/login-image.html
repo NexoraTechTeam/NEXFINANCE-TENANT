@@ -1,0 +1,44 @@
+<!doctype html>
+<!-- Source of docs/tenants/al-musabbihin/login.jpg (render: node render-login-image.js). Replace it in the
+     Console with a real school photo whenever the school provides one. Facts: public school directory. -->
+<html><head><meta charset="utf-8"><style>
+  html,body{margin:0;width:1920px;height:1080px;overflow:hidden;font-family:Inter,'Liberation Sans',sans-serif}
+  .bg{position:absolute;inset:0;background:radial-gradient(1200px 700px at 78% 30%,#2a86cf 0%,rgba(42,134,207,0) 70%),linear-gradient(135deg,#0a2540 0%,#0f4373 48%,#196fb0 100%)}
+  svg.pattern{position:absolute;inset:0}
+  .glow{position:absolute;left:-200px;bottom:-380px;width:1200px;height:760px;border-radius:50%;background:radial-gradient(closest-side,rgba(94,189,105,.55),rgba(94,189,105,0))}
+  .content{position:absolute;left:180px;top:250px;width:980px;color:#f4f8fc}
+  .kicker{font-size:30px;font-weight:600;letter-spacing:8px;text-transform:uppercase;color:#a9e3b1}
+  h1{margin:22px 0 0;font-size:104px;line-height:1.02;font-weight:800;letter-spacing:-2px}
+  h1 span{display:block;color:#ffffff}
+  .levels{display:flex;gap:18px;margin-top:44px}
+  .levels div{font-size:34px;font-weight:700;padding:16px 30px;border-radius:999px;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.28)}
+  .levels div.g{background:#5ebd69;border-color:#5ebd69;color:#0b2a1a}
+  .place{margin-top:40px;font-size:32px;color:rgba(244,248,252,.78)}
+  .badge{position:absolute;right:230px;top:240px;width:560px;height:560px;border-radius:50%;background:#ffffff;box-shadow:0 40px 120px rgba(0,0,0,.45),0 0 0 22px rgba(255,255,255,.10),0 0 0 48px rgba(94,189,105,.22);display:grid;place-items:center}
+  .badge img{width:400px;height:400px;object-fit:contain}
+</style></head><body>
+<div class="bg"></div>
+<svg class="pattern" width="1920" height="1080" aria-hidden="true">
+  <defs>
+    <pattern id="star" width="160" height="160" patternUnits="userSpaceOnUse">
+      <g fill="none" stroke="#ffffff" stroke-opacity="0.07" stroke-width="2">
+        <rect x="40" y="40" width="80" height="80"/>
+        <rect x="40" y="40" width="80" height="80" transform="rotate(45 80 80)"/>
+        <circle cx="80" cy="80" r="18"/>
+        <path d="M0 80h40M120 80h40M80 0v40M80 120v40"/>
+      </g>
+    </pattern>
+    <linearGradient id="fade" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="1"/><stop offset="1" stop-color="#fff" stop-opacity="0.35"/></linearGradient>
+    <mask id="m"><rect width="1920" height="1080" fill="url(#fade)"/></mask>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#star)" mask="url(#m)"/>
+</svg>
+<div class="glow"></div>
+<div class="content">
+  <div class="kicker">Sekolah Islam Terpadu</div>
+  <h1>Al Musabbihin<span>Medan</span></h1>
+  <div class="levels"><div class="g">RA</div><div>SDIT</div><div>SMPIT</div></div>
+  <div class="place">Komplek TASBI · Jl. Taman Setiabudi Indah, Medan</div>
+</div>
+<div class="badge"><img src="../logo.png" alt=""></div>
+</body></html>

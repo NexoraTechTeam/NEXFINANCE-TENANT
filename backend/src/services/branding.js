@@ -16,6 +16,8 @@ function publicConfig(tenant) {
     schoolInfo: school,
     palette: branding.palette || DEFAULT_PALETTE,
     logoUrl: branding.logoUpdatedAt ? `/api/v1/tenant/logo?v=${encodeURIComponent(branding.logoUpdatedAt)}` : null,
+    loginImageUrl: branding.loginImageUpdatedAt
+      ? `/api/v1/tenant/login-image?v=${encodeURIComponent(branding.loginImageUpdatedAt)}` : null,
     showPoweredBy: branding.showPoweredBy !== false,
   };
 }
@@ -36,6 +38,27 @@ async function normaliseLogo(buffer) {
     .png().toBuffer();
 }
 
+const PHOTO_FORMATS = new Set(['png', 'jpeg', 'webp']);
+
+/** Validates a login page photo and normalises it to a ≤1920px progressive JPEG. */
+async function normaliseLoginImage(buffer) {
+  const sharp = require('sharp');
+  const invalid = () => httpError(400, 'Login image must be a PNG, JPG or WEBP image');
+  if (!Buffer.isBuffer(buffer) || buffer.length === 0) throw httpError(400, 'Login image file is required');
+  let meta;
+  try {
+    meta = await sharp(buffer).metadata();
+  } catch {
+    throw invalid();
+  }
+  if (!PHOTO_FORMATS.has(meta.format)) throw invalid();
+  return sharp(buffer).rotate()
+    .resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
+    .flatten({ background: '#ffffff' })
+    .jpeg({ quality: 82, progressive: true, mozjpeg: true })
+    .toBuffer();
+}
+
 async function paletteFromLogo(buffer) {
   try {
     return await generatePaletteFromImage(buffer);
@@ -52,4 +75,6 @@ function paletteFromColors(colors) {
   }
 }
 
-module.exports = { publicConfig, normaliseLogo, paletteFromLogo, paletteFromColors, httpError };
+module.exports = {
+  publicConfig, normaliseLogo, normaliseLoginImage, paletteFromLogo, paletteFromColors, httpError,
+};

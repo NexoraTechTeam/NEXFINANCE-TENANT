@@ -4,7 +4,9 @@ const bcryptjs = require('bcryptjs');
 const {
   provisionTenant, toTenant, normalizeHost, DOMAIN_RE, generateTemporaryPassword, tenantDomain,
 } = require('./tenants');
-const { normaliseLogo, paletteFromLogo, paletteFromColors, httpError } = require('./branding');
+const {
+  normaliseLogo, normaliseLoginImage, paletteFromLogo, paletteFromColors, httpError,
+} = require('./branding');
 
 const platform = (knex, table) => knex.withSchema('platform').from(table);
 
@@ -96,6 +98,29 @@ async function setLogo(knex, actor, id, buffer, { keepPalette = false } = {}) {
   return getTenant(knex, id);
 }
 
+/** Photo shown on the school's login page (kind `login` in tenant_assets). */
+async function setLoginImage(knex, actor, id, buffer) {
+  const current = await getTenant(knex, id);
+  const jpeg = await normaliseLoginImage(buffer);
+  const { loginImageRemoved: _removed, ...rest } = current.branding;
+  const branding = { ...rest, loginImageUpdatedAt: new Date().toISOString() };
+  await knex.withSchema('platform').insert({ tenant_id: id, kind: 'login', content_type: 'image/jpeg', data: jpeg })
+    .into('tenant_assets').onConflict(['tenant_id', 'kind']).merge();
+  await platform(knex, 'tenants').where({ id }).update({ branding, updated_at: knex.fn.now() });
+  await audit(knex, actor, 'tenant.login_image', id, { bytes: jpeg.length });
+  return getTenant(knex, id);
+}
+
+async function removeLoginImage(knex, actor, id) {
+  const current = await getTenant(knex, id);
+  const { loginImageUpdatedAt, ...rest } = current.branding;
+  const branding = { ...rest, loginImageRemoved: true };
+  await platform(knex, 'tenant_assets').where({ tenant_id: id, kind: 'login' }).del();
+  await platform(knex, 'tenants').where({ id }).update({ branding, updated_at: knex.fn.now() });
+  await audit(knex, actor, 'tenant.login_image_remove', id, { had: Boolean(loginImageUpdatedAt) });
+  return getTenant(knex, id);
+}
+
 async function addDomain(knex, actor, id, rawDomain) {
   await getTenant(knex, id);
   const domain = normalizeHost(rawDomain);
@@ -142,6 +167,7 @@ async function listAudit(knex, { limit = 100 } = {}) {
 }
 
 module.exports = {
+  setLoginImage, removeLoginImage,
   ensureConsoleAdmin, verifyConsoleUser, audit, getTenant, listTenants, createTenant,
   updateTenant, setLogo, addDomain, removeDomain, resetPassword, listAudit, paletteFromLogo,
   normaliseLogo, paletteFromColors,

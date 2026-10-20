@@ -115,6 +115,44 @@ describe('tenant lifecycle from the console', () => {
     expect(bad.statusCode).toBe(400);
   });
 
+  it('uploads a login page image, serves it publicly and can remove it', async () => {
+    const up = await consoleApi.put(`/api/v1/console/tenants/${tenantId}/login-image`)
+      .set('Content-Type', 'image/png').send(LOGO);
+    expect(up.statusCode).toBe(200);
+    expect(up.body.tenant.branding.loginImageUpdatedAt).toBeTruthy();
+    expect(up.body.tenant.branding.palette.source).toBe('logo');
+
+    const config = await tenantApi('al-musabbihin.nexfinance.test').get('/api/v1/tenant/config');
+    expect(config.body.loginImageUrl).toMatch(/^\/api\/v1\/tenant\/login-image\?v=/);
+    const img = await tenantApi('al-musabbihin.nexfinance.test').get('/api/v1/tenant/login-image');
+    expect(img.statusCode).toBe(200);
+    expect(img.headers['content-type']).toMatch(/image\/jpeg/);
+
+    const bad = await consoleApi.put(`/api/v1/console/tenants/${tenantId}/login-image`)
+      .set('Content-Type', 'image/jpeg').send(Buffer.from('nope'));
+    expect(bad.statusCode).toBe(400);
+
+    // Console previews load assets from the console host itself (works before a school domain has DNS).
+    const preview = await request(app).get(`/api/v1/console/tenants/${tenantId}/assets/login`).set('Host', CONSOLE);
+    expect(preview.statusCode).toBe(200);
+    expect(preview.headers['content-type']).toMatch(/image\/jpeg/);
+    expect((await request(app).get(`/api/v1/console/tenants/${tenantId}/assets/secret`).set('Host', CONSOLE)).statusCode).toBe(404);
+
+    await consoleApi.delete(`/api/v1/console/tenants/${tenantId}/login-image`).expect(200);
+    const after = await tenantApi('al-musabbihin.nexfinance.test').get('/api/v1/tenant/config');
+    expect(after.body.loginImageUrl).toBeNull();
+    expect((await tenantApi('al-musabbihin.nexfinance.test').get('/api/v1/tenant/login-image')).statusCode).toBe(404);
+  });
+
+  it('can replace the logo without regenerating the colours', async () => {
+    await consoleApi.patch(`/api/v1/console/tenants/${tenantId}`)
+      .send({ branding: { palette: { primary: '#196fb0', sidebar: '#0e3b2e' } } }).expect(200);
+    const res = await consoleApi.put(`/api/v1/console/tenants/${tenantId}/logo?keepPalette=1`)
+      .set('Content-Type', 'image/png').send(LOGO);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.tenant.branding.palette).toMatchObject({ source: 'manual', sidebar: '#0e3b2e' });
+  });
+
   it('allows manual palette overrides and branding edits', async () => {
     const res = await consoleApi.patch(`/api/v1/console/tenants/${tenantId}`).send({
       name: 'SIT Al Musabbihin',

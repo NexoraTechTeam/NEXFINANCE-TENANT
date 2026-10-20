@@ -65,3 +65,22 @@ describe('palette from explicit colors', () => {
     expect(() => buildPalette({ primary: 'blue' })).toThrow(/color/i);
   });
 });
+
+describe('manual sidebar colour', () => {
+  it('keeps a dark sidebar colour chosen in the Console', () => {
+    const p = buildPalette({ primary: '#196fb0', secondary: '#5ebd69', sidebar: '#0E3B2E' });
+    expect(p.sidebar).toBe('#0e3b2e');
+    expect(hexToHsl(p.sidebarDeep).l).toBeLessThan(hexToHsl(p.sidebar).l);
+    expect(contrastRatio(p.accent, p.sidebar)).toBeGreaterThanOrEqual(3);
+  });
+
+  it('darkens a too-light sidebar until white menu text stays readable (WCAG AA)', () => {
+    const p = buildPalette({ primary: '#196fb0', sidebar: '#88ccff' });
+    expect(contrastRatio('#ffffff', p.sidebar)).toBeGreaterThanOrEqual(4.5);
+    expect(Math.abs(hue(p.sidebar) - hue('#88ccff'))).toBeLessThan(15);
+  });
+
+  it('derives the sidebar from the primary when none is given', () => {
+    expect(buildPalette({ primary: '#196fb0' }).sidebar).toBe(buildPalette({ primary: '#196fb0', sidebar: '' }).sidebar);
+  });
+});

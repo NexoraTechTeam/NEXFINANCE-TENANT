@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { ExternalLink, Globe, ImageUp, KeyRound, Palette as PaletteIcon, Power, Save, Trash2 } from 'lucide-react';
+import { ExternalLink, Globe, ImageUp, KeyRound, Palette as PaletteIcon, Power, Save, Trash2, Image as ImageIcon } from 'lucide-react';
 import PalettePreview from '@/components/console/PalettePreview';
 import { statusBadge } from '@/components/console/TenantList';
 import { consoleApi, consoleError, type ConsoleTenant } from '@/lib/console-api';
@@ -11,6 +11,10 @@ const INFO_FIELDS: Array<[string, string]> = [
   ['shortName', 'Nama singkat'], ['city', 'Kota'], ['address', 'Alamat sekolah'], ['npsn', 'NPSN'],
   ['headmaster', 'Kepala sekolah'], ['treasurer', 'Bendahara'],
 ];
+
+type ColorKey = 'primary' | 'secondary' | 'accent' | 'sidebar';
+const COLOR_LABELS: Record<ColorKey, string> = { primary: 'Primer', secondary: 'Sekunder', accent: 'Aksen', sidebar: 'Sidebar' };
+const colorsOf = (p: Palette) => ({ primary: p.primary, secondary: p.secondary, accent: p.accent, sidebar: p.sidebar });
 
 const Section = ({ id, title, icon: Icon, children }: { id: string; title: string; icon: typeof Save; children: React.ReactNode }) => (
   <section className="card" style={{ padding: 20 }} aria-labelledby={id}>
@@ -31,6 +35,7 @@ export default function TenantDetail({ id }: { id: string }) {
   const [domain, setDomain] = useState('');
   const [resetUser, setResetUser] = useState('');
   const [tempPassword, setTempPassword] = useState('');
+  const [keepColors, setKeepColors] = useState(false);
 
   const apply = useCallback((t: ConsoleTenant) => {
     setTenant(t);
@@ -72,9 +77,15 @@ export default function TenantDetail({ id }: { id: string }) {
     run(() => consoleApi.updateTenant(id, { status: next }), `Tenant di${next === 'suspended' ? 'nonaktifkan' : 'aktifkan'}.`);
   };
 
-  const onColor = async (key: 'primary' | 'secondary' | 'accent', value: string) => {
+  // Served by the console host itself, so previews work before a school domain has DNS.
+  const tenantAsset = (kind: 'logo' | 'login', version?: string) =>
+    (version ? `/api/v1/console/tenants/${tenant.id}/assets/${kind}?v=${encodeURIComponent(version)}` : null);
+  const logoSrc = tenantAsset('logo', tenant.branding.logoUpdatedAt);
+  const loginSrc = tenantAsset('login', tenant.branding.loginImageUpdatedAt);
+
+  const onColor = async (key: ColorKey, value: string) => {
     try {
-      setPalette(await consoleApi.paletteFromColors({ primary: palette.primary, secondary: palette.secondary, accent: palette.accent, [key]: value }));
+      setPalette(await consoleApi.paletteFromColors({ ...colorsOf(palette), [key]: value }));
     } catch (err) {
       setError(consoleError(err));
     }
@@ -122,29 +133,68 @@ export default function TenantDetail({ id }: { id: string }) {
           <Section id="sec-brand" title="Logo & tema" icon={PaletteIcon}>
             <div className="grid-2" style={{ alignItems: 'start' }}>
               <div style={{ display: 'grid', gap: 12 }}>
-                <label className="form-label" htmlFor="td-logo" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><ImageUp size={14} /> Ganti logo (warna dibuat ulang otomatis)</label>
+                <label className="form-label" htmlFor="td-logo" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><ImageUp size={14} /> Ganti logo</label>
                 <input id="td-logo" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="form-input"
-                  onChange={(e) => { const f = e.target.files?.[0]; if (f) run(async () => (await consoleApi.uploadLogo(id, f)).tenant, 'Logo & tema diperbarui.'); }} />
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) {
+                      run(async () => (await consoleApi.uploadLogo(id, f, { keepPalette: keepColors })).tenant,
+                        keepColors ? 'Logo diperbarui, warna tetap.' : 'Logo & tema diperbarui.');
+                    }
+                  }} />
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                  <input type="checkbox" checked={keepColors} onChange={(e) => setKeepColors(e.target.checked)} />
+                  Pertahankan warna saat logo diganti (tanpa centang: warna dibuat ulang dari logo)
+                </label>
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                  {(['primary', 'secondary', 'accent'] as const).map((key) => (
+                  {(Object.keys(COLOR_LABELS) as ColorKey[]).map((key) => (
                     <label key={key} style={{ display: 'grid', gap: 4, fontSize: 12, fontWeight: 700 }}>
-                      {key === 'primary' ? 'Primer' : key === 'secondary' ? 'Sekunder' : 'Aksen'}
+                      {COLOR_LABELS[key]}
                       <input type="color" value={palette[key]} onChange={(e) => onColor(key, e.target.value)} style={{ width: 56, height: 36, border: 0, background: 'none' }} />
                     </label>
                   ))}
                 </div>
+                <p style={{ fontSize: 12, color: 'var(--text-3)', margin: 0 }}>
+                  Sidebar juga mewarnai latar halaman login. Warna yang terlalu terang digelapkan otomatis agar teks menu tetap terbaca.
+                </p>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                   <input type="checkbox" checked={tenant.branding.showPoweredBy !== false}
                     onChange={(e) => run(() => consoleApi.updateTenant(id, { branding: { showPoweredBy: e.target.checked } }), 'Atribusi diperbarui.')} />
                   Tampilkan “NexFinance — produk dari Nexora”
                 </label>
                 <button type="button" className="tour-btn tour-btn-primary" style={{ justifySelf: 'start' }}
-                  onClick={() => run(() => consoleApi.updateTenant(id, { branding: { palette: { primary: palette.primary, secondary: palette.secondary, accent: palette.accent } } }), 'Tema tersimpan.')}>
+                  onClick={() => run(() => consoleApi.updateTenant(id, { branding: { palette: colorsOf(palette) } }), 'Tema tersimpan.')}>
                   Simpan warna
                 </button>
               </div>
-              <PalettePreview palette={palette} schoolName={info.shortName || name}
-                logoSrc={tenant.branding.logoUpdatedAt ? `https://${tenant.domains[0]}/api/v1/tenant/logo?v=${encodeURIComponent(tenant.branding.logoUpdatedAt)}` : null} />
+              <PalettePreview palette={palette} schoolName={info.shortName || name} logoSrc={logoSrc} />
+            </div>
+          </Section>
+
+          <Section id="sec-login" title="Halaman login" icon={ImageIcon}>
+            <div className="grid-2" style={{ alignItems: 'start' }}>
+              <div style={{ display: 'grid', gap: 10 }}>
+                <label className="form-label" htmlFor="td-login-image">Gambar halaman login (foto sekolah, JPG/PNG/WEBP, maks. 8 MB)</label>
+                <input id="td-login-image" type="file" accept="image/png,image/jpeg,image/webp" className="form-input"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) run(async () => (await consoleApi.uploadLoginImage(id, f)).tenant, 'Gambar login diperbarui.'); }} />
+                <p style={{ fontSize: 12, color: 'var(--text-3)', margin: 0 }}>
+                  Disarankan foto lanskap ±1920×1080 (gedung, kegiatan, atau siswa). Tampil sebagai latar dan kartu foto; di ponsel sebagai banner.
+                </p>
+                {loginSrc && (
+                  <button type="button" className="btn-secondary" style={{ justifySelf: 'start', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                    onClick={() => window.confirm('Hapus gambar halaman login?') && run(async () => (await consoleApi.removeLoginImage(id)).tenant, 'Gambar login dihapus.')}>
+                    <Trash2 size={14} /> Hapus gambar login
+                  </button>
+                )}
+              </div>
+              {loginSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element -- served by the tenant domain
+                <img src={loginSrc} alt="Pratinjau gambar login" style={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', borderRadius: 14, border: '1px solid var(--border)' }} />
+              ) : (
+                <div style={{ aspectRatio: '16 / 9', borderRadius: 14, border: '1px dashed var(--border)', display: 'grid', placeItems: 'center', fontSize: 13, color: 'var(--text-3)', textAlign: 'center', padding: 12 }}>
+                  Belum ada gambar — halaman login memakai tampilan standar.
+                </div>
+              )}
             </div>
           </Section>
         </div>

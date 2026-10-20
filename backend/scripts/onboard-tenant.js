@@ -25,18 +25,33 @@ function parseArgs(argv) {
   };
 }
 
+/** Re-runs (deploys) only add assets the spec has and the tenant still lacks — Console edits always win. */
+async function syncMissingAssets(knex, id, spec, file) {
+  const tenant = await svc.getTenant(knex, id);
+  const added = [];
+  const { loginImageUpdatedAt, loginImageRemoved } = tenant.branding;
+  if (spec.loginImage && !loginImageUpdatedAt && !loginImageRemoved) {
+    await svc.setLoginImage(knex, 'cli', id, fs.readFileSync(path.resolve(path.dirname(file), spec.loginImage)));
+    added.push('loginImage');
+  }
+  return added.length ? { status: 'updated', tenant: spec.slug, added } : { status: 'exists', tenant: spec.slug };
+}
+
 async function onboard(knex, file, { config, ifMissing = false, showPassword = true }) {
   const spec = JSON.parse(fs.readFileSync(file, 'utf8'));
   const existing = await knex.withSchema('platform').from('tenants').where({ slug: spec.slug }).first('id');
   if (existing) {
-    if (ifMissing) return { status: 'exists', tenant: spec.slug };
+    if (ifMissing) return syncMissingAssets(knex, existing.id, spec, file);
     throw new Error(`Tenant "${spec.slug}" already exists — edit it from the Console instead.`);
   }
 
-  const { logo, ...input } = spec;
+  const { logo, loginImage, ...input } = spec;
   const result = await svc.createTenant(knex, 'cli', input, config);
   if (logo) {
     await svc.setLogo(knex, 'cli', result.tenant.id, fs.readFileSync(path.resolve(path.dirname(file), logo)));
+  }
+  if (loginImage) {
+    await svc.setLoginImage(knex, 'cli', result.tenant.id, fs.readFileSync(path.resolve(path.dirname(file), loginImage)));
   }
   const tenant = await svc.getTenant(knex, result.tenant.id);
   const admin = result.admin && (showPassword

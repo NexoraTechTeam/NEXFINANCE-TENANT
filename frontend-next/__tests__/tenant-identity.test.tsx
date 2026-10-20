@@ -44,10 +44,23 @@ describe('tenant identity', () => {
     expect(screen.getByLabelText(/Email atau username/)).toHaveAttribute('type', 'text');
   });
 
+  it('shows the school photo on the login page when the Console set one', () => {
+    withTenant(<LoginPage />, { ...SCHOOL, loginImageUrl: '/api/v1/tenant/login-image?v=2' });
+    const photos = screen.getAllByRole('img', { name: 'Foto SIT Al Musabbihin' });
+    expect(photos.length).toBeGreaterThanOrEqual(1);
+    photos.forEach((p) => expect(p).toHaveAttribute('src', '/api/v1/tenant/login-image?v=2'));
+  });
+
+  it('keeps the classic login without a school photo', () => {
+    withTenant(<LoginPage />);
+    expect(screen.queryByRole('img', { name: 'Foto SIT Al Musabbihin' })).not.toBeInTheDocument();
+  });
+
   it('falls back to defaults for missing or broken configs', () => {
     expect(normalizeTenantConfig(null)).toEqual(DEFAULT_TENANT);
     const partial = normalizeTenantConfig({ slug: 'x', name: 'X', shortName: 'X' } as Partial<TenantConfig>);
     expect(partial.palette).toEqual(DEFAULT_TENANT.palette);
     expect(partial.showPoweredBy).toBe(true);
+    expect(partial.loginImageUrl).toBeNull();
   });
 });
