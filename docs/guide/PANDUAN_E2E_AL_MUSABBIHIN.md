@@ -6,7 +6,7 @@
 | **Produk** | NexFinance Tenant (SaaS multi-tenant) — oleh Nexora |
 | **Repo** | `NexoraTechTeam/NEXFINANCE-TENANT` |
 | **Tenant contoh** | Sekolah Islam Terpadu Al Musabbihin (`al-musabbihin`) |
-| **Versi dokumen** | 1.1 — 20 Oktober 2026 (aplikasi live sejak 19 Oktober 2026) |
+| **Versi dokumen** | 1.2 — 20 Oktober 2026 (aplikasi live sejak 19 Oktober 2026; foto login & warna sidebar dari Console) |
 | **Sumber screenshot** | Uji end-to-end otomatis (Playwright) pada build `dev`, database PostgreSQL nyata, nama host produksi. Semua angka di dokumen ini adalah hasil transaksi nyata dalam uji tersebut. |
 
 > **Cara membaca dokumen ini.** Bagian 1–3 memberi gambaran umum (untuk semua orang). Bagian 4–9 adalah
@@ -197,8 +197,11 @@ Klik nama sekolah di daftar untuk membuka halaman kelola:
 
 - **Identitas sekolah** — lengkapi *Kepala sekolah* (Ust. Ahmad Fauzi, S.Pd.I) dan *Bendahara*
   (Siti Rahmawati, S.E.) agar muncul di laporan → **Simpan identitas**.
-- **Logo & tema** — ganti logo (warna dibuat ulang), ubah warna manual, atur atribusi
-  "NexFinance — produk dari Nexora" → **Simpan warna**.
+- **Logo & tema** — ganti logo (centang *Pertahankan warna* bila warna tidak ingin berubah), atur warna
+  **Primer, Sekunder, Aksen** dan **Sidebar**, atur atribusi "NexFinance — produk dari Nexora" → **Simpan warna**.
+  Warna Sidebar juga mewarnai latar halaman login; warna yang terlalu terang otomatis digelapkan agar menu tetap terbaca.
+- **Halaman login** — unggah foto sekolah (JPG/PNG/WEBP, maks. 8 MB, disarankan lanskap ±1920×1080). Foto tampil
+  di halaman login sekolah; **Hapus gambar login** mengembalikan tampilan standar.
 - **Domain** — tambah domain sekolah, hapus domain (domain terakhir tidak bisa dihapus).
 - **Nonaktifkan / Aktifkan** — tenant nonaktif langsung tidak bisa login (berguna bila tagihan tertunggak).
 
@@ -209,6 +212,14 @@ Klik nama sekolah di daftar untuk membuka halaman kelola:
   user wajib menggantinya saat login.
 
 ![Reset password admin](img/09-console-reset-password-form.jpg)
+
+Pengaturan **Logo & tema** dan **Halaman login**:
+
+![Logo, warna sidebar dan gambar halaman login](img/07b-console-login-theme.jpg)
+
+Hasilnya di halaman login sekolah — foto tampil sebagai kartu, latar mengikuti warna sidebar:
+
+![Halaman login dengan foto sekolah](img/10b-tenant-login-photo.jpg)
 
 Daftar tenant setelah Al Musabbihin dibuat:
 
@@ -440,9 +451,9 @@ Menu **Bantuan**: panduan per modul, tur aplikasi, tur per halaman, dan panduan 
 ### 9.5 Tampilan ponsel
 Semua halaman responsif — login dan dashboard di ponsel:
 
-| Login (ponsel) | Dashboard (ponsel) |
+| Login (ponsel, dengan foto sekolah) | Dashboard (ponsel) |
 | --- | --- |
-| ![Login ponsel](img/45-mobile-login.jpg) | ![Dashboard ponsel](img/46-mobile-dashboard.jpg) |
+| ![Login ponsel](img/45b-mobile-login-photo.jpg) | ![Dashboard ponsel](img/46-mobile-dashboard.jpg) |
 
 ---
 

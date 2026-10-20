@@ -83,7 +83,7 @@ a {{ color: var(--brand); }}
   <div class="meta">
     <div><b>Tenant contoh</b>almusabbihin-nexfinance.nexoratech.co</div>
     <div><b>Disiapkan oleh</b>Tim Nexora · nexoratech.co</div>
-    <div><b>Versi</b>1.1 · 20 Oktober 2026</div>
+    <div><b>Versi</b>1.2 · 20 Oktober 2026</div>
   </div>
 </section>
 <section class="toc"><h2 style="page-break-before:avoid">Daftar isi</h2><ul style="list-style:none;padding-left:0">{toc}</ul>

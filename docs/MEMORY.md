@@ -2,6 +2,19 @@
 
 Living record of state, decisions and open items. Newest entries first. Update at the end of every session.
 
+## 2026-10-20 — login photo & sidebar colour from the Console
+- Imam: "halaman login almusabbihin menampilkan gambar terkait sekolah; tema pewarnaan sidebar maupun logo bisa di-adjust dari console".
+- Console → tenant: **Halaman login** (upload/remove photo, preview), **Sidebar** colour picker (palette `sidebar` override,
+  kept if white text ≥ 4.5:1 else darkened; also tints the login backdrop), "Pertahankan warna" when replacing the logo.
+  Previews load from the console host: `GET /api/v1/console/tenants/:id/assets/{logo|login}` (public assets).
+- Login page: with a photo → "Selamat datang di <school>", photo card + blurred backdrop (desktop), banner (≤560px);
+  without → classic layout. Next caches tenant config 60 s, so changes show within a minute.
+- No official school photos online (al-musabbihin.sch.id not live; photos only on Instagram/Facebook — not used, rights).
+  Generated a branded image instead (`docs/tenants/al-musabbihin/login.jpg`, source `tools/login-image.html`): logo,
+  RA·SDIT·SMPIT, Komplek TASBI Medan (public directory). Replace it with a real photo from the Console when the school sends one.
+- Onboarding (`--if-missing`) now adds spec assets a live tenant lacks (never re-adds a photo removed in the Console).
+- Tests: backend 106, frontend 90. Guide v1.2 (PDF 50 p.) with new screenshots 07b/10b/45b.
+
 ## LIVE since 2026-10-19 13:51 UTC (production)
 - **https://console-nexfinance.nexoratech.co/console** and **https://almusabbihin-nexfinance.nexoratech.co** — 200 with
   valid Let's Encrypt certs (verified by the deploy smoke test from the VPS), console login + tenant list + school login
@@ -118,6 +131,7 @@ Verbatim intent of every rule Imam gave; the binding version is CLAUDE.md → Wo
 | 2026-10-17 | "Cukup sampai sini dulu" — session closed after recording everything. | This log |
 | 2026-10-17 | "Task yg masih pending dicatat dan kirimkan ke telegrambot" — pending list goes to Imam's Telegram (@AgentNexoraBot, chat 6687943152) via `scripts/notify-telegram.sh`; token only as env secret, never in git. | `docs/PENDING_TASKS.md` |
 | 2026-10-19 | "Setupkan NEXFINANCE-TENANT ke console-nexfinance.nexoratech.co & almusabbihin-nexfinance.nexoratech.co". | Decisions, `deploy/env-defaults.sh` |
+| 2026-10-20 | "Halaman login menampilkan gambar terkait sekolah al-musabbihin dan tema pewarnaan sidebar maupun logo yg bisa di adjust dari console nexfinance". | 2026-10-20 section above |
 | 2026-10-19 | "Get its all fully done, dont ask me until it can be accessed on console without an error" + "Just do its all for me, dont ask me" → deploy through the NEXFINANCE VPS runner (ops bridge) approved. | LIVE section, `deploy/sync-ops-bridge.sh` |
 
 ## Documentation standard (2026-10-17, decided by Imam)
