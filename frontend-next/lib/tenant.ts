@@ -9,6 +9,8 @@ export interface TenantConfig {
   logoUrl: string | null;
   /** Photo for the login page, uploaded in the Console (null = classic layout). */
   loginImageUrl: string | null;
+  /** Welcome text for the login page, set in the Console (null = school default). */
+  login: { title: string | null; message: string | null };
   showPoweredBy: boolean;
 }
 
@@ -21,6 +23,7 @@ export const DEFAULT_TENANT: TenantConfig = {
   palette: DEFAULT_PALETTE,
   logoUrl: null,
   loginImageUrl: null,
+  login: { title: null, message: null },
   showPoweredBy: true,
 };
 
@@ -34,6 +37,7 @@ export function normalizeTenantConfig(raw: Partial<TenantConfig> | null | undefi
     palette: raw.palette?.brand ? raw.palette : DEFAULT_PALETTE,
     logoUrl: raw.logoUrl ?? null,
     loginImageUrl: raw.loginImageUrl ?? null,
+    login: { title: raw.login?.title ?? null, message: raw.login?.message ?? null },
     showPoweredBy: raw.showPoweredBy !== false,
   };
 }

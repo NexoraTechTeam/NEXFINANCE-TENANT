@@ -20,7 +20,7 @@ import { authService } from '@/lib/api';
 import { NexoraLogo } from '@/components/brand/BrandMark';
 import TenantMark from '@/components/tenant/TenantMark';
 import { useTenant } from '@/components/tenant/TenantProvider';
-import { brandLines } from '@/lib/tenant';
+import { brandLines, isDefaultTenant } from '@/lib/tenant';
 
 const features = [
   {
@@ -44,6 +44,8 @@ const features = [
     description: 'Laporan keuangan sekolah tersusun jelas untuk audit dan pengambilan keputusan.',
   },
 ];
+
+const schoolModules = ['SPP', 'Penggajian', 'Pengeluaran', 'Pengadaan', 'Laporan keuangan'];
 
 const highlights = [
   { label: 'Multi-role access', value: 'RBAC siap pakai' },
@@ -76,6 +78,10 @@ export default function LoginPage() {
   const photo = tenant.loginImageUrl;
   const photoAlt = `Foto ${tenant.shortName}`;
   const place = tenant.schoolInfo.city;
+  // A school's portal speaks for the school; the NexFinance product copy stays on the default login only.
+  const school = !isDefaultTenant(tenant);
+  const welcomeMessage = tenant.login.message
+    || `Layanan keuangan ${tenant.shortName}: SPP, penggajian, pengeluaran, pengadaan, dan laporan dalam satu tempat.`;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -105,7 +111,7 @@ export default function LoginPage() {
 
       <div className="auth-grid">
         <section className="auth-showcase anim-fadeup">
-          {!photo && (
+          {!school && (
             <div className="auth-badge">
               <Sparkles size={14} strokeWidth={2} />
               Premium finance workspace
@@ -120,23 +126,27 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {photo ? (
+          {school ? (
             <>
-              <h1 className="auth-title auth-title-compact">
-                Selamat datang di
-                <span>{tenant.shortName}</span>
+              <h1 className={`auth-title${photo ? ' auth-title-compact' : ''}`}>
+                {tenant.login.title || <>Selamat datang di{' '}<span>{tenant.shortName}</span></>}
               </h1>
-              <figure className="auth-photo-card">
-                {/* eslint-disable-next-line @next/next/no-img-element -- tenant asset served by the API */}
-                <img src={photo} alt={photoAlt} />
-                <figcaption>
-                  <span>{tenant.name}</span>
-                  {place && <span className="auth-photo-place">{place}</span>}
-                </figcaption>
-              </figure>
-              <p className="auth-copy">
-                Portal keuangan sekolah: SPP, penggajian, pengeluaran, pengadaan, dan laporan keuangan dalam satu tempat.
-              </p>
+              {photo && (
+                <figure className="auth-photo-card">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- tenant asset served by the API */}
+                  <img src={photo} alt={photoAlt} />
+                  <figcaption>
+                    <span>{tenant.name}</span>
+                    {place && <span className="auth-photo-place">{place}</span>}
+                  </figcaption>
+                </figure>
+              )}
+              <p className="auth-copy">{welcomeMessage}</p>
+              {!photo && (
+                <ul className="auth-module-list" aria-label="Layanan">
+                  {schoolModules.map((m) => <li key={m}>{m}</li>)}
+                </ul>
+              )}
             </>
           ) : (
           <>
@@ -190,17 +200,27 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <span className="auth-status-pill">
-              <CheckCircle2 size={13} strokeWidth={2.2} />
-              System ready
-            </span>
+            {!school && (
+              <span className="auth-status-pill">
+                <CheckCircle2 size={13} strokeWidth={2.2} />
+                System ready
+              </span>
+            )}
           </div>
 
-          <div className="auth-panel-copy">
-            <div className="auth-kicker">Masuk aman ke workspace Anda</div>
-            <h2>Masuk ke Sistem</h2>
-            <p>Gunakan akun yang telah didaftarkan administrator untuk melanjutkan ke dashboard.</p>
-          </div>
+          {school ? (
+            <div className="auth-panel-copy">
+              <div className="auth-kicker">Portal keuangan {tenant.shortName}</div>
+              <h2>Masuk ke akun Anda</h2>
+              <p>Gunakan username atau email dan password dari admin sekolah.</p>
+            </div>
+          ) : (
+            <div className="auth-panel-copy">
+              <div className="auth-kicker">Masuk aman ke workspace Anda</div>
+              <h2>Masuk ke Sistem</h2>
+              <p>Gunakan akun yang telah didaftarkan administrator untuk melanjutkan ke dashboard.</p>
+            </div>
+          )}
 
           {error && (
             <div className="auth-error" role="alert" aria-live="polite">
@@ -271,7 +291,7 @@ export default function LoginPage() {
           <div className="auth-footer">
             <div className="auth-footer-chip">
               <ShieldCheck size={14} strokeWidth={2} />
-              Protected auth flow
+              {school ? 'Koneksi aman' : 'Protected auth flow'}
             </div>
             <div className="auth-footer-note">© {new Date().getFullYear()} {tenant.name}</div>
           </div>
@@ -367,6 +387,23 @@ export default function LoginPage() {
         }
         .auth-photo-place { color: rgba(255, 255, 255, 0.6); font-weight: 500; }
         .auth-panel-photo { display: none; }
+        .auth-module-list {
+          list-style: none;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin: 26px 0 0;
+          padding: 0;
+        }
+        .auth-module-list li {
+          padding: 8px 14px;
+          border-radius: 999px;
+          font-size: 13px;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.86);
+          background: rgba(255, 255, 255, 0.07);
+          border: 1px solid rgba(255, 255, 255, 0.14);
+        }
         @media (max-width: 1080px) {
           .auth-photo-bg { display: none; }
         }

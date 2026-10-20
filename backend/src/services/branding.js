@@ -19,6 +19,7 @@ function publicConfig(tenant) {
     loginImageUrl: branding.loginImageUpdatedAt
       ? `/api/v1/tenant/login-image?v=${encodeURIComponent(branding.loginImageUpdatedAt)}` : null,
     showPoweredBy: branding.showPoweredBy !== false,
+    login: { title: branding.loginTitle || null, message: branding.loginMessage || null },
   };
 }
 

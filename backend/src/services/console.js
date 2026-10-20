@@ -77,6 +77,11 @@ async function updateTenant(knex, actor, id, body = {}) {
     const branding = { ...current.branding };
     if (body.branding.palette) branding.palette = paletteFromColors(body.branding.palette);
     if (body.branding.showPoweredBy !== undefined) branding.showPoweredBy = Boolean(body.branding.showPoweredBy);
+    for (const [key, max] of [['loginTitle', 80], ['loginMessage', 240]]) {
+      if (body.branding[key] === undefined) continue;
+      const text = String(body.branding[key] ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
+      if (text) branding[key] = text; else delete branding[key];
+    }
     patch.branding = branding;
   }
 

@@ -134,4 +134,17 @@ describe('TenantDetail', () => {
     await user.upload(screen.getByLabelText(/Ganti logo/i), file);
     expect(api.uploadLogo).toHaveBeenCalledWith('t1', file, { keepPalette: true });
   });
+
+  it('saves the login welcome text', async () => {
+    const user = userEvent.setup();
+    api.getTenant.mockResolvedValue(TENANT);
+    api.updateTenant.mockResolvedValue(TENANT);
+    render(<TenantDetail id="t1" />);
+    await user.type(await screen.findByLabelText('Judul sambutan'), 'Ahlan wa sahlan');
+    await user.type(screen.getByLabelText('Pesan sambutan'), 'Silakan masuk.');
+    await user.click(screen.getByRole('button', { name: /Simpan teks login/i }));
+    await waitFor(() => expect(api.updateTenant).toHaveBeenCalledWith('t1', {
+      branding: { loginTitle: 'Ahlan wa sahlan', loginMessage: 'Silakan masuk.' },
+    }));
+  });
 });

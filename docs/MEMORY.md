@@ -14,6 +14,11 @@ Living record of state, decisions and open items. Newest entries first. Update a
   RA·SDIT·SMPIT, Komplek TASBI Medan (public directory). Replace it with a real photo from the Console when the school sends one.
 - Onboarding (`--if-missing`) now adds spec assets a live tenant lacks (never re-adds a photo removed in the Console).
 - Tests: backend 106, frontend 90. Guide v1.2 (PDF 50 p.) with new screenshots 07b/10b/45b.
+- Imam: "Bukan wording yg sama dengan tampilan login nexfinance" → school logins no longer show the NexFinance
+  product copy ("Premium finance workspace", "System ready", "Masuk aman ke workspace Anda", "Protected auth flow",
+  "terasa mahal…", RBAC cards). School copy: "Selamat datang di <school>", "Portal keuangan <school>", "Masuk ke akun Anda",
+  "Koneksi aman"; title/message editable in Console → Halaman login (`branding.loginTitle` ≤80, `loginMessage` ≤240,
+  public config `login: {title, message}`). The default/non-school login keeps the product copy. Tests: backend 107, frontend 94.
 
 ## LIVE since 2026-10-19 13:51 UTC (production)
 - **https://console-nexfinance.nexoratech.co/console** and **https://almusabbihin-nexfinance.nexoratech.co** — 200 with

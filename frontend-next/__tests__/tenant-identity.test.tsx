@@ -51,6 +51,26 @@ describe('tenant identity', () => {
     photos.forEach((p) => expect(p).toHaveAttribute('src', '/api/v1/tenant/login-image?v=2'));
   });
 
+  it('speaks for the school, not with the NexFinance marketing copy', () => {
+    withTenant(<LoginPage />);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Selamat datang di SIT Al Musabbihin');
+    expect(screen.getByText('Portal keuangan SIT Al Musabbihin')).toBeInTheDocument();
+    for (const phrase of [/Premium finance workspace/i, /System ready/i, /workspace Anda/i, /Protected auth flow/i, /terasa/i, /RBAC/i]) {
+      expect(screen.queryByText(phrase)).not.toBeInTheDocument();
+    }
+  });
+
+  it('uses the welcome text set in the Console', () => {
+    withTenant(<LoginPage />, { ...SCHOOL, login: { title: 'Ahlan wa sahlan', message: 'Silakan masuk, Bapak/Ibu guru.' } });
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Ahlan wa sahlan');
+    expect(screen.getByText('Silakan masuk, Bapak/Ibu guru.')).toBeInTheDocument();
+  });
+
+  it('keeps the NexFinance product copy on the default (non-school) login', () => {
+    withTenant(<LoginPage />, DEFAULT_TENANT);
+    expect(screen.getByText(/Premium finance workspace/i)).toBeInTheDocument();
+  });
+
   it('keeps the classic login without a school photo', () => {
     withTenant(<LoginPage />);
     expect(screen.queryByRole('img', { name: 'Foto SIT Al Musabbihin' })).not.toBeInTheDocument();
@@ -62,5 +82,6 @@ describe('tenant identity', () => {
     expect(partial.palette).toEqual(DEFAULT_TENANT.palette);
     expect(partial.showPoweredBy).toBe(true);
     expect(partial.loginImageUrl).toBeNull();
+    expect(partial.login).toEqual({ title: null, message: null });
   });
 });

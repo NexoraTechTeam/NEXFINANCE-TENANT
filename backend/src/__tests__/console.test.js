@@ -153,6 +153,20 @@ describe('tenant lifecycle from the console', () => {
     expect(res.body.tenant.branding.palette).toMatchObject({ source: 'manual', sidebar: '#0e3b2e' });
   });
 
+  it('sets the login page welcome text (trimmed, length-capped) and clears it with empty strings', async () => {
+    const res = await consoleApi.patch(`/api/v1/console/tenants/${tenantId}`).send({
+      branding: { loginTitle: '  Ahlan wa sahlan, keluarga Al Musabbihin  ', loginMessage: 'x'.repeat(400) },
+    });
+    expect(res.statusCode).toBe(200);
+    const config = await tenantApi('al-musabbihin.nexfinance.test').get('/api/v1/tenant/config');
+    expect(config.body.login.title).toBe('Ahlan wa sahlan, keluarga Al Musabbihin');
+    expect(config.body.login.message).toHaveLength(240);
+
+    await consoleApi.patch(`/api/v1/console/tenants/${tenantId}`).send({ branding: { loginTitle: '', loginMessage: '' } }).expect(200);
+    const cleared = await tenantApi('al-musabbihin.nexfinance.test').get('/api/v1/tenant/config');
+    expect(cleared.body.login).toEqual({ title: null, message: null });
+  });
+
   it('allows manual palette overrides and branding edits', async () => {
     const res = await consoleApi.patch(`/api/v1/console/tenants/${tenantId}`).send({
       name: 'SIT Al Musabbihin',

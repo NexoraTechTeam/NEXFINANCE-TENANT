@@ -10,7 +10,8 @@ export interface ConsoleTenant {
   name: string;
   status: 'active' | 'suspended';
   schoolInfo: Record<string, string>;
-  branding: { palette?: Palette; showPoweredBy?: boolean; logoUpdatedAt?: string; loginImageUpdatedAt?: string };
+  branding: { palette?: Palette; showPoweredBy?: boolean; logoUpdatedAt?: string; loginImageUpdatedAt?: string;
+    loginTitle?: string; loginMessage?: string };
   modules: string[];
   domains: string[];
   userCount?: number;

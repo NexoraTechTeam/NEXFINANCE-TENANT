@@ -201,7 +201,8 @@ Klik nama sekolah di daftar untuk membuka halaman kelola:
   **Primer, Sekunder, Aksen** dan **Sidebar**, atur atribusi "NexFinance — produk dari Nexora" → **Simpan warna**.
   Warna Sidebar juga mewarnai latar halaman login; warna yang terlalu terang otomatis digelapkan agar menu tetap terbaca.
 - **Halaman login** — unggah foto sekolah (JPG/PNG/WEBP, maks. 8 MB, disarankan lanskap ±1920×1080). Foto tampil
-  di halaman login sekolah; **Hapus gambar login** mengembalikan tampilan standar.
+  di halaman login sekolah; **Hapus gambar login** mengembalikan tampilan tanpa foto. Isi **Judul sambutan** dan
+  **Pesan sambutan** bila ingin teks sendiri (kosongkan untuk teks bawaan "Selamat datang di …") → **Simpan teks login**.
 - **Domain** — tambah domain sekolah, hapus domain (domain terakhir tidak bisa dihapus).
 - **Nonaktifkan / Aktifkan** — tenant nonaktif langsung tidak bisa login (berguna bila tagihan tertunggak).
 

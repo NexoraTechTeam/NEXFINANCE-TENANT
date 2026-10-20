@@ -36,12 +36,14 @@ export default function TenantDetail({ id }: { id: string }) {
   const [resetUser, setResetUser] = useState('');
   const [tempPassword, setTempPassword] = useState('');
   const [keepColors, setKeepColors] = useState(false);
+  const [loginText, setLoginText] = useState({ loginTitle: '', loginMessage: '' });
 
   const apply = useCallback((t: ConsoleTenant) => {
     setTenant(t);
     setName(t.name);
     setInfo(t.schoolInfo || {});
     setPalette(t.branding.palette || DEFAULT_PALETTE);
+    setLoginText({ loginTitle: t.branding.loginTitle || '', loginMessage: t.branding.loginMessage || '' });
   }, []);
 
   useEffect(() => {
@@ -180,6 +182,18 @@ export default function TenantDetail({ id }: { id: string }) {
                 <p style={{ fontSize: 12, color: 'var(--text-3)', margin: 0 }}>
                   Disarankan foto lanskap ±1920×1080 (gedung, kegiatan, atau siswa). Tampil sebagai latar dan kartu foto; di ponsel sebagai banner.
                 </p>
+                <form onSubmit={(e) => { e.preventDefault(); run(() => consoleApi.updateTenant(id, { branding: loginText }), 'Teks login tersimpan.'); }}
+                  style={{ display: 'grid', gap: 8, marginTop: 4 }}>
+                  <label className="form-label" htmlFor="td-login-title">Judul sambutan</label>
+                  <input id="td-login-title" className="form-input" maxLength={80} placeholder={`Selamat datang di ${info.shortName || name}`}
+                    value={loginText.loginTitle} onChange={(e) => setLoginText((v) => ({ ...v, loginTitle: e.target.value }))} />
+                  <label className="form-label" htmlFor="td-login-message">Pesan sambutan</label>
+                  <textarea id="td-login-message" className="form-input" maxLength={240} rows={3}
+                    placeholder="Layanan keuangan sekolah: SPP, penggajian, pengeluaran, pengadaan, dan laporan dalam satu tempat."
+                    value={loginText.loginMessage} onChange={(e) => setLoginText((v) => ({ ...v, loginMessage: e.target.value }))} />
+                  <p style={{ fontSize: 12, color: 'var(--text-3)', margin: 0 }}>Kosongkan untuk memakai teks bawaan sekolah.</p>
+                  <button type="submit" className="tour-btn tour-btn-primary" style={{ justifySelf: 'start' }}>Simpan teks login</button>
+                </form>
                 {loginSrc && (
                   <button type="button" className="btn-secondary" style={{ justifySelf: 'start', display: 'inline-flex', alignItems: 'center', gap: 6 }}
                     onClick={() => window.confirm('Hapus gambar halaman login?') && run(async () => (await consoleApi.removeLoginImage(id)).tenant, 'Gambar login dihapus.')}>
