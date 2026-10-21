@@ -13,7 +13,7 @@ const DEFAULT_PERMISSIONS = {
   auditor: ['dashboard', 'reports', 'accounting'],
 };
 
-/** ISAK 35 chart of accounts seeded into every tenant. */
+/** ISAK 335 (formerly ISAK 35) chart of accounts seeded into every tenant. */
 const DEFAULT_CHART_OF_ACCOUNTS = require('./demo-data').chartOfAccounts;
 
 module.exports = { VALID_ROLES, VALID_MODULES, DEFAULT_PERMISSIONS, DEFAULT_CHART_OF_ACCOUNTS };

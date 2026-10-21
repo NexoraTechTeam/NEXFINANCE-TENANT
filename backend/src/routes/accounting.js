@@ -6,7 +6,9 @@ const rbac = require('../middleware/rbac');
 const { logActivity } = require('../lib/activity');
 const { getRequestIp, ah, today } = require('../lib/http');
 const ledger = require('../services/ledger');
-const { postOpeningBalance } = require('../services/posting');
+const {
+  postOpeningBalance, postRestrictedReceipt, postRestrictionRelease, restrictedBalance, loadContext,
+} = require('../services/posting');
 
 const router = express.Router();
 
@@ -41,15 +43,49 @@ router.post('/journals', auth, rbac('accounting'), ah(async (req, res) => {
   return res.status(201).json(journal);
 }));
 
-const loadBooks = async (store) => ({
-  journals: await store.list('journals'),
-  coa: await chartOfAccounts(store),
-});
+const loadBooks = async (store) => {
+  const { coa, accounts } = await loadContext(store);
+  return { journals: await store.list('journals'), coa, funds: accounts.restrictedFunds };
+};
 
 router.get('/reports/balance-sheet', auth, rbac('accounting'), ah(async (req, res) => {
-  const { journals, coa } = await loadBooks(req.store);
-  res.json(ledger.balanceSheet(journals, coa));
+  const { journals, coa, funds } = await loadBooks(req.store);
+  res.json(ledger.balanceSheet(journals, coa, { funds }));
 }));
+
+/** Full ISAK 335 package for one calendar year (financial position, comprehensive income, changes in net assets, cash flows, notes). */
+router.get('/reports/isak335', auth, rbac('accounting'), ah(async (req, res) => {
+  const year = Number(req.query.year) || new Date().getFullYear();
+  const { journals, coa, funds } = await loadBooks(req.store);
+  const setting = await req.store.db.withSchema(req.store.schema).from('settings').where({ key: 'reporting_framework' }).first();
+  res.json(ledger.isak335Statements(journals, coa, {
+    year,
+    funds,
+    framework: typeof setting?.value === 'string' ? setting.value : undefined,
+    entity: { name: req.tenant.name, city: req.tenant.schoolInfo?.city },
+  }));
+}));
+
+const RESTRICTED_SOURCES = new Set(['restricted_receipt', 'restriction_release']);
+
+router.get('/restricted-funds', auth, rbac('accounting'), ah(async (req, res) => {
+  const { journals, coa, funds } = await loadBooks(req.store);
+  res.json({
+    funds: Object.entries(funds).map(([key, fund]) => ({ key, ...fund, balance: restrictedBalance(journals, coa, fund) })),
+    transactions: journals.filter((j) => RESTRICTED_SOURCES.has(j.source?.type)).reverse(),
+  });
+}));
+
+const restrictedAction = (fn, action) => ah(async (req, res) => {
+  const { date, fund, amount, method, description } = req.body || {};
+  if (!date || !fund) return res.status(400).json({ error: 'date and fund are required' });
+  const journal = await req.store.withTransaction((tx) => fn(tx, { date, fund, amount: Math.round(Number(amount)), method, description }));
+  await logActivity(req.store, req.user.id, req.user.email, action, 'accounting', `${action} ${fund} ${journal.debit.amount}`, { journalId: journal.id }, { ipAddress: getRequestIp(req) });
+  return res.status(201).json({ journal });
+});
+
+router.post('/restricted-funds/receipts', auth, rbac('accounting'), restrictedAction(postRestrictedReceipt, 'restricted_receipt'));
+router.post('/restricted-funds/releases', auth, rbac('accounting'), restrictedAction(postRestrictionRelease, 'restriction_release'));
 
 router.get('/reports/income-statement', auth, rbac('accounting'), ah(async (req, res) => {
   const { journals, coa } = await loadBooks(req.store);

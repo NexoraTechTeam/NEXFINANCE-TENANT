@@ -43,8 +43,11 @@ describe('ledger', () => {
       hutangUsaha: 4_000_000,
       hutangGaji: 0,
     });
-    // current-period surplus belongs to unrestricted net assets
-    expect(bs.detail.danaTidakTerikat).toBe(100_000_000 + (3_800_000 - 2_000_000));
+    // ISAK 335: unrestricted revenue less expenses goes to net assets without restrictions;
+    // the restricted infaq (4100) stays in net assets with restrictions.
+    expect(bs.detail.danaTidakTerikat).toBe(100_000_000 + (3_000_000 - 2_000_000));
+    expect(bs.detail.danaTerikatTemporer).toBe(800_000);
+    expect(bs.netAssets).toEqual({ unrestricted: 101_000_000, restricted: 800_000, total: 101_800_000 });
   });
 
   it('produces the statement of activities', () => {
