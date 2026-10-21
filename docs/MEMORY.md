@@ -2,6 +2,15 @@
 
 Living record of state, decisions and open items. Newest entries first. Update at the end of every session.
 
+## 2026-10-21 — production QA on a throwaway tenant
+- Imam: "test pakai data baru di production untuk make sure, lalu bersihkan kembali". Did NOT use the school tenant (unknown
+  real data) → `backend/scripts/qa-production.js` (count | run | cleanup; refuses any slug but `qa-final-review`; own app
+  instance against the production DB; passwords never printed) + bridge job `qa` that runs only for commits with `[qa-prod]`.
+- Run 39588039949: school before = after (1 user, 18 accounts, 10 activity logs → **no school data/transactions yet**);
+  sweep 183 checks, 0 findings, 13 journals balanced/cash/net assets reconciled; frontend 5 pages 200 with tenant identity;
+  cleanup removed tenant, schema and rows (0 left); NexFinance containers untouched.
+- Re-run later: `BRIDGE_TRAILER="[qa-prod] …" sh deploy/sync-ops-bridge.sh /tmp/nexfin-ops-bridge` (bridge must be on the newest commit).
+
 ## 2026-10-21 — final review, every role (E2E FE + BE + DB)
 - Imam: "final review full testing e2e semua role… harus running 100% tanpa error; temukan root cause sebelum fixing. OODA + TDD".
 - Sweeps on a production-identical local stack: API (every endpoint × 6 roles + ledger integrity) 227/238 → **238/238**;
@@ -192,6 +201,7 @@ Verbatim intent of every rule Imam gave; the binding version is CLAUDE.md → Wo
 | 2026-10-17 | "Cukup sampai sini dulu" — session closed after recording everything. | This log |
 | 2026-10-17 | "Task yg masih pending dicatat dan kirimkan ke telegrambot" — pending list goes to Imam's Telegram (@AgentNexoraBot, chat 6687943152) via `scripts/notify-telegram.sh`; token only as env secret, never in git. | `docs/PENDING_TASKS.md` |
 | 2026-10-19 | "Setupkan NEXFINANCE-TENANT ke console-nexfinance.nexoratech.co & almusabbihin-nexfinance.nexoratech.co". | Decisions, `deploy/env-defaults.sh` |
+| 2026-10-21 | "Sekalian test pakai data baru (production), lalu dibersihkan kembali ke kondisi kosong". | 2026-10-21 production QA section |
 | 2026-10-21 | "Final review full E2E semua role, FE+BE+DB tanpa error; root cause dulu sebelum fixing; OODA + TDD". | 2026-10-21 final review section, `docs/qa/` |
 | 2026-10-21 | "Rangkum perubahan + sesuaikan panduan & PDF; NexFinance demo tunggu arahan saya. Lets cook!" | 2026-10-21 guide v1.3 section |
 | 2026-10-21 | "ISAK 35 itu apa, sudah diterapkan?, beda dengan Accurate?" → riset ulang → "kerjakan 1-7 dulu, use OODA + TDD". | 2026-10-21 ISAK 335 section |
