@@ -473,7 +473,7 @@ Bila orang yang sama mencoba menyetujui lagi, sistem **menolak** — persetujuan
 
 ![Daftar PR](img/33b-kabag-pr-list.jpg)
 
-2. **Buat PO** → ID PR (mis. `PR000001`), vendor, total biaya → **Buat PO**.
+2. **Buat PO** → pilih **Purchase Request** dari daftar (hanya PR yang belum punya PO; estimasi biaya terisi otomatis), isi vendor dan total biaya → **Buat PO**.
 
 ![Buat PO](img/34-kabag-po-create.jpg)
 

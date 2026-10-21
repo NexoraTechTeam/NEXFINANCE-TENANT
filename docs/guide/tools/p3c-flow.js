@@ -18,11 +18,13 @@ const { launch, shot, routeHttps, modal, field, loginTenant, go, OUT } = require
     await m.getByRole('button', { name: /^Ajukan$/ }).click(); await s.waitForTimeout(900);
   }
   await shot(s, '30-staff-expenses-pending');
+  console.log('staff approve buttons (expect 0):', await s.locator('button[title="Setujui"]').count());
   // D. Kabag: approve (1st) + PR → PO → receive
   const kc = await ctxFor(); const k = await loginTenant(kc, 'kabag@al-musabbihin.sch.id', 'Sementara-2026', 'Kabag-AlM-2026!'); k.on('pageerror', (e) => errors.push(e.message));
   await shot(k, '31-kabag-dashboard');
   await go(k, '/dashboard/expenses');
   await shot(k, '32-kabag-expense-approve');
+  console.log('kabag approve buttons (expect 2):', await k.locator('button[title="Setujui"]').count());
   await k.locator('button[title="Setujui"]').nth(0).click(); await k.waitForTimeout(700);
   await shot(k, '32b-kabag-approval-1of2');
   await k.waitForTimeout(2600);
@@ -36,10 +38,9 @@ const { launch, shot, routeHttps, modal, field, loginTenant, go, OUT } = require
   await shot(k, '33-kabag-pr-create');
   await m.getByRole('button', { name: /Buat PR/ }).click(); await k.waitForTimeout(900);
   await shot(k, '33b-kabag-pr-list');
-  const prId = (await k.locator('text=/PR\\d+/').first().textContent()).match(/PR\d+/)[0];
   await k.getByRole('button', { name: /Purchase Order \(PO\)/ }).click(); await k.waitForTimeout(400);
   await k.getByRole('button', { name: /Buat PO/ }).first().click(); m = modal(k);
-  await field(m, 'ID Purchase Request').fill(prId); await field(m, 'Nama Vendor').fill('CV Sumber Ilmu Bandung'); await field(m, 'Total Biaya').fill('2150000');
+  await m.locator('#po-pr').selectOption({ index: 1 }); await field(m, 'Nama Vendor').fill('CV Sumber Ilmu Bandung'); await field(m, 'Total Biaya').fill('2150000');
   await shot(k, '34-kabag-po-create');
   await m.getByRole('button', { name: /Buat PO/ }).click(); await k.waitForTimeout(900);
   await k.getByRole('button', { name: /Terima Barang/ }).first().click(); await k.waitForTimeout(1200);
