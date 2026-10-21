@@ -21,6 +21,10 @@ out="$(sh custom-domains.sh 'ready.sch.id,missing.sch.id,elsewhere.sch.id' conso
 [ "$out" = ready.sch.id ] || fail "only domains pointing at the VPS are live (got '$out')"
 [ -z "$(sh custom-domains.sh '' console-nexfinance.nexoratech.co)" ] || fail "no custom domains → empty"
 [ -z "$(sh custom-domains.sh 'missing.sch.id' console-nexfinance.nexoratech.co)" ] || fail "unregistered domain → empty"
+# staging: no custom domains and a reference host without DNS must not fail the deploy
+sh custom-domains.sh '' console-nexfinance-staging.nexoratech.co >/dev/null || fail "no domains + unresolvable reference must not fail the deploy"
+sh custom-domains.sh 'ready.sch.id' console-nexfinance-staging.nexoratech.co >/dev/null 2>&1 || fail "unresolvable reference must not fail the deploy"
+[ -z "$(sh custom-domains.sh 'ready.sch.id' console-nexfinance-staging.nexoratech.co 2>/dev/null)" ] || fail "unresolvable reference → nothing routed"
 
 yaml="$(sh compose-custom.sh nexfin-saas 'ready.sch.id,b.sch.id')"
 echo "$yaml" | grep -q 'traefik.http.routers.nexfin-saas-custom.rule=Host(`ready.sch.id`) || Host(`b.sch.id`)' || fail "custom router rule"
