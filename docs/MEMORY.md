@@ -2,6 +2,15 @@
 
 Living record of state, decisions and open items. Newest entries first. Update at the end of every session.
 
+## 2026-10-21 — editable attribution (rich text + show/hide)
+- Imam: "'NexFinance — produk dari Nexora' supaya editable rich text dan tetap ada checklist tampil/tidak; '…produk dari' dihilangkan".
+- Console → tenant → **Atribusi**: checkbox (existing `showPoweredBy`) + one-line rich text editor (B/I/U toolbar,
+  paste as plain text) + live preview → `branding.poweredByText`. Default text is now **"NexFinance"** (no "produk dari")
+  for every tenant that never edited it; empty text = Nexora logo only. Login + sidebar share `components/brand/Attribution`.
+- Security: backend `sanitizeInline` keeps only `<b>/<i>/<u>` (strong/em mapped), strips attributes/scripts, escapes text,
+  balances tags, caps 120 visible chars; frontend parses to React elements (never innerHTML).
+- Tests: backend 114, frontend 100; local E2E (console edit with toolbar → login shows rich text; off → hidden), no page errors.
+
 ## 2026-10-21 — school edition of the user guide
 - Imam: "Buatkan dokumentasi user manual pdf nya utk saya share ke al-musabbihin (tanpa ada informasi terkait console internal nexora team)".
 - `docs/guide/PANDUAN_PENGGUNA_SIT_AL_MUSABBIHIN.pdf` (40 p.): same Markdown source, `build-pdf.py … school` drops
@@ -143,6 +152,7 @@ Verbatim intent of every rule Imam gave; the binding version is CLAUDE.md → Wo
 | 2026-10-17 | "Cukup sampai sini dulu" — session closed after recording everything. | This log |
 | 2026-10-17 | "Task yg masih pending dicatat dan kirimkan ke telegrambot" — pending list goes to Imam's Telegram (@AgentNexoraBot, chat 6687943152) via `scripts/notify-telegram.sh`; token only as env secret, never in git. | `docs/PENDING_TASKS.md` |
 | 2026-10-19 | "Setupkan NEXFINANCE-TENANT ke console-nexfinance.nexoratech.co & almusabbihin-nexfinance.nexoratech.co". | Decisions, `deploy/env-defaults.sh` |
+| 2026-10-21 | "'NexFinance — produk dari Nexora' editable rich text + checklist tampil/tidak; hilangkan 'produk dari'". | 2026-10-21 attribution section |
 | 2026-10-21 | "User manual PDF untuk di-share ke Al Musabbihin tanpa informasi Console/internal Nexora". | 2026-10-21 section, `docs/guide/tools/README.md` |
 | 2026-10-20 | "Halaman login menampilkan gambar terkait sekolah al-musabbihin dan tema pewarnaan sidebar maupun logo yg bisa di adjust dari console nexfinance". | 2026-10-20 section above |
 | 2026-10-19 | "Get its all fully done, dont ask me until it can be accessed on console without an error" + "Just do its all for me, dont ask me" → deploy through the NEXFINANCE VPS runner (ops bridge) approved. | LIVE section, `deploy/sync-ops-bridge.sh` |

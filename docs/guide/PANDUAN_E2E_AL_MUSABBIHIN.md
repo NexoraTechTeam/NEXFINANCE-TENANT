@@ -214,8 +214,11 @@ Klik nama sekolah di daftar untuk membuka halaman kelola:
 - **Identitas sekolah** — lengkapi *Kepala sekolah* (Ust. Ahmad Fauzi, S.Pd.I) dan *Bendahara*
   (Siti Rahmawati, S.E.) agar muncul di laporan → **Simpan identitas**.
 - **Logo & tema** — ganti logo (centang *Pertahankan warna* bila warna tidak ingin berubah), atur warna
-  **Primer, Sekunder, Aksen** dan **Sidebar**, atur atribusi "NexFinance — produk dari Nexora" → **Simpan warna**.
+  **Primer, Sekunder, Aksen** dan **Sidebar** → **Simpan warna**.
   Warna Sidebar juga mewarnai latar halaman login; warna yang terlalu terang otomatis digelapkan agar menu tetap terbaca.
+- **Atribusi** — centang/hapus centang *Tampilkan atribusi di halaman login & sidebar*; ubah **Teks atribusi** (bawaan
+  "NexFinance") dengan tombol **B** / *I* / U untuk tebal, miring, garis bawah (maks. 120 karakter, kosongkan untuk logo
+  Nexora saja) → **Simpan atribusi**. Pratinjau tampil di sebelahnya.
 - **Halaman login** — unggah foto sekolah (JPG/PNG/WEBP, maks. 8 MB, disarankan lanskap ±1920×1080). Foto tampil
   di halaman login sekolah; **Hapus gambar login** mengembalikan tampilan tanpa foto. Isi **Judul sambutan** dan
   **Pesan sambutan** bila ingin teks sendiri (kosongkan untuk teks bawaan "Selamat datang di …") → **Simpan teks login**.

@@ -86,7 +86,10 @@ docker exec -it nexfin-saas-backend node scripts/onboard-tenant.js /app/tenant.j
 
 ### Common operator tasks (Console)
 - Edit identity / school info (used on PDF letterhead), logo (optionally keeping the colours), theme colours incl.
-  **sidebar** (also tints the login page; darkened automatically until white menu text is AA-readable), Nexora attribution.
+  **sidebar** (also tints the login page; darkened automatically until white menu text is AA-readable).
+- **Atribusi**: show/hide checkbox (`branding.showPoweredBy`) and rich text before the Nexora logo (`branding.poweredByText`,
+  default "NexFinance"; bold/italic/underline only — sanitised server-side by `services/richtext.js` to `<b>/<i>/<u>`,
+  ≤120 visible chars, empty = logo only; rendered without innerHTML by `components/brand/RichInline.tsx`).
 - **Login page photo** (Halaman login): JPG/PNG/WEBP ≤ 8 MB → stored as a 1920px JPEG (`tenant_assets.kind = 'login'`),
   served at `/api/v1/tenant/login-image`; remove to get the classic layout back. A `loginImage` in
   `docs/tenants/<slug>/tenant.json` is added by the next deploy only if the tenant has none and it was never removed.
