@@ -44,6 +44,6 @@ n=0
 for name,info in man.items():
     if name.startswith(('x-','dbg')) or not os.path.exists(f'{SP}/shots/{name}.png'): continue
     frame(name,info); n+=1
-for p in ['47-report-pdf-1','47-report-pdf-2']:
+for p in ['47-report-pdf-1','47-report-pdf-2','47-report-pdf-6']:
     Image.open(f'{SP}/shots/{p}.png').convert('RGB').save(f'{OUT}/{p}.png',optimize=True); n+=1
 print(n)

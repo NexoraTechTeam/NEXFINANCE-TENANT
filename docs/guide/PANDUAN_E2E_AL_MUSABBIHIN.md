@@ -6,7 +6,7 @@
 | **Produk** | NexFinance Tenant (SaaS multi-tenant) — oleh Nexora |
 | **Repo** | `NexoraTechTeam/NEXFINANCE-TENANT` |
 | **Tenant contoh** | Sekolah Islam Terpadu Al Musabbihin (`al-musabbihin`) |
-| **Versi dokumen** | 1.2 — 20 Oktober 2026 (aplikasi live sejak 19 Oktober 2026; foto login & warna sidebar dari Console) |
+| **Versi dokumen** | 1.3 — 21 Oktober 2026 (laporan ISAK 335 lengkap, dana terikat, auditor baca saja) |
 | **Sumber screenshot** | Uji end-to-end otomatis (Playwright) pada build `dev`, database PostgreSQL nyata, nama host produksi. Semua angka di dokumen ini adalah hasil transaksi nyata dalam uji tersebut. |
 
 > **Cara membaca dokumen ini.** Bagian 1–3 memberi gambaran umum (untuk semua orang). Bagian 4–9 adalah
@@ -368,27 +368,61 @@ referensi dokumennya. Total debit = total kredit (Rp 1.429.350.000 pada contoh i
 
 ![Jurnal umum](img/37-bendahara-journals.jpg)
 
-### 6.6 Laporan keuangan ISAK 335 & PDF
-Menu **Laporan** → pilih **tahun**, lalu tab **Posisi Keuangan**, **Penghasilan Komprehensif**, **Perubahan Aset Neto**,
-**Arus Kas** (metode langsung: operasi, investasi, pendanaan), **Catatan (CALK)** dan **Tren Bulanan**. Aset neto selalu
-disajikan dalam dua kelas: **tanpa pembatasan** dan **dengan pembatasan** dari pemberi sumber daya. Semua angka dihitung dari
-jurnal; Catatan disusun otomatis dan perlu ditinjau bendahara/akuntan sebelum diterbitkan.
+### 6.6 Dana terikat (sumbangan dengan pembatasan)
+Menu **Akuntansi** → tab **Dana Terikat**. Sumbangan yang dibatasi pemberinya (mis. donasi renovasi musala, wakaf)
+dicatat sebagai **aset neto dengan pembatasan**, terpisah dari dana operasional sekolah.
 
-**Dana terikat** (menu **Akuntansi** → tab **Dana Terikat**): catat sumbangan yang dibatasi pemberinya (*Terima dana terikat*:
-jenis *Dibatasi waktu/tujuan* atau *Dibatasi permanen*, tanggal, jumlah, diterima ke kas/bank, keterangan). Saat tujuannya
-terpenuhi (mis. renovasi selesai), **Lepaskan pembatasan** sebesar dana yang terpakai; jumlahnya tidak bisa melebihi saldo,
-dan dana permanen (wakaf) tidak dapat dilepaskan.
+- **Terima dana terikat** — pilih jenis dana (*Dibatasi waktu/tujuan* atau *Dibatasi permanen*), tanggal, jumlah,
+  diterima ke **rekening bank** atau **kas tunai**, dan keterangan → **Simpan penerimaan**.
+- **Lepaskan pembatasan** — saat tujuan dana terpenuhi (mis. renovasi selesai), lepaskan sebesar dana yang sudah
+  terpakai. Dana pindah menjadi aset neto tanpa pembatasan. Biaya renovasinya sendiri tetap dicatat lewat
+  **Pengeluaran** seperti biasa.
+- Jumlah yang dilepaskan **tidak bisa melebihi saldo** dana, dan dana **permanen** (wakaf) tidak dapat dilepaskan.
 
-![Laporan aktivitas](img/38-bendahara-report-activity.jpg)
+![Mencatat penerimaan dana terikat](img/37b-bendahara-dana-terikat-terima.jpg)
 
-![Posisi keuangan](img/39-bendahara-report-balance.jpg)
+Pelepasan Rp 20.000.000 ditolak karena saldo dana renovasi hanya Rp 15.000.000:
 
-Tombol **Unduh PDF** menghasilkan `al-musabbihin_Laporan_Keuangan_2026.pdf` (ringkasan, empat laporan, dan Catatan) dengan
-**kop sekolah** dan warna tema sekolah:
+![Pelepasan melebihi saldo ditolak](img/37c-bendahara-dana-terikat-melebihi.jpg)
 
-![PDF halaman 1](img/47-report-pdf-1.jpg)
+Setelah melepaskan Rp 6.000.000 (renovasi tahap 1 selesai), saldo dan riwayatnya:
 
-![PDF halaman 2](img/47-report-pdf-2.jpg)
+![Saldo dan riwayat dana terikat](img/37d-bendahara-dana-terikat-saldo.jpg)
+
+### 6.7 Laporan keuangan ISAK 335 & PDF
+Menu **Laporan** → pilih **tahun**. Laporan disusun sesuai **ISAK 335 (d/h ISAK 35)** — standar penyajian laporan
+keuangan entitas berorientasi nonlaba — dan semua angkanya dihitung dari jurnal. Aset neto selalu disajikan dalam
+dua kelas: **tanpa pembatasan** dan **dengan pembatasan** dari pemberi sumber daya.
+
+| Tab | Isi |
+| --- | --- |
+| **Posisi Keuangan** | Aset (lancar & tidak lancar), liabilitas, dan aset neto per kelas |
+| **Penghasilan Komprehensif** | Pendapatan & beban tanpa pembatasan, pendapatan dengan pembatasan, total penghasilan komprehensif |
+| **Perubahan Aset Neto** | Saldo awal, surplus tahun berjalan, aset neto yang dibebaskan dari pembatasan, saldo akhir |
+| **Arus Kas** | Metode langsung: aktivitas operasi, investasi, dan pendanaan sampai saldo kas akhir |
+| **Catatan (CALK)** | Catatan A–F yang disusun otomatis — tinjau dan lengkapi oleh bendahara/akuntan sebelum diterbitkan |
+| **Tren Bulanan** | Grafik pendapatan, beban, dan surplus per bulan (pendukung, bukan bagian laporan resmi) |
+
+Di bawahnya, tabel **Klasifikasi akun** menunjukkan kelas aset neto dan aktivitas arus kas setiap akun.
+
+![Laporan posisi keuangan](img/38-bendahara-report-position.jpg)
+
+![Laporan penghasilan komprehensif](img/39-bendahara-report-income.jpg)
+
+![Laporan perubahan aset neto](img/39b-bendahara-report-netassets.jpg)
+
+![Laporan arus kas](img/39c-bendahara-report-cashflow.jpg)
+
+![Catatan atas laporan keuangan](img/39d-bendahara-report-notes.jpg)
+
+Tombol **Unduh PDF** menghasilkan `al-musabbihin_Laporan_Keuangan_2026.pdf` (6 halaman: ringkasan, empat laporan,
+dan Catatan) dengan **kop sekolah** dan warna tema sekolah:
+
+![PDF halaman 1 — ringkasan](img/47-report-pdf-1.jpg)
+
+![PDF halaman 2 — posisi keuangan](img/47-report-pdf-2.jpg)
+
+![PDF halaman 6 — catatan atas laporan keuangan](img/47-report-pdf-6.jpg)
 
 ---
 
@@ -453,16 +487,20 @@ Bila orang yang sama mencoba menyetujui lagi, sistem **menolak** — persetujuan
 
 ### 9.1 Auditor (baca saja)
 **Akun contoh:** `auditor@al-musabbihin.sch.id`. Auditor melihat Dashboard, Akuntansi dan Laporan — tanpa
-tombol yang mengubah data.
+tombol yang mengubah data. Tombol tambah jurnal, saldo awal, dan formulir dana terikat tidak tampil; sistem juga
+menolak perubahan bila dicoba dari luar tampilan.
 
 ![Dashboard auditor](img/40-auditor-dashboard.jpg)
 
 ![Laporan untuk auditor](img/41-auditor-reports.jpg)
 
+![Dana terikat untuk auditor (baca saja)](img/41b-auditor-dana-terikat-readonly.jpg)
+
 ### 9.2 Dashboard setelah transaksi (Super Admin)
 Semua angka berasal dari jurnal: pendapatan bulan ini Rp 1.500.000, collection SPP 66,7%,
-**Saldo Kas & Bank Rp 193.810.500** (200 jt saldo awal + 1,5 jt SPP − 5,74 jt gaji − 1,95 jt pengeluaran),
-grafik tren bulanan dan distribusi beban.
+**Saldo Kas & Bank Rp 233.810.500** (200 jt saldo awal + 1,5 jt SPP + 40 jt dana terikat − 5,74 jt gaji − 1,95 jt
+pengeluaran), grafik tren bulanan dan distribusi beban. Ringkasan dashboard menjumlahkan semua pendapatan termasuk dana
+terikat; pemisahan resmi per kelas aset neto ada di menu **Laporan**.
 
 ![Dashboard live](img/42-admin-dashboard-live.jpg)
 
@@ -496,11 +534,13 @@ Dapat diubah Super Admin per sekolah (Role & Akses → klik badge).
 | Penggajian | ✔ | ✔ | ✔ | – | – | – |
 | Pengeluaran | ✔ | ✔ | ✔ | ✔ | ✔ | – |
 | Pengadaan | ✔ | ✔ | – | ✔ | – | – |
-| Akuntansi | ✔ | ✔ | ✔ | – | – | ✔ |
-| Laporan | ✔ | ✔ | ✔ | – | – | ✔ |
+| Akuntansi (termasuk Dana Terikat) | ✔ | ✔ | ✔ | – | – | 👁 |
+| Laporan | ✔ | ✔ | ✔ | – | – | 👁 |
 | Master data | ✔ | ✔ | ✔ | – | – | – |
 | Log aktivitas | ✔ | ✔ | ✔ | ✔ | – | – |
 | Notifikasi | ✔ | ✔ | ✔ | ✔ | ✔ | – |
+
+✔ = akses penuh · 👁 = hanya melihat (baca saja) · – = tidak ada akses
 
 ## 11. Jurnal otomatis (ISAK 335)
 
@@ -560,6 +600,10 @@ Console dan di `SAAS_HOSTS`, lalu deploy ulang.
 | Ingin mengganti logo atau warna aplikasi | Kirim logo baru ke tim Nexora — warna tema dibuat ulang otomatis dari logo. |
 | Ingin mengganti foto atau teks sambutan halaman login | Kirim foto sekolah (lanskap, ±1920×1080) dan teks sambutan yang diinginkan ke tim Nexora. |
 | Ingin memakai domain sekolah (mis. `al-musabbihin.sch.id`) | Hubungi tim Nexora; pengelola domain sekolah cukup mengikuti instruksi singkat yang kami kirimkan. |
+| Apa itu ISAK 335? Bedanya dengan ISAK 35? | Standar penyajian laporan keuangan entitas berorientasi nonlaba dari IAI. ISAK 35 dinomori ulang menjadi ISAK 335 sejak 1 Januari 2024 tanpa perubahan isi. |
+| Donasi pembangunan / wakaf dicatat di mana? | Menu **Akuntansi** → **Dana Terikat** → *Terima dana terikat*. Jangan dicatat sebagai SPP atau pendapatan biasa. |
+| Dana terikat sudah dipakai sesuai tujuannya | Catat biayanya di **Pengeluaran**, lalu **Lepaskan pembatasan** sebesar dana yang terpakai. |
+| Catatan atas Laporan Keuangan siap diterbitkan? | Catatan disusun otomatis dari pembukuan; tinjau dan lengkapi oleh bendahara/akuntan sekolah sebelum diterbitkan. |
 | Keamanan dan cadangan data | Data sekolah dicadangkan otomatis setiap hari. Hubungi tim Nexora untuk ekspor atau pemulihan data. |
 
 <!-- internal -->
@@ -589,6 +633,9 @@ berikut ditemukan **dan diperbaiki** (dengan test otomatis) sebelum dokumen fina
 | Hydration mismatch di halaman Role & Akses | Peringatan/render ulang di browser | Data user dibaca setelah mount |
 | Reset password Console hanya cocok ke username | User berbasis email tidak bisa di-reset | Isian dicocokkan ke username **dan** email |
 | Notifikasi "disetujui" pada persetujuan pertama | Menyesatkan | Pesan "Persetujuan 1 dari 2 …" + pesan error dari server |
+| (v1.3) Donasi/infaq terikat ikut menambah Dana Tidak Terikat | Laporan tidak sesuai ISAK 335 | Dua kelas aset neto; pendapatan terikat tetap di kelas dengan pembatasan |
+| (v1.3) Auditor ("baca saja") bisa membuat jurnal, saldo awal, dan dana terikat lewat API | Kontrol akses jebol | Semua aksi tulis Akuntansi ditolak untuk auditor (403) + tombol disembunyikan |
+| (v1.3) Pesan "melebihi saldo" menampilkan angka mentah | Kurang jelas | Saldo tersedia ditampilkan dalam format Rupiah |
 
 **Rekomendasi berikutnya (belum dikerjakan):** pilih siswa dari master saat membuat invoice SPP (saat ini
 ID & nama diketik), alur persetujuan PR, dan wildcard DNS/TLS agar tenant baru langsung online tanpa deploy.

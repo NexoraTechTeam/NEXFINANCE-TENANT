@@ -50,14 +50,38 @@ const { launch, shot, routeHttps, modal, field, loginTenant, go, OUT } = require
   for (let i = 0; i < 2; i += 1) { await bp.locator('button[title="Setujui"]').first().click(); await bp.waitForTimeout(900); }
   await shot(bp, '36-bendahara-expenses-approved');
   await go(bp, '/dashboard/accounting'); await shot(bp, '37-bendahara-journals', { full: true });
-  await go(bp, '/dashboard/reports'); await bp.waitForTimeout(1500); await shot(bp, '38-bendahara-report-activity', { full: true });
-  await bp.getByRole('button', { name: /Posisi Keuangan/ }).click(); await bp.waitForTimeout(900); await shot(bp, '39-bendahara-report-balance', { full: true });
+  // Restricted funds (ISAK 335): two receipts, one release, one refused overdraw
+  await bp.getByRole('button', { name: 'Dana Terikat', exact: true }).click(); await bp.waitForTimeout(800);
+  const rec = bp.getByRole('form', { name: 'Terima dana terikat' });
+  const receive = async (fund, amount, method, note, snap) => {
+    await rec.getByLabel('Jenis dana').selectOption(fund); await rec.getByLabel('Jumlah (Rp)').fill(amount);
+    await rec.getByLabel('Diterima ke').selectOption(method); await rec.getByLabel('Keterangan').fill(note);
+    if (snap) { await rec.scrollIntoViewIfNeeded(); await shot(bp, snap); }
+    await rec.getByRole('button', { name: 'Simpan penerimaan' }).click(); await bp.getByText('Penerimaan dana terikat tersimpan.').waitFor();
+  };
+  await receive('temporer', '15000000', 'transfer', 'Donasi komite untuk renovasi musala', '37b-bendahara-dana-terikat-terima');
+  await receive('permanen', '25000000', 'transfer', 'Wakaf tunai pembangunan ruang kelas');
+  const rel = bp.getByRole('form', { name: 'Lepaskan pembatasan' });
+  await rel.getByLabel('Jumlah (Rp)').fill('20000000'); await rel.getByLabel('Keterangan').fill('Renovasi musala');
+  await rel.getByRole('button', { name: 'Lepaskan pembatasan' }).click(); await bp.getByText(/Melebihi saldo dana terikat/).waitFor();
+  await bp.getByText(/Melebihi saldo dana terikat/).scrollIntoViewIfNeeded(); await shot(bp, '37c-bendahara-dana-terikat-melebihi');
+  await rel.getByLabel('Jumlah (Rp)').fill('6000000'); await rel.getByLabel('Keterangan').fill('Renovasi musala tahap 1 selesai');
+  await rel.getByRole('button', { name: 'Lepaskan pembatasan' }).click(); await bp.getByText('Pembatasan dilepaskan.').waitFor();
+  await shot(bp, '37d-bendahara-dana-terikat-saldo', { full: true });
+  // ISAK 335 reports: every statement + notes
+  await go(bp, '/dashboard/reports'); await bp.waitForTimeout(1500); await shot(bp, '38-bendahara-report-position', { full: true });
+  for (const [tab, name] of [['Penghasilan Komprehensif', '39-bendahara-report-income'], ['Perubahan Aset Neto', '39b-bendahara-report-netassets'],
+    ['Arus Kas', '39c-bendahara-report-cashflow'], ['Catatan (CALK)', '39d-bendahara-report-notes']]) {
+    await bp.getByRole('button', { name: tab, exact: true }).click(); await bp.waitForTimeout(700); await shot(bp, name, { full: true });
+  }
   const [dl] = await Promise.all([bp.waitForEvent('download'), bp.locator('button.rpt-action-btn').click()]);
   await dl.saveAs(`${OUT}/laporan.pdf`); console.log('pdf', dl.suggestedFilename());
   // F. Auditor
   const ac = await ctxFor(); const au = await loginTenant(ac, 'auditor@al-musabbihin.sch.id', 'Sementara-2026', 'Auditor-AlM-2026!'); au.on('pageerror', (e) => errors.push(e.message));
   await shot(au, '40-auditor-dashboard');
   await go(au, '/dashboard/reports'); await shot(au, '41-auditor-reports');
+  await go(au, '/dashboard/accounting'); await au.getByRole('button', { name: 'Dana Terikat', exact: true }).click(); await au.waitForTimeout(800);
+  await shot(au, '41b-auditor-dana-terikat-readonly');
   // G. Admin: dashboard after, activity log, help, mobile
   const dc = await ctxFor(); const ad = await loginTenant(dc, 'admin-almusabbihin', 'AlMusabbihin-2026!'); ad.on('pageerror', (e) => errors.push(e.message));
   await ad.waitForTimeout(1500); await shot(ad, '42-admin-dashboard-live', { full: true });

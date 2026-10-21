@@ -2,6 +2,15 @@
 
 Living record of state, decisions and open items. Newest entries first. Update at the end of every session.
 
+## 2026-10-21 — guide v1.3 (ISAK 335) + auditor read-only
+- Imam: "Rangkum perubahan… sesuaikan juga ke dokumentasi panduan beserta pdf nya. NexFinance demo nanti saja, tunggu arahan."
+- Full E2E regeneration (`run-all.sh`): new 6.6 Dana terikat (37b/37c/37d), 6.7 Laporan ISAK 335 (38, 39, 39b–d, PDF p.1/2/6),
+  9.1 auditor read-only (41b), access matrix 👁 for auditor, FAQ (ISAK 335, dana terikat, CALK), QA rows v1.3, figures
+  (Kas & Bank 233,8 jt). PDFs: Nexora edition 58 p., school edition 48 p.; leak guards clean. Old 38/39 report images removed.
+- Defect found by the run and fixed (TDD): the auditor could post journals/opening balance/restricted funds →
+  `rbac.denyReadOnly` on every accounting write (403) + UI hides write controls. Tests: backend 130, frontend 114.
+- NEXFINANCE (demo) deliberately NOT changed — wait for Imam's go. Summary deck not updated (not requested).
+
 ## 2026-10-21 — ISAK 335 (d/h ISAK 35) reports
 - Imam asked what ISAK 35 is / whether it is implemented; research (IAI): ISAK 35 renumbered **ISAK 335** (1 Jan 2024, same
   content); 5 components; two net-asset classes; **Amendemen ISAK 335 (3 Jun 2026)** adds PSAK 118 formats (effective
@@ -168,6 +177,7 @@ Verbatim intent of every rule Imam gave; the binding version is CLAUDE.md → Wo
 | 2026-10-17 | "Cukup sampai sini dulu" — session closed after recording everything. | This log |
 | 2026-10-17 | "Task yg masih pending dicatat dan kirimkan ke telegrambot" — pending list goes to Imam's Telegram (@AgentNexoraBot, chat 6687943152) via `scripts/notify-telegram.sh`; token only as env secret, never in git. | `docs/PENDING_TASKS.md` |
 | 2026-10-19 | "Setupkan NEXFINANCE-TENANT ke console-nexfinance.nexoratech.co & almusabbihin-nexfinance.nexoratech.co". | Decisions, `deploy/env-defaults.sh` |
+| 2026-10-21 | "Rangkum perubahan + sesuaikan panduan & PDF; NexFinance demo tunggu arahan saya. Lets cook!" | 2026-10-21 guide v1.3 section |
 | 2026-10-21 | "ISAK 35 itu apa, sudah diterapkan?, beda dengan Accurate?" → riset ulang → "kerjakan 1-7 dulu, use OODA + TDD". | 2026-10-21 ISAK 335 section |
 | 2026-10-21 | "'NexFinance — produk dari Nexora' editable rich text + checklist tampil/tidak; hilangkan 'produk dari'". | 2026-10-21 attribution section |
 | 2026-10-21 | "User manual PDF untuk di-share ke Al Musabbihin tanpa informasi Console/internal Nexora". | 2026-10-21 section, `docs/guide/tools/README.md` |

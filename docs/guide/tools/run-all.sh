@@ -16,6 +16,7 @@ sh reset.sh > "$SP/shots/.temp-pass"
 node p2-admin.js; node p3a-admin-setup.js; node p3b-bendahara.js; node p3c-flow.js
 node p1c-detail-reshoot.js
 pdftoppm -png -r 80 -f 1 -l 2 "$SP/shots/laporan.pdf" "$SP/shots/47-report-pdf"
+pdftoppm -png -r 80 -f 6 -l 6 "$SP/shots/laporan.pdf" "$SP/shots/47-report-pdf"  # notes (CALK)
 python3 frame.py "$SP" "$REPO/docs/guide/img"
 python3 - "$REPO/docs/guide/img" <<'PY'
 import glob, os, sys
