@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import OpeningBalanceForm from '@/components/accounting/OpeningBalanceForm';
+import RestrictedFunds from '@/components/accounting/RestrictedFunds';
 import { accountingService } from '@/lib/api';
 import { BookOpen, Plus, List, X } from 'lucide-react';
 
@@ -28,7 +29,7 @@ export default function AccountingPage() {
   const [accounts, setAccounts]   = useState<AccountItem[]>([]);
   const [journals, setJournals]   = useState<JournalItem[]>([]);
   const [loading, setLoading]     = useState(true);
-  const [tab, setTab]             = useState<'coa'|'journal'>('journal');
+  const [tab, setTab]             = useState<'coa'|'journal'|'funds'>('journal');
   const [modal, setModal]         = useState(false);
   const [openingOpen, setOpeningOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -145,7 +146,7 @@ export default function AccountingPage() {
           }
         }
 
-        /* ── ISAK35 section header accent ── */
+        /* ── Section header accent ── */
         .isak35-section-header {
           border-left: 3px solid var(--brand-500);
           padding-left: 12px;
@@ -185,7 +186,7 @@ export default function AccountingPage() {
           <h1 style={{ fontSize: 'clamp(22px, 5vw, 28px)', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px', marginBottom: 5 }}>
             Akuntansi
           </h1>
-          <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Jurnal umum &amp; chart of accounts — ISAK 35</p>
+          <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Jurnal umum, chart of accounts &amp; dana terikat — ISAK 335 (d/h ISAK 35)</p>
         </div>
         <button
           onClick={() => setModal(true)}
@@ -225,7 +226,7 @@ export default function AccountingPage() {
         ); })}
       </div>
 
-      {/* ISAK35 info banner */}
+      {/* Standard info banner */}
       <div
         className="card anim-fadeup"
         style={{
@@ -243,13 +244,13 @@ export default function AccountingPage() {
             className="isak35-section-header"
             style={{ fontSize: 12, fontWeight: 700, color: 'var(--brand-600)', letterSpacing: '.5px', textTransform: 'uppercase', marginBottom: 4 }}
           >
-            ISAK 35 — Entitas Nirlaba
+            ISAK 335 (d/h ISAK 35) — Entitas Berorientasi Nonlaba
           </div>
           <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.6 }}>
-            Pencatatan akun mengikuti standar ISAK 35 dengan klasifikasi Aset, Kewajiban, Ekuitas, Pendapatan, dan Beban sesuai pelaporan keuangan entitas nirlaba.
+            Akun dikelompokkan sebagai Aset, Liabilitas, Aset Neto, Pendapatan, dan Beban. Aset neto disajikan dalam dua kelas: tanpa pembatasan dan dengan pembatasan dari pemberi sumber daya (tab Dana Terikat).
           </p>
         </div>
-        <span className="badge badge-success" style={{ alignSelf: 'flex-start', whiteSpace: 'nowrap' }}>ISAK 35 Ready</span>
+        <span className="badge badge-success" style={{ alignSelf: 'flex-start', whiteSpace: 'nowrap' }}>Dua kelas aset neto</span>
       </div>
 
       {/* Tab Navigation — horizontally scrollable on mobile */}
@@ -257,10 +258,10 @@ export default function AccountingPage() {
         className="tab-bar acct-tab-bar"
         style={{ display: 'flex', gap: 4, borderBottom: '2px solid var(--border)', marginBottom: 20 }}
       >
-        {([['journal','Jurnal Umum'],['coa','Chart of Accounts']] as [string,string][]).map(([val, label]) => (
+        {([['journal','Jurnal Umum'],['coa','Chart of Accounts'],['funds','Dana Terikat']] as [string,string][]).map(([val, label]) => (
           <button
             key={val}
-            onClick={() => setTab(val as 'coa'|'journal')}
+            onClick={() => setTab(val as 'coa'|'journal'|'funds')}
             className={`tab-btn${tab === val ? ' tab-btn-active' : ''}`}
             style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
           >
@@ -271,7 +272,9 @@ export default function AccountingPage() {
 
       {/* Tab Content */}
       <div className="card anim-fadeup" style={{ padding: 'clamp(16px, 3vw, 24px)' }}>
-        {loading ? (
+        {tab === 'funds' ? (
+          <RestrictedFunds />
+        ) : loading ? (
           <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-4)', fontSize: 15 }}>
             Memuat data...
           </div>
@@ -355,7 +358,7 @@ export default function AccountingPage() {
                 className="isak35-section-header"
                 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', marginBottom: 16 }}
               >
-                Chart of Accounts — Klasifikasi ISAK 35
+                Chart of Accounts — Klasifikasi ISAK 335
               </div>
               <div className="acct-table-wrapper">
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -414,7 +417,7 @@ export default function AccountingPage() {
                 >
                   Tambah Jurnal
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--text-4)', marginTop: 4 }}>Isi detail entri jurnal baru (ISAK 35)</div>
+                <div style={{ fontSize: 13, color: 'var(--text-4)', marginTop: 4 }}>Isi detail entri jurnal baru</div>
               </div>
               <button
                 onClick={() => setModal(false)}

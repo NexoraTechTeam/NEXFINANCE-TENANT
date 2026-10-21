@@ -1,3 +1,5 @@
+import { toTableBody, type Isak335Note, type StatementRow } from '@/lib/isak335';
+
 type RGB = [number, number, number];
 
 export interface MonthlyFinancialRow {
@@ -7,15 +9,7 @@ export interface MonthlyFinancialRow {
   surplus: number;
 }
 
-export interface ReportLineItem {
-  label: string;
-  amount: number;
-}
-
-export interface BalanceSheetItem {
-  name: string;
-  value: number;
-}
+export interface PdfStatement { title: string; subtitle?: string; rows: StatementRow[] }
 
 export interface FinancialReportPdfInput {
   year: number;
@@ -23,12 +17,13 @@ export interface FinancialReportPdfInput {
   reportName: string;
   activeTabLabel: string;
   monthly: MonthlyFinancialRow[];
-  income: ReportLineItem[];
-  expenses: ReportLineItem[];
-  balanceSheet: {
-    assets: BalanceSheetItem[];
-    liabilities: BalanceSheetItem[];
-  };
+  /** e.g. "ISAK 335 (d/h ISAK 35)" and "SAK Entitas Privat". */
+  standard: string;
+  framework: string;
+  /** ISAK 335 statements (one page each) and the notes. */
+  statements: PdfStatement[];
+  notes: Isak335Note[];
+  summary: { revenue: number; expenses: number; surplus: number; netAssets: number };
   /** Tenant palette (hex). Defaults to the Nexora palette. */
   colors?: { navy?: string; primary?: string; secondary?: string };
   /** Used in the downloaded file name, e.g. "al-musabbihin". */
@@ -68,7 +63,7 @@ async function loadPdfModules() {
   return { jsPDF, autoTable };
 }
 
-function drawHeader(doc: import('jspdf').jsPDF, title: string, subtitle: string, schoolName: string) {
+function drawHeader(doc: import('jspdf').jsPDF, title: string, subtitle: string, schoolName: string, standard: string) {
   doc.setFillColor(...NAVY);
   doc.rect(0, 0, 595.28, 112, 'F');
   doc.setFillColor(...BRAND);
@@ -80,7 +75,7 @@ function drawHeader(doc: import('jspdf').jsPDF, title: string, subtitle: string,
   doc.text(doc.splitTextToSize(schoolName, 330)[0], 42, 46);
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
-  doc.text('Laporan keuangan entitas nirlaba (ISAK 35)', 42, 66);
+  doc.text(`Laporan keuangan entitas berorientasi nonlaba — ${standard}`, 42, 66);
   doc.text('Disusun dengan NexFinance', 42, 82);
 
   const dateText = new Date().toLocaleDateString('id-ID', {
@@ -111,7 +106,7 @@ function drawFooter(doc: import('jspdf').jsPDF, footerLabel: string) {
     doc.setFontSize(9);
     doc.setTextColor(...SLATE);
     doc.text(`${footerLabel} • Laporan keuangan`, 42, 818);
-    doc.text(`Page ${page} / ${totalPages}`, 553, 818, { align: 'right' });
+    doc.text(`Halaman ${page} / ${totalPages}`, 553, 818, { align: 'right' });
   }
 }
 
@@ -178,75 +173,23 @@ export async function downloadFinancialReportPdf(input: FinancialReportPdfInput)
   BRAND = hexToRgb(input.colors?.primary, [67, 115, 184]);
   PURPLE = hexToRgb(input.colors?.secondary, [107, 79, 160]);
 
-  const totalPendapatan = input.monthly.reduce((sum, row) => sum + row.pendapatan, 0);
-  const totalBeban = input.monthly.reduce((sum, row) => sum + row.beban, 0);
-  const totalSurplus = input.monthly.reduce((sum, row) => sum + row.surplus, 0);
-  const margin = totalPendapatan ? ((totalSurplus / totalPendapatan) * 100).toFixed(1) : '0.0';
-  const totalAssets = input.balanceSheet.assets.reduce((sum, row) => sum + row.value, 0);
-  const totalLiabilities = input.balanceSheet.liabilities.reduce((sum, row) => sum + row.value, 0);
-  const equity = totalAssets - totalLiabilities;
+  const { revenue, expenses, surplus, netAssets } = input.summary;
   const bestMonth = [...input.monthly].sort((a, b) => b.surplus - a.surplus)[0];
 
-  drawHeader(
-    pdfDoc,
-    input.reportName,
-    `${input.schoolName} • Tahun ${input.year} • Fokus tampilan: ${input.activeTabLabel}`,
-    input.schoolName,
-  );
+  drawHeader(pdfDoc, input.reportName, `${input.schoolName} • Tahun ${input.year} • ${input.framework}`, input.schoolName, input.standard);
 
   let cursorY = drawSummaryCards(pdfDoc, [
-    { label: 'Pendapatan YTD', value: formatCurrency(totalPendapatan), tone: GREEN, soft: [236, 253, 245] },
-    { label: 'Beban YTD', value: formatCurrency(totalBeban), tone: RED, soft: [254, 242, 242] },
-    { label: 'Surplus YTD', value: formatCurrency(totalSurplus), tone: BRAND, soft: [238, 243, 251] },
-    { label: 'Margin Bersih', value: `${margin}%`, tone: PURPLE, soft: [243, 239, 250] },
+    { label: 'Total pendapatan', value: formatCurrency(revenue), tone: GREEN, soft: [236, 253, 245] },
+    { label: 'Total beban', value: formatCurrency(expenses), tone: RED, soft: [254, 242, 242] },
+    { label: 'Penghasilan komprehensif', value: formatCurrency(surplus), tone: BRAND, soft: [238, 243, 251] },
+    { label: 'Total aset neto', value: formatCurrency(netAssets), tone: PURPLE, soft: [243, 239, 250] },
   ]);
 
-  cursorY = drawInsightBand(pdfDoc, 'Executive highlights', [
-    `Surplus tertinggi terjadi pada bulan ${bestMonth?.bulan || '-'} sebesar ${formatCurrency(bestMonth?.surplus || 0)}.`,
-    `Total aset tercatat ${formatCurrency(totalAssets)} dengan ekuitas ${formatCurrency(equity)}.`,
-    `Laporan ini dirancang untuk kebutuhan operasional, monitoring pimpinan, dan distribusi PDF ke stakeholder.`,
+  cursorY = drawInsightBand(pdfDoc, 'Sorotan', [
+    `Surplus bulanan tertinggi: ${bestMonth?.bulan || '-'} sebesar ${formatCurrency(bestMonth?.surplus || 0)}.`,
+    `Laporan disusun sesuai ${input.standard} berdasarkan ${input.framework}.`,
+    'Rincian lima komponen laporan keuangan tersedia pada halaman berikutnya.',
   ], cursorY);
-
-  autoTable(pdfDoc, {
-    startY: cursorY,
-    head: [['Kategori', 'Komponen', 'Nilai (IDR)']],
-    body: [
-      ...input.income.map((item) => ['Pendapatan', item.label, formatNumber(item.amount)]),
-      ['Pendapatan', 'Total Pendapatan', formatNumber(totalPendapatan)],
-      ...input.expenses.map((item) => ['Beban', item.label, formatNumber(item.amount)]),
-      ['Beban', 'Total Beban', formatNumber(totalBeban)],
-      ['Ringkasan', 'Surplus Bersih', formatNumber(totalSurplus)],
-    ],
-    headStyles: { fillColor: NAVY, textColor: 255, fontStyle: 'bold', fontSize: 9.5 },
-    bodyStyles: { fontSize: 9, textColor: NAVY },
-    alternateRowStyles: { fillColor: [248, 250, 252] },
-    columnStyles: {
-      2: { halign: 'right', fontStyle: 'bold' },
-    },
-    didParseCell: (hookData) => {
-      if (hookData.section !== 'body') return;
-      if (!Array.isArray(hookData.row.raw)) return;
-      const rowLabel = String(hookData.row.raw[0]);
-      const itemLabel = String(hookData.row.raw[1]);
-      if (hookData.column.index === 2 && rowLabel === 'Pendapatan') {
-        hookData.cell.styles.textColor = GREEN;
-      }
-      if (hookData.column.index === 2 && rowLabel === 'Beban') {
-        hookData.cell.styles.textColor = RED;
-      }
-      if (itemLabel === 'Surplus Bersih') {
-        hookData.cell.styles.textColor = BRAND;
-        hookData.cell.styles.fillColor = [240, 250, 251];
-      }
-      if (itemLabel.startsWith('Total ')) {
-        hookData.cell.styles.fontStyle = 'bold';
-      }
-    },
-    margin: { left: 42, right: 42 },
-    styles: { cellPadding: 6 },
-  });
-
-  cursorY = (pdfDoc.lastAutoTable?.finalY || cursorY) + 24;
 
   autoTable(pdfDoc, {
     startY: cursorY,
@@ -261,56 +204,71 @@ export async function downloadFinancialReportPdf(input: FinancialReportPdfInput)
     headStyles: { fillColor: BRAND, textColor: 255, fontStyle: 'bold', fontSize: 9.5 },
     bodyStyles: { fontSize: 9, textColor: NAVY },
     alternateRowStyles: { fillColor: [248, 250, 252] },
-    columnStyles: {
-      1: { halign: 'right' },
-      2: { halign: 'right' },
-      3: { halign: 'right', fontStyle: 'bold' },
-      4: { halign: 'right' },
-    },
+    columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' }, 3: { halign: 'right', fontStyle: 'bold' }, 4: { halign: 'right' } },
     margin: { left: 42, right: 42 },
     styles: { cellPadding: 6 },
   });
 
+  // One page per ISAK 335 statement, same rows as the reports page.
+  for (const statement of input.statements) {
+    pdfDoc.addPage();
+    drawHeader(pdfDoc, statement.title, `${input.schoolName} • ${statement.subtitle || `Tahun ${input.year}`}`, input.schoolName, input.standard);
+    autoTable(pdfDoc, {
+      startY: 186,
+      head: [['Uraian', 'Jumlah (Rp)']],
+      body: toTableBody(statement.rows),
+      headStyles: { fillColor: NAVY, textColor: 255, fontStyle: 'bold', fontSize: 9.5 },
+      bodyStyles: { fontSize: 9, textColor: NAVY },
+      columnStyles: { 1: { halign: 'right', cellWidth: 140 } },
+      margin: { left: 42, right: 42 },
+      styles: { cellPadding: 5 },
+      didParseCell: (hookData) => {
+        if (hookData.section !== 'body') return;
+        const kind = statement.rows[hookData.row.index]?.kind;
+        if (kind === 'section') { hookData.cell.styles.fontStyle = 'bold'; hookData.cell.styles.textColor = BRAND; hookData.cell.styles.fillColor = [243, 246, 250]; }
+        if (kind === 'line' && hookData.column.index === 0) hookData.cell.styles.cellPadding = { top: 5, bottom: 5, left: 18, right: 5 };
+        if (kind === 'subtotal') hookData.cell.styles.fontStyle = 'bold';
+        if (kind === 'total') { hookData.cell.styles.fontStyle = 'bold'; hookData.cell.styles.fillColor = [236, 241, 248]; }
+      },
+    });
+  }
+
   pdfDoc.addPage();
-  drawHeader(pdfDoc, 'Neraca Ringkas', `${input.schoolName} • Snapshot posisi keuangan ${input.year}`, input.schoolName);
-
-  autoTable(pdfDoc, {
-    startY: 182,
-    head: [['Aset', 'Nilai (IDR)']],
-    body: [
-      ...input.balanceSheet.assets.map((item) => [item.name, formatNumber(item.value)]),
-      ['Total Aset', formatNumber(totalAssets)],
-    ],
-    headStyles: { fillColor: GREEN, textColor: 255, fontStyle: 'bold', fontSize: 9.5 },
-    bodyStyles: { fontSize: 9, textColor: NAVY },
-    alternateRowStyles: { fillColor: [248, 250, 252] },
-    columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } },
-    margin: { left: 42, right: 302 },
-    styles: { cellPadding: 6 },
-  });
-
-  autoTable(pdfDoc, {
-    startY: 182,
-    head: [['Kewajiban & Ekuitas', 'Nilai (IDR)']],
-    body: [
-      ...input.balanceSheet.liabilities.map((item) => [item.name, formatNumber(item.value)]),
-      ['Total Kewajiban', formatNumber(totalLiabilities)],
-      ['Ekuitas', formatNumber(equity)],
-      ['Total Kewajiban + Ekuitas', formatNumber(totalAssets)],
-    ],
-    headStyles: { fillColor: RED, textColor: 255, fontStyle: 'bold', fontSize: 9.5 },
-    bodyStyles: { fontSize: 9, textColor: NAVY },
-    alternateRowStyles: { fillColor: [248, 250, 252] },
-    columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } },
-    margin: { left: 308, right: 42 },
-    styles: { cellPadding: 6 },
-    didParseCell: (hookData) => {
-      if (hookData.section !== 'body' || !Array.isArray(hookData.row.raw)) return;
-      if (String(hookData.row.raw[0]).includes('Ekuitas')) {
-        hookData.cell.styles.textColor = BRAND;
-      }
-    },
-  });
+  drawHeader(pdfDoc, 'Catatan atas Laporan Keuangan', `${input.schoolName} • Tahun ${input.year}`, input.schoolName, input.standard);
+  let y = 192;
+  const ensureSpace = (needed: number) => {
+    if (y + needed > 780) { pdfDoc.addPage(); y = 60; }
+  };
+  for (const note of input.notes) {
+    ensureSpace(40);
+    pdfDoc.setFont('helvetica', 'bold');
+    pdfDoc.setFontSize(11);
+    pdfDoc.setTextColor(...NAVY);
+    pdfDoc.text(`${note.id}. ${note.title}`, 42, y);
+    y += 16;
+    pdfDoc.setFont('helvetica', 'normal');
+    pdfDoc.setFontSize(9.5);
+    pdfDoc.setTextColor(...SLATE);
+    for (const paragraph of note.paragraphs || []) {
+      const wrapped = pdfDoc.splitTextToSize(paragraph, 511);
+      ensureSpace(wrapped.length * 13);
+      pdfDoc.text(wrapped, 42, y);
+      y += wrapped.length * 13 + 4;
+    }
+    if (note.rows) {
+      autoTable(pdfDoc, {
+        startY: y,
+        body: note.rows.length ? toTableBody(note.rows.map((r) => ({ ...r, kind: 'line' as const }))) : [['Tidak ada saldo/transaksi pada periode ini.', '']],
+        bodyStyles: { fontSize: 9, textColor: NAVY },
+        columnStyles: { 1: { halign: 'right', cellWidth: 140 } },
+        margin: { left: 54, right: 42 },
+        styles: { cellPadding: 4 },
+        theme: 'plain',
+      });
+      y = (pdfDoc.lastAutoTable?.finalY || y) + 14;
+    }
+    y += 6;
+  }
 
   drawFooter(pdfDoc, input.schoolName);
   const slug = (input.fileSlug || 'nexfinance').replace(/[^a-z0-9-]/gi, '');

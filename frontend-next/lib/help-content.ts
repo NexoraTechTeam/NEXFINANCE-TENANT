@@ -87,7 +87,7 @@ export const MODULE_GUIDES: ModuleGuide[] = [
     key: 'reports',
     href: '/dashboard/reports',
     title: 'Laporan Keuangan',
-    summary: 'Laporan Posisi Keuangan, Aktivitas, dan Arus Kas sesuai ISAK 35.',
+    summary: 'Lima komponen laporan keuangan sesuai ISAK 335 (d/h ISAK 35): Posisi Keuangan, Penghasilan Komprehensif, Perubahan Aset Neto, Arus Kas, dan Catatan.',
     steps: [
       'Pindah antar jenis laporan melalui tab di bagian atas halaman.',
       'Klik "Unduh PDF" untuk mengekspor laporan siap cetak.',

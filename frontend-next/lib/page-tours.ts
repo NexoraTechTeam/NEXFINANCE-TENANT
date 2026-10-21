@@ -52,13 +52,13 @@ const PAGE_STEPS: Record<GuideIcon, StepSpec[]> = {
   accounting: [
     header('Tambah entri jurnal baru dengan tombol "Tambah Jurnal".'),
     stats('Ringkasan jumlah akun, jurnal, serta total debit dan kredit.'),
-    tabs('Pindah antara Jurnal Umum dan Chart of Accounts.'),
+    tabs('Pindah antara Jurnal Umum, Chart of Accounts, dan Dana Terikat.'),
     table('Entri jurnal atau daftar akun tampil di sini.'),
   ],
   reports: [
     { key: 'export', target: '.rpt-export-row', title: 'Ekspor laporan', body: 'Unduh laporan sebagai PDF, atau buka Panduan PDF untuk petunjuk format.' },
-    { key: 'mapping', target: '.rpt-isak35-table-wrapper', title: 'Pemetaan akun ISAK 35', body: 'Klasifikasi akun backend yang dipakai untuk menyusun aset, kewajiban, dan aset bersih.' },
-    tabs('Pindah antara Laporan Aktivitas, Posisi Keuangan, dan Arus Kas / Tren.'),
+    { key: 'mapping', target: '.rpt-isak35-table-wrapper', title: 'Klasifikasi akun', body: 'Kelas aset neto dan aktivitas arus kas tiap akun — dasar penyusunan laporan ISAK 335.' },
+    tabs('Pindah antara Posisi Keuangan, Penghasilan Komprehensif, Perubahan Aset Neto, Arus Kas, Catatan, dan Tren.'),
   ],
   logs: [
     header('"Bersihkan Log Lama" merapikan log yang sudah kedaluwarsa (sesuai izin).'),

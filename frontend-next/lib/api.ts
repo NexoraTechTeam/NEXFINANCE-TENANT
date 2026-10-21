@@ -81,6 +81,13 @@ export const accountingService = {
   getOpeningBalance: () => api.get('/accounting/opening-balance'),
   postOpeningBalance: (data: { date: string; entries: Array<{ account: string; amount: number }> }) =>
     api.post('/accounting/opening-balance', data),
+  /** ISAK 335 (d/h ISAK 35) statements for one calendar year. */
+  getIsak335: (year: number) => api.get('/accounting/reports/isak335', { params: { year } }),
+  getRestrictedFunds: () => api.get('/accounting/restricted-funds'),
+  postRestrictedReceipt: (data: { date: string; fund: string; amount: number; method: string; description: string }) =>
+    api.post('/accounting/restricted-funds/receipts', data),
+  postRestrictionRelease: (data: { date: string; fund: string; amount: number; description: string }) =>
+    api.post('/accounting/restricted-funds/releases', data),
 };
 
 export const reportsService = {

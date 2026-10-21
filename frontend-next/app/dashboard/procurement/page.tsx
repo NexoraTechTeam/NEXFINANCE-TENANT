@@ -117,7 +117,7 @@ export default function ProcurementPage() {
           }
         }
 
-        /* ── ISAK35 section header (shared) ── */
+        /* ── Section header (shared) ── */
         .isak35-section-header {
           border-left: 3px solid var(--brand-500);
           padding-left: 12px;
