@@ -13,3 +13,9 @@ export const prsFrom = <T = unknown>(body: ListBody): T[] => (body?.purchaseRequ
 
 /** Rows from GET /procurement/po (API key `purchaseOrders`; `pos` kept for older responses). */
 export const posFrom = <T = unknown>(body: ListBody): T[] => (body?.purchaseOrders ?? body?.pos ?? []) as T[];
+
+/** PRs a new PO can be created for: not rejected/cancelled and without a PO yet (the API allows one PO per PR). */
+export const openPRsForPO = <T extends { id: string; status?: string }>(prs: T[], pos: Array<{ prId?: string }>): T[] => {
+  const taken = new Set(pos.map((p) => p.prId));
+  return prs.filter((pr) => !taken.has(pr.id) && !['rejected', 'cancelled'].includes(pr.status || ''));
+};

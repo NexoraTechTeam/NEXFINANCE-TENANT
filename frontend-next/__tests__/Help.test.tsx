@@ -101,8 +101,10 @@ describe('Sidebar', () => {
     }
   });
 
-  it('keeps every existing module entry', () => {
+  it('keeps every existing module entry for a super admin', async () => {
+    window.localStorage.setItem('user', JSON.stringify({ role: 'super_admin', name: 'Admin' }));
     render(<Sidebar isOpen={false} onClose={() => {}} />);
+    await screen.findByRole('button', { name: /^SPP/ });
     for (const label of [
       'Dashboard', 'SPP', 'Penggajian', 'Pengeluaran', 'Pengadaan', 'Akuntansi', 'Laporan',
       'Log Historis', 'Master Siswa', 'Master Karyawan', 'Role & Akses', 'Keluar',

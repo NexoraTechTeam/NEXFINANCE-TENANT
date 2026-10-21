@@ -25,3 +25,13 @@ describe('procurement list responses', () => {
     expect(posFrom(undefined)).toEqual([]);
   });
 });
+
+import { openPRsForPO } from '@/lib/procurement';
+
+describe('PO form: purchase requests to choose from', () => {
+  it('lists only PRs that do not have a PO yet', () => {
+    const prs = [{ id: 'PR000001', item: 'Kertas' }, { id: 'PR000002', item: 'Spidol' }, { id: 'PR000003', item: 'Map', status: 'rejected' }];
+    const pos = [{ id: 'PO000001', prId: 'PR000001' }];
+    expect(openPRsForPO(prs, pos).map((p) => p.id)).toEqual(['PR000002']);
+  });
+});

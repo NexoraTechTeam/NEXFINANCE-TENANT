@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { procurementService } from '@/lib/api';
-import { canReceivePO, poStatusKey, posFrom, prsFrom } from '@/lib/procurement';
+import { openPRsForPO, canReceivePO, poStatusKey, posFrom, prsFrom } from '@/lib/procurement';
 import { ShoppingCart, FileText, Package, CheckCircle, CheckCircle as CheckCircleIcon, Plus, X, InboxIcon, XCircle } from 'lucide-react';
 
 const fmt = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n || 0);
@@ -34,6 +34,7 @@ export default function ProcurementPage() {
   const [toast, setToast]         = useState<{msg:string;ok:boolean}|null>(null);
   const [prForm, setPRForm]       = useState({ item:'', quantity:'1', estimatedCost:'', reason:'' });
   const [poForm, setPOForm]       = useState({ prId:'', vendor:'', totalCost:'' });
+  const openPRs = openPRsForPO(prs, pos);
 
   const showToast = (msg: string, ok = true) => { setToast({msg,ok}); setTimeout(() => setToast(null), 3000); };
 
@@ -388,14 +389,26 @@ export default function ProcurementPage() {
               <button onClick={() => setModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: 4, borderRadius: 6 }}><X size={22}/></button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 20 }}>
+              <div>
+                <label className="form-label" htmlFor="po-pr">Purchase Request (PR)</label>
+                <select id="po-pr" className="form-input" value={poForm.prId}
+                  onChange={(e) => {
+                    const pr = openPRs.find((x) => x.id === e.target.value);
+                    setPOForm({ ...poForm, prId: e.target.value, totalCost: poForm.totalCost || (pr?.estimatedCost ? String(pr.estimatedCost) : '') });
+                  }}>
+                  <option value="">— Pilih PR —</option>
+                  {openPRs.map((pr) => <option key={pr.id} value={pr.id}>{pr.id} — {pr.item || pr.description}</option>)}
+                </select>
+                {openPRs.length === 0 && <p style={{ fontSize: 12, color: 'var(--text-4)', margin: '6px 0 0' }}>Belum ada PR yang bisa dibuatkan PO. Buat PR terlebih dahulu.</p>}
+              </div>
               {[
-                ['ID Purchase Request (PR)', 'prId', 'text', 'PR001'],
                 ['Nama Vendor', 'vendor', 'text', 'PT. Toko ATK'],
                 ['Total Biaya (Rp)', 'totalCost', 'number', ''],
               ].map(([label, field, type, ph]) => (
                 <div key={field}>
-                  <label className="form-label">{label}</label>
+                  <label className="form-label" htmlFor={`po-${field}`}>{label}</label>
                   <input
+                    id={`po-${field}`}
                     type={type as string}
                     placeholder={ph as string}
                     value={(poForm as any)[field]}

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useStoredUser } from '@/lib/use-stored-user';
+import { canDecideExpense } from '@/lib/permissions';
 import { expenseService } from '@/lib/api';
 import { apiErrorMessage, approvalMessage } from '@/lib/expense-approval';
 import { FileText, CheckCircle, XCircle, Clock, Plus, DollarSign, X, InboxIcon } from 'lucide-react';
@@ -23,6 +25,7 @@ const statusBadge = (s: string) => {
 };
 
 export default function ExpensesPage() {
+  const currentUser = useStoredUser();
   const [expenses, setExpenses]   = useState<any[]>([]);
   const [loading, setLoading]     = useState(true);
   const [filter, setFilter]       = useState('all');
@@ -263,7 +266,7 @@ export default function ExpensesPage() {
                       <td style={{ padding: '13px 16px', color: 'var(--text-3)', fontSize: 13, whiteSpace: 'nowrap' }}>{e.submittedAt ? new Date(e.submittedAt).toLocaleDateString('id-ID') : '-'}</td>
                       <td style={{ padding: '13px 16px' }}><span className={bc}>{bl}</span></td>
                       <td style={{ padding: '13px 16px' }}>
-                        {e.status === 'pending' && (
+                        {e.status === 'pending' && canDecideExpense(e, currentUser) && (
                           <div style={{ display: 'flex', gap: 8 }}>
                             <button
                               onClick={() => handleApprove(e.id)}

@@ -12,6 +12,7 @@ import Attribution from '@/components/brand/Attribution';
 import TenantMark from '@/components/tenant/TenantMark';
 import { useTenant } from '@/components/tenant/TenantProvider';
 import { brandLines } from '@/lib/tenant';
+import { canAccess, useAccess } from '@/lib/permissions';
 
 const NAV = [
   { label: 'Dashboard',       icon: LayoutDashboard, href: '/dashboard' },
@@ -52,6 +53,7 @@ interface SidebarProps {
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const router   = useRouter();
   const pathname = usePathname();
+  const access = useAccess();
   const tenant = useTenant();
   const brand = brandLines(tenant);
   const [currentUser, setCurrentUser] = useState({ name: 'Administrator', role: 'Super Admin' });
@@ -198,7 +200,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       {/* ── Nav ── */}
       <nav data-tour="nav" aria-label="Menu utama" style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
-        {NAV.map(({ label, icon: Icon, href }) => {
+        {NAV.filter(({ href }) => access && canAccess(href, access)).map(({ label, icon: Icon, href }) => {
           const active = href === '/dashboard' ? pathname === href : pathname.startsWith(href);
           return (
             <button

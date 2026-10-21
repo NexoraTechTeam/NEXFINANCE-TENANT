@@ -9,6 +9,7 @@ import { useTenant } from '@/components/tenant/TenantProvider';
 import { brandLines } from '@/lib/tenant';
 import HelpLauncher from '@/components/help/HelpLauncher';
 import ForcePasswordChange from '@/components/auth/ForcePasswordChange';
+import AccessGate from '@/components/auth/AccessGate';
 import { TourProvider } from '@/components/tour/TourProvider';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -116,7 +117,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
         {/* Main content */}
         <main className="dashboard-main" data-tour="content">
-          {children}
+          <AccessGate>{children}</AccessGate>
         </main>
       </div>
 

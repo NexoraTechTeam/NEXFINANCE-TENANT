@@ -42,6 +42,7 @@ export default function ForcePasswordChange() {
       const user = readUser() || {};
       window.localStorage.setItem('user', JSON.stringify({ ...user, mustChangePassword: false }));
       setOpen(false);
+      window.dispatchEvent(new Event('nexfin:password-changed'));
     } catch (err) {
       setError(apiError(err));
     } finally {
