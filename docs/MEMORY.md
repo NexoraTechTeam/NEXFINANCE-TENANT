@@ -2,6 +2,13 @@
 
 Living record of state, decisions and open items. Newest entries first. Update at the end of every session.
 
+## 2026-10-21 — school edition of the user guide
+- Imam: "Buatkan dokumentasi user manual pdf nya utk saya share ke al-musabbihin (tanpa ada informasi terkait console internal nexora team)".
+- `docs/guide/PANDUAN_PENGGUNA_SIT_AL_MUSABBIHIN.pdf` (40 p.): same Markdown source, `build-pdf.py … school` drops
+  `<!-- nexora -->` blocks / `<!--nx-->` rows (Console chapter, operator rows, Console FAQ) and keeps `<!-- school -->`
+  replacements; extra leak guard (console/operator/tenant/CMS/wizard/slug). The Nexora edition (50 p.) is unchanged.
+  `run-all.sh` builds both. Rule: anything about the Console or Nexora's internal work must be marked nexora-only.
+
 ## 2026-10-20 — login photo & sidebar colour from the Console
 - Imam: "halaman login almusabbihin menampilkan gambar terkait sekolah; tema pewarnaan sidebar maupun logo bisa di-adjust dari console".
 - Console → tenant: **Halaman login** (upload/remove photo, preview), **Sidebar** colour picker (palette `sidebar` override,
@@ -136,6 +143,7 @@ Verbatim intent of every rule Imam gave; the binding version is CLAUDE.md → Wo
 | 2026-10-17 | "Cukup sampai sini dulu" — session closed after recording everything. | This log |
 | 2026-10-17 | "Task yg masih pending dicatat dan kirimkan ke telegrambot" — pending list goes to Imam's Telegram (@AgentNexoraBot, chat 6687943152) via `scripts/notify-telegram.sh`; token only as env secret, never in git. | `docs/PENDING_TASKS.md` |
 | 2026-10-19 | "Setupkan NEXFINANCE-TENANT ke console-nexfinance.nexoratech.co & almusabbihin-nexfinance.nexoratech.co". | Decisions, `deploy/env-defaults.sh` |
+| 2026-10-21 | "User manual PDF untuk di-share ke Al Musabbihin tanpa informasi Console/internal Nexora". | 2026-10-21 section, `docs/guide/tools/README.md` |
 | 2026-10-20 | "Halaman login menampilkan gambar terkait sekolah al-musabbihin dan tema pewarnaan sidebar maupun logo yg bisa di adjust dari console nexfinance". | 2026-10-20 section above |
 | 2026-10-19 | "Get its all fully done, dont ask me until it can be accessed on console without an error" + "Just do its all for me, dont ask me" → deploy through the NEXFINANCE VPS runner (ops bridge) approved. | LIVE section, `deploy/sync-ops-bridge.sh` |
 

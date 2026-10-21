@@ -1,11 +1,21 @@
 import markdown, re, sys, base64, pathlib
 G = pathlib.Path(sys.argv[1]); SP = pathlib.Path(sys.argv[2])
+# Editions: 'nexora' (default, shareable, includes the Console chapter) and 'school' (for the school itself:
+# no Console / operator content). Blocks: <!-- nexora -->…<!-- /nexora --> and <!-- school -->…<!-- /school -->;
+# table rows end their last cell with <!--nx--> or <!--sch-->.
+EDITION = sys.argv[3] if len(sys.argv) > 3 else 'nexora'
+assert EDITION in ('nexora', 'school'), EDITION
 md = (G / 'PANDUAN_E2E_AL_MUSABBIHIN.md').read_text()
 # Drop the markdown title block + TOC: the PDF gets its own cover and TOC.
 body_md = md.split('## 1. Ringkasan', 1)[1]
 body_md = '## 1. Ringkasan' + body_md
 # Tenant-shareable PDF: drop internal (technical / Nexora-only) blocks; the Markdown keeps them.
 body_md = re.sub(r'<!-- internal -->.*?<!-- /internal -->', '', body_md, flags=re.S)
+drop, keep = ('nexora', 'school') if EDITION == 'school' else ('school', 'nexora')
+body_md = re.sub(rf'<!-- {drop} -->\n.*?<!-- /{drop} -->\n?', '', body_md, flags=re.S)
+body_md = re.sub(rf'<!-- /?{keep} -->\n?', '', body_md)
+row_drop, row_keep = ('<!--nx-->', '<!--sch-->') if EDITION == 'school' else ('<!--sch-->', '<!--nx-->')
+body_md = '\n'.join(l.replace(' ' + row_keep, '') for l in body_md.split('\n') if row_drop not in l)
 html = markdown.markdown(body_md, extensions=['tables', 'toc', 'sane_lists', 'attr_list'])
 # Wrap images as figures with captions.
 from PIL import Image as _I
@@ -27,7 +37,15 @@ def b64(p): return 'data:image/png;base64,' + base64.b64encode(pathlib.Path(p).r
 logo_school = b64(str(G.parent / 'tenants/al-musabbihin/logo.png'))
 logo_nf = b64(str(G.parent.parent / 'frontend-next/public/brand/nexfinance-mark.png'))
 logo_nx = b64(str(G.parent.parent / 'frontend-next/public/brand/nexora-logo.png'))
-doc = f'''<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Panduan E2E NexFinance Tenant — SIT Al Musabbihin</title>
+COVER = {
+    'nexora': dict(title='Panduan E2E NexFinance Tenant — SIT Al Musabbihin', kicker='Panduan end-to-end &amp; user manual',
+                   h1='NexFinance Tenant', label='Tenant contoh',
+                   sub='Dari setup tenant di Console sampai sekolah beroperasi penuh — studi kasus <b>SIT Al Musabbihin</b>, untuk semua peran: Operator Nexora, Super Admin, Bendahara, Kepala Bagian, Staf, dan Auditor.'),
+    'school': dict(title='Panduan Pengguna NexFinance — SIT Al Musabbihin', kicker='Panduan pengguna',
+                   h1='NexFinance<br>SIT Al Musabbihin', label='Alamat aplikasi',
+                   sub='Panduan langkah demi langkah memakai aplikasi keuangan sekolah untuk semua peran: Super Admin, Administrator, Bendahara, Kepala Bagian, Staf, dan Auditor.'),
+}[EDITION]
+doc = f'''<!doctype html><html lang="id"><head><meta charset="utf-8"><title>{COVER['title']}</title>
 <style>
 @page {{ size: A4; margin: 18mm 15mm 18mm 15mm; }}
 
@@ -77,11 +95,11 @@ a {{ color: var(--brand); }}
 <section class="cover">
   <div class="logos"><img src="{logo_school}" alt="Logo SIT Al Musabbihin"><img src="{logo_nf}" alt="NexFinance"></div>
   <div class="powered">Produk dari <img src="{logo_nx}" alt="Nexora"></div>
-  <div class="kicker">Panduan end-to-end &amp; user manual</div>
-  <h1>NexFinance Tenant</h1>
-  <div class="sub">Dari setup tenant di Console sampai sekolah beroperasi penuh — studi kasus <b>SIT Al Musabbihin</b>, untuk semua peran: Operator Nexora, Super Admin, Bendahara, Kepala Bagian, Staf, dan Auditor.</div>
+  <div class="kicker">{COVER['kicker']}</div>
+  <h1>{COVER['h1']}</h1>
+  <div class="sub">{COVER['sub']}</div>
   <div class="meta">
-    <div><b>Tenant contoh</b>almusabbihin-nexfinance.nexoratech.co</div>
+    <div><b>{COVER['label']}</b>almusabbihin-nexfinance.nexoratech.co</div>
     <div><b>Disiapkan oleh</b>Tim Nexora · nexoratech.co</div>
     <div><b>Versi</b>1.2 · 20 Oktober 2026</div>
   </div>
@@ -95,13 +113,16 @@ FORBIDDEN = [r'postgre', r'\bschema', r't_al_', r'saas_', r'onboard_tenants', r'
              r'database', r'/api/', r'\bapi\b', r'docs/', r'playwright', r'\bsecret', r'\brunner', r'\bdns\b', r'\bvps\b',
              r'github', r'\benv\b', r'variabel', r'traefik', r'docker', r'\brepo\b', r'\bbuild\b', r'\btoken', r'migrat',
              r'\bendpoint', r'frontend', r'backend', r'\bfield\b', r'\bstaging']
+if EDITION == 'school':
+    # The school edition must not mention Nexora's internal tools or SaaS jargon either.
+    FORBIDDEN += [r'console', r'\boperator', r'\btenant', r'\bcms\b', r'wizard', r'\bslug\b', r'\bmulti-tenant']
 _text = re.sub(r'<[^>]+>', ' ', re.sub(r'<style>.*?</style>|<img[^>]*>', ' ', doc, flags=re.S))
 _leaks = sorted({m.group(0) for pat in FORBIDDEN for m in re.finditer(pat, _text, flags=re.I)})
 if _leaks:
     for pat in FORBIDDEN:
         for m in re.finditer(pat, _text, flags=re.I):
             print('LEAK', repr(m.group(0)), '…' + _text[max(0, m.start() - 60):m.end() + 40].replace('\n', ' ') + '…')
-    sys.exit(f'Tenant PDF would expose technical terms: {_leaks} — wrap them in <!-- internal --> blocks.')
+    sys.exit(f'{EDITION} PDF would expose forbidden terms: {_leaks} — wrap them in <!-- internal --> / <!-- nexora --> blocks.')
 head, rest = doc.split('<section class="cover">', 1)
 cover, body = rest.split('</section>', 1)
 (G / '_print_cover.html').write_text(head.replace('@page {{','@page {{').replace('@page { size: A4; margin: 18mm 15mm 18mm 15mm; }','@page { size: A4; margin: 0; }') + '<section class="cover">' + cover + '</section></body></html>')

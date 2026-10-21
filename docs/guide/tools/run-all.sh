@@ -29,4 +29,10 @@ node print-pdf.js "$REPO/docs/guide/_print_cover.html" "$SP/cover.pdf" plain
 node print-pdf.js "$REPO/docs/guide/_print.html" "$SP/body.pdf"
 pdfunite "$SP/cover.pdf" "$SP/body.pdf" "$REPO/docs/guide/PANDUAN_E2E_AL_MUSABBIHIN.pdf"
 mv "$REPO/docs/guide/_print.html" "$REPO/docs/guide/_print_cover.html" "$SP/"
+# School edition (shared with the school itself): no Console / operator content.
+python3 build-pdf.py "$REPO/docs/guide" "$SP" school
+node print-pdf.js "$REPO/docs/guide/_print_cover.html" "$SP/cover-s.pdf" plain
+node print-pdf.js "$REPO/docs/guide/_print.html" "$SP/body-s.pdf"
+pdfunite "$SP/cover-s.pdf" "$SP/body-s.pdf" "$REPO/docs/guide/PANDUAN_PENGGUNA_SIT_AL_MUSABBIHIN.pdf"
+mv "$REPO/docs/guide/_print.html" "$REPO/docs/guide/_print_cover.html" "$SP/"
 echo "✅ docs/guide regenerated"

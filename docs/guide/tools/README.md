@@ -18,7 +18,14 @@ Notes
 - Temporary passwords are blurred in screenshots and never written to the repo.
 - The guide text (`PANDUAN_E2E_AL_MUSABBIHIN.md`) is hand-written: update figures there when the scenario changes.
 
-## Two audiences from one source
+## Three outputs from one source
+- `PANDUAN_PENGGUNA_SIT_AL_MUSABBIHIN.pdf` — **school edition** (`build-pdf.py … school`): what the school shares
+  internally. Drops everything Nexora-only: the Console chapter, operator rows/steps, Console FAQ answers. Mark such
+  content with `<!-- nexora -->…<!-- /nexora -->` (blocks) or end a table row's last cell with `<!--nx-->`; school-only
+  replacements use `<!-- school -->…<!-- /school -->` / `<!--sch-->`. Its leak guard also fails on Console, operator,
+  tenant, CMS, wizard and slug.
+
+## Two audiences from one source (internal MD vs shareable PDF)
 - `PANDUAN_E2E_AL_MUSABBIHIN.md` is the **full internal** guide (Nexora): it keeps technical notes, the go-live
   checklist and the QA findings. Anything Nexora-only goes between `<!-- internal -->` and `<!-- /internal -->`
   (a whole chapter can be wrapped, heading included).

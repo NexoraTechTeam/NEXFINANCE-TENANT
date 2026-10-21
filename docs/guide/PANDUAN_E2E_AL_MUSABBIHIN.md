@@ -40,6 +40,7 @@
 
 ## 1. Ringkasan
 
+<!-- nexora -->
 NexFinance Tenant menjalankan **satu aplikasi untuk banyak sekolah**. Setiap sekolah (tenant) punya:
 
 - **alamat sendiri** — alamat `<nama-sekolah>-nexfinance.nexoratech.co`, opsional domain sekolah sendiri;
@@ -49,6 +50,19 @@ NexFinance Tenant menjalankan **satu aplikasi untuk banyak sekolah**. Setiap sek
 
 Sekolah baru disiapkan oleh **Operator Nexora** lewat **Console** (CMS master) dalam ±3 menit dan
 langsung bisa dipakai.
+<!-- /nexora -->
+<!-- school -->
+**NexFinance** adalah aplikasi keuangan SIT Al Musabbihin untuk SPP, penggajian, pengeluaran, pengadaan,
+akuntansi, dan laporan keuangan ISAK 35 — dapat dibuka dari komputer maupun ponsel.
+
+- **alamat sekolah sendiri** — `https://almusabbihin-nexfinance.nexoratech.co`;
+- **data sekolah aman dan terpisah** — hanya pengguna SIT Al Musabbihin yang dapat mengaksesnya;
+- **identitas sekolah** — nama, logo, warna, foto halaman login, dan kop laporan PDF sekolah;
+- **pengguna & hak akses** — 6 peran (Super Admin, Administrator, Bendahara, Kepala Bagian, Staf, Auditor).
+
+Akun **Super Admin** sekolah (`admin-almusabbihin`) diserahkan oleh tim Nexora bersama password sementara;
+Super Admin kemudian membuat akun untuk peran lainnya.
+<!-- /school -->
 
 <!-- internal -->
 > **🔧 Internal Nexora (tidak ikut di PDF tenant):** satu schema PostgreSQL per sekolah (`t_al_musabbihin`) + registry `platform`; tenant dikenali dari host. Onboarding tidak butuh perubahan kode maupun deploy ulang (kecuali menambah host baru ke `SAAS_HOSTS` selama belum ada wildcard DNS/TLS).
@@ -56,7 +70,7 @@ langsung bisa dipakai.
 
 | Peran | Siapa | Bekerja di | Tugas utama |
 | --- | --- | --- | --- |
-| Operator Nexora | Tim Nexora | Console | Membuat & mengelola tenant, logo/tema, domain, reset password admin |
+| Operator Nexora | Tim Nexora | Console | Membuat & mengelola tenant, logo/tema, domain, reset password admin <!--nx--> |
 | Super Admin | Admin sekolah (`admin-almusabbihin`) | Aplikasi sekolah | Saldo awal, user & hak akses, data master |
 | Bendahara | Siti Rahmawati | Aplikasi sekolah | SPP, penggajian, persetujuan, jurnal, laporan |
 | Kepala Bagian | Hendra Gunawan | Aplikasi sekolah | Persetujuan pengeluaran, pengadaan (PR → PO → terima barang) |
@@ -74,7 +88,7 @@ langsung bisa dipakai.
 | Halaman login | `https://almusabbihin-nexfinance.nexoratech.co/login` | Semua pengguna sekolah |
 | Dashboard | `https://almusabbihin-nexfinance.nexoratech.co/dashboard` | Semua pengguna sekolah |
 | Domain sekolah (menyusul) | `https://al-musabbihin.sch.id` | Semua pengguna sekolah |
-| Console | `https://console-nexfinance.nexoratech.co/console` | Khusus tim Nexora |
+| Console | `https://console-nexfinance.nexoratech.co/console` | Khusus tim Nexora <!--nx--> |
 
 <!-- internal -->
 > **🔧 Internal Nexora (tidak ikut di PDF tenant):** lingkungan uji (staging) dan pola alamat:
@@ -108,8 +122,9 @@ Halaman di aplikasi sekolah (semua di bawah `https://almusabbihin-nexfinance.nex
 
 | # | Peran | Langkah | Hasil |
 | --- | --- | --- | --- |
-| 1 | Operator | Login Console → **Tenant baru** (identitas → logo & warna → admin & domain) | Tenant aktif, subdomain siap, password sementara admin |
-| 2 | Operator | Lengkapi kepala sekolah/bendahara, tambah domain sekolah, kirim kredensial lewat kanal aman | Data kop laporan lengkap |
+| 1 | Operator | Login Console → **Tenant baru** (identitas → logo & warna → admin & domain) | Tenant aktif, subdomain siap, password sementara admin <!--nx--> |
+| 2 | Operator | Lengkapi kepala sekolah/bendahara, tambah domain sekolah, kirim kredensial lewat kanal aman | Data kop laporan lengkap <!--nx--> |
+| 1–2 | Tim Nexora | Menyiapkan aplikasi sekolah (logo, warna, data sekolah) dan menyerahkan akun Super Admin | Aplikasi sekolah siap dipakai <!--sch--> |
 | 3 | Super Admin | Login pertama → **wajib ganti password** → tur aplikasi | Akun aman, kenal navigasi |
 | 4 | Super Admin | **Saldo awal** → buat user per peran → data siswa & karyawan | Sekolah siap bertransaksi |
 | 5 | Bendahara | Buat invoice SPP → catat pembayaran → hitung gaji | Piutang, kas, beban gaji terjurnal otomatis |
@@ -120,6 +135,7 @@ Halaman di aplikasi sekolah (semua di bawah `https://almusabbihin-nexfinance.nex
 
 ---
 
+<!-- nexora -->
 ## 4. POV Operator Nexora — Console (CMS master)
 
 Bagian ini menunjukkan bagaimana tim Nexora menyiapkan sekolah Anda di **Console** — dari data sekolah,
@@ -235,15 +251,16 @@ menonaktifkan) tercatat lengkap dengan waktu dan pelakunya.
 <!-- /internal -->
 
 ---
+<!-- /nexora -->
 
 ## 5. POV Admin Sekolah (Super Admin)
 
 **Alamat:** `https://almusabbihin-nexfinance.nexoratech.co/login` · **Akun:** `admin-almusabbihin`
 
 ### 5.1 Login pertama
-Halaman login sudah memakai **logo, nama, dan warna sekolah**. Login bisa memakai **email atau username**.
+Halaman login sudah memakai **foto, logo, nama, dan warna sekolah**. Login bisa memakai **email atau username**.
 
-![Login sekolah](img/10-tenant-login.jpg)
+![Login sekolah](img/10b-tenant-login-photo.jpg)
 
 Setelah login dengan password sementara, muncul dialog **Ganti password sementara** yang tidak bisa
 dilewati. Isi password sementara, password baru (min. 8 karakter), konfirmasi → **Simpan password**.
@@ -336,7 +353,7 @@ terutang dibuat otomatis.
 ![Slip gaji](img/26-bendahara-payroll-slip.jpg)
 
 ### 6.4 Persetujuan kedua pengeluaran
-Setelah Kepala Bagian menyetujui (bagian 8), Bendahara memberi **persetujuan kedua** → status menjadi
+Setelah Kepala Bagian menyetujui (lihat POV Kepala Bagian), Bendahara memberi **persetujuan kedua** → status menjadi
 **Disetujui** dan beban langsung terjurnal.
 
 ![Pengeluaran disetujui](img/36-bendahara-expenses-approved.jpg)
@@ -521,12 +538,15 @@ Console dan di `SAAS_HOSTS`, lalu deploy ulang.
 | --- | --- |
 | Lupa password admin sekolah | Hubungi tim Nexora. Kami menerbitkan password sementara baru yang wajib Anda ganti saat login. |
 | Lupa password user lain (bendahara, staf, …) | Hubungi tim Nexora dengan menyebutkan email atau username user tersebut. Password sementara baru wajib diganti saat login. |
-| Muncul "Tenant not found" saat membuka alamat sekolah | Alamat belum aktif atau salah ketik. Periksa alamatnya, lalu hubungi tim Nexora bila masih muncul. |
+| Muncul "Tenant not found" saat membuka alamat sekolah | Alamat belum aktif atau salah ketik. Periksa alamatnya, lalu hubungi tim Nexora bila masih muncul. <!--nx--> |
+| Halaman tidak ditemukan saat membuka alamat sekolah | Periksa ejaan alamat: `almusabbihin-nexfinance.nexoratech.co`. Hubungi tim Nexora bila masih muncul. <!--sch--> |
 | Muncul "Layanan untuk sekolah ini sedang dinonaktifkan" | Layanan sekolah sedang dinonaktifkan. Hubungi tim Nexora. |
 | Terlalu banyak percobaan login | Demi keamanan, login dikunci sementara. Tunggu beberapa menit lalu coba lagi. |
 | Angka dashboard masih nol | Isi **Saldo Awal** dan mulai bertransaksi — sekolah baru tidak memakai angka contoh. |
 | Pengeluaran tidak berubah menjadi Disetujui | Butuh 2 persetujuan dari **2 orang berbeda** (mis. Kepala Bagian lalu Bendahara). |
 | Ingin mengganti logo atau warna aplikasi | Kirim logo baru ke tim Nexora — warna tema dibuat ulang otomatis dari logo. |
+| Ingin mengganti foto atau teks sambutan halaman login | Kirim foto sekolah (lanskap, ±1920×1080) dan teks sambutan yang diinginkan ke tim Nexora. |
+| Ingin memakai domain sekolah (mis. `al-musabbihin.sch.id`) | Hubungi tim Nexora; pengelola domain sekolah cukup mengikuti instruksi singkat yang kami kirimkan. |
 | Keamanan dan cadangan data | Data sekolah dicadangkan otomatis setiap hari. Hubungi tim Nexora untuk ekspor atau pemulihan data. |
 
 <!-- internal -->
