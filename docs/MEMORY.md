@@ -2,6 +2,21 @@
 
 Living record of state, decisions and open items. Newest entries first. Update at the end of every session.
 
+## 2026-10-21 — final review, every role (E2E FE + BE + DB)
+- Imam: "final review full testing e2e semua role… harus running 100% tanpa error; temukan root cause sebelum fixing. OODA + TDD".
+- Sweeps on a production-identical local stack: API (every endpoint × 6 roles + ledger integrity) 227/238 → **238/238**;
+  validation/hierarchy probes all refused; UI (6 roles × 12 pages + mobile) 4 roles with 403s/console errors → **78 visits, 0 issues**;
+  functional guide flow passes. Report + root causes: `docs/qa/FINAL_REVIEW_2026-10-21.md`; reusable scripts `docs/qa/tools/`.
+- 15 findings fixed with tests (backend `final-review.test.js`, frontend `access-control.test.tsx`): RC1 no amount/date/journal
+  validation (ledger could go unbalanced) → `lib/validate.js`; RC2 duplicate payroll, PO without PR, reject after approval;
+  RC3 staff/self approval → approver roles + `submittedById`; RC4 auth trusted JWT only → user row checked each request
+  (inactive 401, role from DB, temp password → 403 `PASSWORD_CHANGE_REQUIRED` outside /auth); RC5 admin could change super admin;
+  RC6 static menus/forbidden pages → `lib/permissions.ts` + `AccessGate`; PR picker in PO form; reports accept `reports` module;
+  only 5xx logged; activity paging clamped. Tests: backend 154, frontend 123.
+- Deployed (run 39584383525, staging + production green, NexFinance untouched); production checks read-only. Guide v1.4 regenerated
+  (role-based menus, PR picker; PDFs 58/48 p., leak guards clean).
+- Gotcha: `pgrep -f`/`pgrep -x "next-server (v"` can match the agent's own shell or fail — kill by `ps -eo pid,comm` + awk.
+
 ## 2026-10-21 — guide v1.3 (ISAK 335) + auditor read-only
 - Imam: "Rangkum perubahan… sesuaikan juga ke dokumentasi panduan beserta pdf nya. NexFinance demo nanti saja, tunggu arahan."
 - Full E2E regeneration (`run-all.sh`): new 6.6 Dana terikat (37b/37c/37d), 6.7 Laporan ISAK 335 (38, 39, 39b–d, PDF p.1/2/6),
@@ -177,6 +192,7 @@ Verbatim intent of every rule Imam gave; the binding version is CLAUDE.md → Wo
 | 2026-10-17 | "Cukup sampai sini dulu" — session closed after recording everything. | This log |
 | 2026-10-17 | "Task yg masih pending dicatat dan kirimkan ke telegrambot" — pending list goes to Imam's Telegram (@AgentNexoraBot, chat 6687943152) via `scripts/notify-telegram.sh`; token only as env secret, never in git. | `docs/PENDING_TASKS.md` |
 | 2026-10-19 | "Setupkan NEXFINANCE-TENANT ke console-nexfinance.nexoratech.co & almusabbihin-nexfinance.nexoratech.co". | Decisions, `deploy/env-defaults.sh` |
+| 2026-10-21 | "Final review full E2E semua role, FE+BE+DB tanpa error; root cause dulu sebelum fixing; OODA + TDD". | 2026-10-21 final review section, `docs/qa/` |
 | 2026-10-21 | "Rangkum perubahan + sesuaikan panduan & PDF; NexFinance demo tunggu arahan saya. Lets cook!" | 2026-10-21 guide v1.3 section |
 | 2026-10-21 | "ISAK 35 itu apa, sudah diterapkan?, beda dengan Accurate?" → riset ulang → "kerjakan 1-7 dulu, use OODA + TDD". | 2026-10-21 ISAK 335 section |
 | 2026-10-21 | "'NexFinance — produk dari Nexora' editable rich text + checklist tampil/tidak; hilangkan 'produk dari'". | 2026-10-21 attribution section |
