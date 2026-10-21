@@ -13,8 +13,8 @@ const router = express.Router();
 router.get('/', auth, rbac('activity'), ah(async (req, res) => {
   try {
     const activityLogs = await req.store.list('activity_logs');
-    const limit  = Math.min(parseInt(req.query.limit)  || 50, 200);
-    const offset = parseInt(req.query.offset) || 0;
+    const limit  = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 200);
+    const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
     const { module, action, search } = req.query;
 
     let result = [...activityLogs];

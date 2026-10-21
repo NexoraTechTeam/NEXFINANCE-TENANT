@@ -1,7 +1,7 @@
 'use strict';
 
 const request = require('supertest');
-const { bootstrap } = require('./helpers/setup');
+const { bootstrap, activate } = require('./helpers/setup');
 const { provisionTenant } = require('../services/tenants');
 
 const HOST = 'funds.localhost';
@@ -16,9 +16,7 @@ beforeAll(async () => {
     slug: 'funds', name: 'Funds School', domains: [HOST],
     admin: { username: 'admin-funds', name: 'Admin', password: 'Funds-Pass-123' },
   });
-  const res = await request(app).post('/api/v1/auth/login').set('Host', HOST)
-    .send({ email: 'admin-funds', password: 'Funds-Pass-123' });
-  token = res.body.token;
+  token = await activate(app, HOST, 'admin-funds', 'Funds-Pass-123', 'Funds-Pass-123-Tetap');
 });
 
 afterAll(async () => {
@@ -99,9 +97,8 @@ describe('restricted funds (ISAK 335 net assets with restrictions)', () => {
     await api.post('/api/v1/master/users').send({
       name: 'Auditor', email: 'auditor@funds.test', password: 'Auditor-Pass-123', role: 'auditor',
     }).expect(201);
-    const login = await request(app).post('/api/v1/auth/login').set('Host', HOST)
-      .send({ email: 'auditor@funds.test', password: 'Auditor-Pass-123' });
-    const as = (method, path) => request(app)[method](path).set('Host', HOST).set('Authorization', `Bearer ${login.body.token}`);
+    const auditorToken = await activate(app, HOST, 'auditor@funds.test', 'Auditor-Pass-123', 'Auditor-Pass-456');
+    const as = (method, path) => request(app)[method](path).set('Host', HOST).set('Authorization', `Bearer ${auditorToken}`);
     expect((await as('get', `/api/v1/accounting/reports/isak335?year=${YEAR}`)).statusCode).toBe(200);
     expect((await as('get', '/api/v1/accounting/restricted-funds')).statusCode).toBe(200);
     for (const path of ['/api/v1/accounting/journals', '/api/v1/accounting/opening-balance',

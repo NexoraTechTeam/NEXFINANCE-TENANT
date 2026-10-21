@@ -2,7 +2,7 @@
 
 const request = require('supertest');
 const bcryptjs = require('bcryptjs');
-const { bootstrap } = require('./helpers/setup');
+const { bootstrap, activate } = require('./helpers/setup');
 const { provisionTenant, setTenantStatus, findTenantByHost } = require('../services/tenants');
 const { migrateAll } = require('../db/migrate');
 const { createApp } = require('../app');
@@ -153,24 +153,6 @@ describe('tenant login and isolation', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('keeps data separated between tenants and persists it across app restarts', async () => {
-    const a = await login(A_HOST, 'admin-almusabbihin', 'Temp-Pass-123');
-    const created = await on(A_HOST).post('/api/v1/master/students')
-      .set('Authorization', `Bearer ${a.body.token}`)
-      .send({ nis: '2026-001', name: 'Siswa Pertama', class: '7A' });
-    expect(created.statusCode).toBe(201);
-
-    const b = await login(B_HOST, 'admin-b', 'Temp-Pass-456');
-    const listB = await on(B_HOST).get('/api/v1/master/students').set('Authorization', `Bearer ${b.body.token}`);
-    expect(listB.body.total).toBe(0);
-
-    const restarted = createApp({ knex, config: { loginRateLimit: { max: 1000 }, tenantCacheTtlMs: 0 } });
-    const listA = await request(restarted).get('/api/v1/master/students')
-      .set('Host', A_HOST).set('Authorization', `Bearer ${a.body.token}`);
-    expect(listA.body.total).toBe(1);
-    expect(listA.body.data[0]).toMatchObject({ nis: '2026-001', name: 'Siswa Pertama', class: '7A', status: 'active' });
-  });
-
   it('clears the forced-change flag after the password is changed', async () => {
     const a = await login(A_HOST, 'admin-almusabbihin', 'Temp-Pass-123');
     const changed = await on(A_HOST).post('/api/v1/auth/change-password')
@@ -179,5 +161,23 @@ describe('tenant login and isolation', () => {
     expect(changed.statusCode).toBe(200);
     const again = await login(A_HOST, 'admin-almusabbihin', 'NewSecure-789');
     expect(again.body.user.mustChangePassword).toBe(false);
+  });
+
+  it('keeps data separated between tenants and persists it across app restarts', async () => {
+    const a = await login(A_HOST, 'admin-almusabbihin', 'NewSecure-789'); // activated in the previous test
+    const created = await on(A_HOST).post('/api/v1/master/students')
+      .set('Authorization', `Bearer ${a.body.token}`)
+      .send({ nis: '2026-001', name: 'Siswa Pertama', class: '7A' });
+    expect(created.statusCode).toBe(201);
+
+    const bToken = await activate(app, B_HOST, 'admin-b', 'Temp-Pass-456', 'NewSecure-456');
+    const listB = await on(B_HOST).get('/api/v1/master/students').set('Authorization', `Bearer ${bToken}`);
+    expect(listB.body.total).toBe(0);
+
+    const restarted = createApp({ knex, config: { loginRateLimit: { max: 1000 }, tenantCacheTtlMs: 0 } });
+    const listA = await request(restarted).get('/api/v1/master/students')
+      .set('Host', A_HOST).set('Authorization', `Bearer ${a.body.token}`);
+    expect(listA.body.total).toBe(1);
+    expect(listA.body.data[0]).toMatchObject({ nis: '2026-001', name: 'Siswa Pertama', class: '7A', status: 'active' });
   });
 });

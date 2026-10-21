@@ -8,6 +8,8 @@ const { getRequestIp, ah } = require('../lib/http');
 const { sendEmailNotification, sendWhatsAppNotification } = require('../services/notifications');
 const { postSppInvoice, postSppPayment } = require('../services/posting');
 
+const { positiveAmount } = require('../lib/validate');
+
 const router = express.Router();
 
 const enrichInvoice = (invoice) => ({
@@ -35,6 +37,8 @@ router.post('/invoices', auth, rbac('spp'), ah(async (req, res) => {
   if (!studentId || !studentName || !amount || !month) {
     return res.status(400).json({ error: 'Missing required fields: studentId, studentName, amount, month' });
   }
+  const amountError = positiveAmount(amount, 'Nominal SPP');
+  if (amountError) return res.status(400).json({ error: amountError });
   const student = await store.get('students', studentId);
   const invoice = await store.withTransaction(async (tx) => {
     const id = await tx.nextId('spp_invoices');

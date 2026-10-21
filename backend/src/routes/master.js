@@ -9,6 +9,8 @@ const { VALID_ROLES, VALID_MODULES } = require('../db/defaults');
 const { insertUser } = require('../services/tenants');
 const { toPublicUser } = require('./auth');
 
+const { positiveAmount, nonNegativeAmount, firstError } = require('../lib/validate');
+
 const router = express.Router();
 
 const normalizeStudentInput = (payload = {}) => ({
@@ -111,6 +113,9 @@ router.post('/employees', auth, rbac('master'), ah(async (req, res) => {
   if (!name || !position || baseSalary === undefined) {
     return res.status(400).json({ error: 'name, position, and baseSalary are required' });
   }
+  const salaryError = firstError(positiveAmount(baseSalary, 'Gaji pokok'),
+    nonNegativeAmount(req.body.certificationAllowance, 'Tunjangan sertifikasi'), nonNegativeAmount(req.body.familyAllowance, 'Tunjangan keluarga'));
+  if (salaryError) return res.status(400).json({ error: salaryError });
   const newEmployee = await req.store.insert('employees', {
     name,
     position,
@@ -197,8 +202,21 @@ router.post('/users', auth, adminOrSuperAdmin, ah(async (req, res) => {
   return res.status(201).json({ data: toPublicUser(created) });
 }));
 
+/** Only a super admin may change another super admin's account. */
+const guardSuperAdminTarget = async (req, res) => {
+  const target = await usersTable(req.store).where({ id: req.params.id }).first('id', 'role');
+  if (!target) { res.status(404).json({ error: 'User not found' }); return null; }
+  if (target.role === 'super_admin' && req.user.role !== 'super_admin') {
+    res.status(403).json({ error: 'Hanya Super Admin yang dapat mengubah akun Super Admin.' });
+    return null;
+  }
+  return target;
+};
+const USER_STATUSES = ['active', 'inactive'];
+
 router.delete('/users/:id', auth, adminOrSuperAdmin, ah(async (req, res) => {
   if (req.params.id === req.user.id) return res.status(400).json({ error: 'You cannot deactivate your own account' });
+  if (!(await guardSuperAdminTarget(req, res))) return undefined;
   const [updated] = await usersTable(req.store).where({ id: req.params.id })
     .update({ status: 'inactive', updated_at: req.store.db.fn.now() }).returning('*');
   if (!updated) return res.status(404).json({ error: 'User not found' });
@@ -207,8 +225,14 @@ router.delete('/users/:id', auth, adminOrSuperAdmin, ah(async (req, res) => {
 }));
 
 router.put('/users/:id', auth, adminOrSuperAdmin, ah(async (req, res) => {
+  if (!(await guardSuperAdminTarget(req, res))) return undefined;
   const existing = await usersTable(req.store).where({ id: req.params.id }).first();
-  if (!existing) return res.status(404).json({ error: 'User not found' });
+  if (req.body.status !== undefined && !USER_STATUSES.includes(req.body.status)) {
+    return res.status(400).json({ error: `status must be one of: ${USER_STATUSES.join(', ')}` });
+  }
+  if (req.body.status === 'inactive' && existing.id === req.user.id) {
+    return res.status(400).json({ error: 'You cannot deactivate your own account' });
+  }
 
   if (req.body.role && req.user.role !== 'super_admin') {
     return res.status(403).json({ error: 'Only super_admin can change user roles' });

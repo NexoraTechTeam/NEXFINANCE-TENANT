@@ -10,7 +10,10 @@ const {
   postOpeningBalance, postRestrictedReceipt, postRestrictionRelease, restrictedBalance, loadContext,
 } = require('../services/posting');
 
+const { positiveAmount, isoDate, firstError } = require('../lib/validate');
+
 const router = express.Router();
+const REPORTS = ['accounting', 'reports'];
 
 /** COA keyed by account code: { '1000': { name, type, isak35 } } (unchanged contract). */
 const chartOfAccounts = async (store) => Object.fromEntries(
@@ -31,12 +34,21 @@ router.post('/journals', auth, rbac('accounting'), rbac.denyReadOnly, ah(async (
   if (!date || !description || !debit || !credit) {
     return res.status(400).json({ error: 'date, description, debit, credit are required' });
   }
+  const coa = await chartOfAccounts(req.store);
+  const invalid = firstError(
+    isoDate(date),
+    positiveAmount(debit.amount, 'Jumlah debit'),
+    Number(debit.amount) === Number(credit.amount) ? null : 'Jumlah debit dan kredit harus sama',
+    coa[debit.account] && coa[credit.account] ? null : 'Akun tidak dikenal',
+    debit.account !== credit.account ? null : 'Akun debit dan kredit harus berbeda',
+  );
+  if (invalid) return res.status(400).json({ error: invalid });
   const journal = await req.store.insert('journals', {
     id: await req.store.nextId('journals'),
     date,
     description,
-    debit,
-    credit,
+    debit: { account: debit.account, name: coa[debit.account].name, amount: Number(debit.amount) },
+    credit: { account: credit.account, name: coa[credit.account].name, amount: Number(credit.amount) },
     createdAt: today(),
   });
   await logActivity(req.store, req.user.id, req.user.email, 'create_journal', 'accounting', `Created journal ${journal.id}`, { journalId: journal.id, date: journal.date, debit, credit }, { ipAddress });
@@ -48,13 +60,13 @@ const loadBooks = async (store) => {
   return { journals: await store.list('journals'), coa, funds: accounts.restrictedFunds };
 };
 
-router.get('/reports/balance-sheet', auth, rbac('accounting'), ah(async (req, res) => {
+router.get('/reports/balance-sheet', auth, rbac(REPORTS), ah(async (req, res) => {
   const { journals, coa, funds } = await loadBooks(req.store);
   res.json(ledger.balanceSheet(journals, coa, { funds }));
 }));
 
 /** Full ISAK 335 package for one calendar year (financial position, comprehensive income, changes in net assets, cash flows, notes). */
-router.get('/reports/isak335', auth, rbac('accounting'), ah(async (req, res) => {
+router.get('/reports/isak335', auth, rbac(REPORTS), ah(async (req, res) => {
   const year = Number(req.query.year) || new Date().getFullYear();
   const { journals, coa, funds } = await loadBooks(req.store);
   const setting = await req.store.db.withSchema(req.store.schema).from('settings').where({ key: 'reporting_framework' }).first();
@@ -79,6 +91,8 @@ router.get('/restricted-funds', auth, rbac('accounting'), ah(async (req, res) =>
 const restrictedAction = (fn, action) => ah(async (req, res) => {
   const { date, fund, amount, method, description } = req.body || {};
   if (!date || !fund) return res.status(400).json({ error: 'date and fund are required' });
+  const dateError = isoDate(date);
+  if (dateError) return res.status(400).json({ error: dateError });
   const journal = await req.store.withTransaction((tx) => fn(tx, { date, fund, amount: Math.round(Number(amount)), method, description }));
   await logActivity(req.store, req.user.id, req.user.email, action, 'accounting', `${action} ${fund} ${journal.debit.amount}`, { journalId: journal.id }, { ipAddress: getRequestIp(req) });
   return res.status(201).json({ journal });
@@ -87,12 +101,12 @@ const restrictedAction = (fn, action) => ah(async (req, res) => {
 router.post('/restricted-funds/receipts', auth, rbac('accounting'), rbac.denyReadOnly, restrictedAction(postRestrictedReceipt, 'restricted_receipt'));
 router.post('/restricted-funds/releases', auth, rbac('accounting'), rbac.denyReadOnly, restrictedAction(postRestrictionRelease, 'restriction_release'));
 
-router.get('/reports/income-statement', auth, rbac('accounting'), ah(async (req, res) => {
+router.get('/reports/income-statement', auth, rbac(REPORTS), ah(async (req, res) => {
   const { journals, coa } = await loadBooks(req.store);
   res.json(ledger.incomeStatement(journals, coa));
 }));
 
-router.get('/reports/monthly', auth, rbac('accounting'), ah(async (req, res) => {
+router.get('/reports/monthly', auth, rbac(REPORTS), ah(async (req, res) => {
   const year = Number(req.query.year) || new Date().getFullYear();
   const { journals, coa } = await loadBooks(req.store);
   res.json({
@@ -112,6 +126,8 @@ router.post('/opening-balance', auth, rbac('accounting'), rbac.denyReadOnly, ah(
   if (!date || !Array.isArray(entries) || entries.length === 0) {
     return res.status(400).json({ error: 'date and a non-empty entries array are required' });
   }
+  const dateError = isoDate(date);
+  if (dateError) return res.status(400).json({ error: dateError });
   const coa = await chartOfAccounts(req.store);
   const invalid = entries.find((e) => !['Asset', 'Liability', 'Equity'].includes(coa[e?.account]?.type)
     || !(Number(e.amount) > 0) || e.account === '3000');

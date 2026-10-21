@@ -1,7 +1,7 @@
 'use strict';
 
 const request = require('supertest');
-const { bootstrap } = require('./helpers/setup');
+const { bootstrap, activate } = require('./helpers/setup');
 const { provisionTenant } = require('../services/tenants');
 
 const HOST = 'flow.localhost';
@@ -15,9 +15,7 @@ beforeAll(async () => {
     slug: 'flow', name: 'Flow School', domains: [HOST],
     admin: { username: 'admin-flow', name: 'Admin', password: 'Flow-Pass-123' },
   });
-  const res = await request(app).post('/api/v1/auth/login').set('Host', HOST)
-    .send({ email: 'admin-flow', password: 'Flow-Pass-123' });
-  token = res.body.token;
+  token = await activate(app, HOST, 'admin-flow', 'Flow-Pass-123', 'Flow-Pass-123-Tetap');
 });
 
 afterAll(async () => {
@@ -85,14 +83,17 @@ describe('real financial numbers for a clean tenant', () => {
 
     const exp = await api.post('/api/v1/expenses/submit')
       .send({ description: 'Listrik', amount: 700_000, category: 'Utilitas' });
-    await api.post(`/api/v1/expenses/${exp.body.id}/approve`);
+    // Dual control: two approvers, neither of them the submitter (the admin).
+    const approver = async (username, role) => {
+      await api.post('/api/v1/master/users').send({ name: role, username, password: 'Second-Approver-1', role });
+      return activate(app, HOST, username, 'Second-Approver-1', 'Second-Approver-2');
+    };
+    const first = await approver('kabag-flow', 'kabag');
+    const second = await approver('bendahara-flow', 'bendahara');
+    expect((await api.post(`/api/v1/expenses/${exp.body.id}/approve`)).statusCode).toBe(403); // own submission
+    await request(app).post(`/api/v1/expenses/${exp.body.id}/approve`).set('Host', HOST).set('Authorization', `Bearer ${first}`).expect(200);
     expect((await is()).detail.bebanLain).toBe(0); // one approval: still pending
-    // Second approval must come from a different person (dual control).
-    await api.post('/api/v1/master/users')
-      .send({ name: 'Bendahara', username: 'bendahara-flow', password: 'Second-Approver-1', role: 'bendahara' });
-    const second = (await request(app).post('/api/v1/auth/login').set('Host', HOST)
-      .send({ email: 'bendahara-flow', password: 'Second-Approver-1' })).body.token;
-    await request(app).post(`/api/v1/expenses/${exp.body.id}/approve`).set('Host', HOST).set('Authorization', `Bearer ${second}`);
+    await request(app).post(`/api/v1/expenses/${exp.body.id}/approve`).set('Host', HOST).set('Authorization', `Bearer ${second}`).expect(200);
     expect((await is()).detail.bebanLain).toBe(700_000);
 
     const pr = await api.post('/api/v1/procurement/pr').send({ description: 'Meja', quantity: 2, estimatedCost: 2_000_000 });

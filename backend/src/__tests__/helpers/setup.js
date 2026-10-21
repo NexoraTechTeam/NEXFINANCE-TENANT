@@ -40,4 +40,17 @@ async function bootstrap({ demo = true, appConfig = {} } = {}) {
   return { knex, app };
 }
 
-module.exports = { bootstrap, resetDatabase, TEST_DATABASE_URL, DEMO_HOST };
+/**
+ * Logs in with a temporary password, sets a permanent one (business APIs are blocked until then) and returns
+ * a token for the activated session.
+ */
+async function activate(app, host, login, temporaryPassword, newPassword) {
+  const request = require('supertest');
+  const first = await request(app).post('/api/v1/auth/login').set('Host', host).send({ email: login, password: temporaryPassword });
+  await request(app).post('/api/v1/auth/change-password').set('Host', host).set('Authorization', `Bearer ${first.body.token}`)
+    .send({ currentPassword: temporaryPassword, newPassword, confirmPassword: newPassword });
+  const res = await request(app).post('/api/v1/auth/login').set('Host', host).send({ email: login, password: newPassword });
+  return res.body.token;
+}
+
+module.exports = { bootstrap, resetDatabase, activate, TEST_DATABASE_URL, DEMO_HOST };

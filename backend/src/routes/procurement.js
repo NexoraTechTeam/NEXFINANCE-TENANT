@@ -7,6 +7,8 @@ const { logActivity } = require('../lib/activity');
 const { getRequestIp, ah, today } = require('../lib/http');
 const { postReceivedPurchaseOrder } = require('../services/posting');
 
+const { positiveAmount, firstError } = require('../lib/validate');
+
 const router = express.Router();
 
 router.get('/pr', auth, rbac('procurement'), ah(async (req, res) => {
@@ -21,6 +23,8 @@ router.post('/pr', auth, rbac('procurement'), ah(async (req, res) => {
   if (!description || !quantity || !estimatedCost) {
     return res.status(400).json({ error: 'item (or description), quantity, estimatedCost are required' });
   }
+  const numberError = firstError(positiveAmount(quantity, 'Jumlah'), positiveAmount(estimatedCost, 'Estimasi biaya'));
+  if (numberError) return res.status(400).json({ error: numberError });
   const pr = await req.store.insert('purchase_requests', {
     id: await req.store.nextId('purchase_requests'),
     item: description,
@@ -46,8 +50,14 @@ router.post('/po', auth, rbac('procurement'), ah(async (req, res) => {
   const { prId, vendor } = req.body;
   // The web form sends `totalCost`; API clients send `totalAmount`. Store both for either reader.
   const totalAmount = req.body.totalAmount ?? req.body.totalCost;
-  if (!prId || !vendor || !totalAmount) {
+  if (!prId || !vendor || totalAmount === undefined || totalAmount === '') {
     return res.status(400).json({ error: 'prId, vendor, totalAmount (or totalCost) are required' });
+  }
+  const amountError = positiveAmount(totalAmount, 'Total biaya');
+  if (amountError) return res.status(400).json({ error: amountError });
+  if (!(await req.store.get('purchase_requests', prId))) return res.status(404).json({ error: 'Purchase request not found' });
+  if ((await req.store.list('purchase_orders')).some((p) => p.prId === prId)) {
+    return res.status(409).json({ error: 'Purchase request ini sudah memiliki PO' });
   }
   const po = await req.store.insert('purchase_orders', {
     id: await req.store.nextId('purchase_orders'),

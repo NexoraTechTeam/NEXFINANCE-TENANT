@@ -20,6 +20,8 @@ router.post('/calculate', auth, rbac('payroll'), ah(async (req, res) => {
   if (!employeeId || !month) return res.status(400).json({ error: 'employeeId and month are required' });
   const emp = await req.store.get('employees', employeeId);
   if (!emp) return res.status(404).json({ error: 'Employee not found' });
+  const existing = (await req.store.list('payroll_runs')).find((p) => p.employeeId === emp.id && p.month === month);
+  if (existing) return res.status(409).json({ error: `Gaji ${emp.name} untuk ${month} sudah diproses (${existing.id})` });
   const result = await req.store.withTransaction(async (tx) => {
     const run = await tx.insert('payroll_runs', calcPayroll(emp, month));
     await postPayroll(tx, run);

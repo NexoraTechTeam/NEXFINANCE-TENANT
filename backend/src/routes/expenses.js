@@ -7,7 +7,16 @@ const { logActivity } = require('../lib/activity');
 const { getRequestIp, ah, today } = require('../lib/http');
 const { postApprovedExpense } = require('../services/posting');
 
+const { positiveAmount } = require('../lib/validate');
+
 const router = express.Router();
+
+/** Roles allowed to approve or reject expenses (dual control); staff and auditors only submit/see. */
+const APPROVER_ROLES = new Set(['kabag', 'bendahara', 'admin', 'super_admin']);
+const actorName = (user) => user.email || user.username;
+const isSubmitter = (expense, user) => (expense.submittedById ? expense.submittedById === user.id : expense.submittedBy === actorName(user));
+const approverOnly = (req, res, next) => (APPROVER_ROLES.has(req.user.role)
+  ? next() : res.status(403).json({ error: 'Peran Anda tidak dapat menyetujui atau menolak pengeluaran.' }));
 
 router.get('/', auth, rbac('expenses'), ah(async (req, res) => {
   res.json({ expenses: await req.store.list('expenses') });
@@ -22,6 +31,8 @@ router.post('/submit', auth, rbac('expenses'), ah(async (req, res) => {
   if (!title || !amount || !category) {
     return res.status(400).json({ error: 'title (or description), amount and category are required' });
   }
+  const amountError = positiveAmount(amount, 'Jumlah');
+  if (amountError) return res.status(400).json({ error: amountError });
   const expense = await req.store.insert('expenses', {
     id: await req.store.nextId('expenses'),
     title,
@@ -29,7 +40,8 @@ router.post('/submit', auth, rbac('expenses'), ah(async (req, res) => {
     amount: Number(amount),
     category,
     status: 'pending',
-    submittedBy: req.user.email,
+    submittedBy: actorName(req.user),
+    submittedById: req.user.id,
     submittedAt: today(),
     approvals: [],
   });
@@ -37,13 +49,15 @@ router.post('/submit', auth, rbac('expenses'), ah(async (req, res) => {
   return res.status(201).json(expense);
 }));
 
-router.post('/:id/approve', auth, rbac('expenses'), ah(async (req, res) => {
+router.post('/:id/approve', auth, rbac('expenses'), approverOnly, ah(async (req, res) => {
   const ipAddress = getRequestIp(req);
   let conflict = null;
   let duplicate = false;
+  let own = false;
   const expense = await req.store.withTransaction(async (tx) => {
     const updated = await tx.update('expenses', req.params.id, (current) => {
       if (current.status !== 'pending') { conflict = `Cannot approve — status is ${current.status}`; return current; }
+      if (isSubmitter(current, req.user)) { own = true; return current; }
       // Dual control: the two approvals must come from two different people.
       const me = { id: req.user.id, name: req.user.email || req.user.username };
       if ((current.approvals || []).some((a) => (a.approverId ? a.approverId === me.id : a.approver === me.name))) {
@@ -58,21 +72,23 @@ router.post('/:id/approve', auth, rbac('expenses'), ah(async (req, res) => {
   });
   if (!expense) return res.status(404).json({ error: 'Expense not found' });
   if (conflict) return res.status(400).json({ error: conflict });
+  if (own) return res.status(403).json({ error: 'Pengajuan sendiri tidak dapat Anda setujui.' });
   if (duplicate) return res.status(409).json({ error: 'Anda sudah menyetujui pengeluaran ini. Persetujuan kedua harus dari orang lain.' });
   await logActivity(req.store, req.user.id, req.user.email, 'approve_expense', 'expenses', `Approved expense ${expense.id}`, { expenseId: expense.id, approvals: expense.approvals.length, status: expense.status }, { ipAddress });
   return res.json(expense);
 }));
 
-router.post('/:id/reject', auth, rbac('expenses'), ah(async (req, res) => {
+router.post('/:id/reject', auth, rbac('expenses'), approverOnly, ah(async (req, res) => {
   const ipAddress = getRequestIp(req);
   const { reason } = req.body || {};
-  const expense = await req.store.update('expenses', req.params.id, (current) => ({
-    ...current,
-    status: 'rejected',
-    rejectedAt: today(),
-    rejectedReason: reason || current.rejectedReason || null,
-  }));
+  let conflict = null;
+  // Only pending expenses can be rejected: an approved one is already posted to the ledger.
+  const expense = await req.store.update('expenses', req.params.id, (current) => {
+    if (current.status !== 'pending') { conflict = `Cannot reject — status is ${current.status}`; return current; }
+    return { ...current, status: 'rejected', rejectedAt: today(), rejectedBy: actorName(req.user), rejectedReason: reason || null };
+  });
   if (!expense) return res.status(404).json({ error: 'Expense not found' });
+  if (conflict) return res.status(400).json({ error: conflict });
   await logActivity(req.store, req.user.id, req.user.email, 'reject_expense', 'expenses', `Rejected expense ${expense.id}`, { expenseId: expense.id, reason: expense.rejectedReason }, { ipAddress, level: 'warning' });
   return res.json(expense);
 }));

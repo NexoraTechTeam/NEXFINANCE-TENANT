@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const request = require('supertest');
-const { bootstrap } = require('./helpers/setup');
+const { bootstrap, activate } = require('./helpers/setup');
 const { ensureConsoleAdmin } = require('../services/console');
 const { hexToHsl } = require('../services/palette');
 
@@ -227,9 +227,8 @@ describe('tenant lifecycle from the console', () => {
   });
 
   it('resets any school user by email typed into the username field', async () => {
-    const login = await tenantApi('al-musabbihin.nexfinance.test').post('/api/v1/auth/login')
-      .send({ email: 'admin-almusabbihin', password: (await consoleApi.post(`/api/v1/console/tenants/${tenantId}/reset-password`).send({ username: 'admin-almusabbihin' })).body.temporaryPassword });
-    const token = login.body.token;
+    const temporary = (await consoleApi.post(`/api/v1/console/tenants/${tenantId}/reset-password`).send({ username: 'admin-almusabbihin' })).body.temporaryPassword;
+    const token = await activate(app, 'al-musabbihin.nexfinance.test', 'admin-almusabbihin', temporary, 'Admin-Permanent-2026');
     await tenantApi('al-musabbihin.nexfinance.test').post('/api/v1/master/users').set('Authorization', `Bearer ${token}`)
       .send({ name: 'Bendahara', email: 'Bendahara@Al-Musabbihin.sch.id', password: 'Initial-123', role: 'bendahara' }).expect(201);
     const res = await consoleApi.post(`/api/v1/console/tenants/${tenantId}/reset-password`).send({ username: 'bendahara@al-musabbihin.sch.id' });

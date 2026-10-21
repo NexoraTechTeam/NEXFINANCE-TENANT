@@ -50,7 +50,8 @@ function createApp({ knex, config = {} }) {
 
   // eslint-disable-next-line no-unused-vars
   app.use((err, req, res, next) => {
-    if (process.env.NODE_ENV !== 'test') console.error(err);
+    // Expected client errors (4xx) are answered, not logged; only server faults reach the log.
+    if ((err.status || 500) >= 500 && process.env.NODE_ENV !== 'test') console.error(err);
     res.status(err.status || 500).json({ error: err.expose ? err.message : 'Internal Server Error' });
   });
 

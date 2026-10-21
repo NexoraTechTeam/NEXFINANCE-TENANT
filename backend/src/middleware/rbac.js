@@ -18,7 +18,8 @@ const rbac = (module) => async (req, res, next) => {
   try {
     const role = req.user?.role || 'staff';
     const matrix = await loadPermissions(req.store);
-    if (allows(matrix[role] || [], module)) return next();
+    const modules = Array.isArray(module) ? module : [module];
+    if (modules.some((m) => allows(matrix[role] || [], m))) return next();
     return res.status(403).json({ error: 'Access denied', required: module, role });
   } catch (err) {
     return next(err);
