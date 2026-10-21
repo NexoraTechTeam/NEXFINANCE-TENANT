@@ -17,7 +17,7 @@ import {
   Users2,
 } from 'lucide-react';
 import { authService } from '@/lib/api';
-import { NexoraLogo } from '@/components/brand/BrandMark';
+import Attribution from '@/components/brand/Attribution';
 import TenantMark from '@/components/tenant/TenantMark';
 import { useTenant } from '@/components/tenant/TenantProvider';
 import { brandLines, isDefaultTenant } from '@/lib/tenant';
@@ -295,12 +295,7 @@ export default function LoginPage() {
             </div>
             <div className="auth-footer-note">© {new Date().getFullYear()} {tenant.name}</div>
           </div>
-          {tenant.showPoweredBy && (
-            <div className="auth-powered">
-              <span>NexFinance — produk dari</span>
-              <NexoraLogo height={20} />
-            </div>
-          )}
+          {tenant.showPoweredBy && <Attribution className="auth-powered" html={tenant.poweredByText} logoHeight={20} />}
         </section>
       </div>
 

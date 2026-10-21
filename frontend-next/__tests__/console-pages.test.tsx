@@ -147,4 +147,27 @@ describe('TenantDetail', () => {
       branding: { loginTitle: 'Ahlan wa sahlan', loginMessage: 'Silakan masuk.' },
     }));
   });
+
+  it('edits the attribution as rich text and keeps the show/hide checkbox', async () => {
+    const user = userEvent.setup();
+    api.getTenant.mockResolvedValue({ ...TENANT, branding: { ...TENANT.branding, poweredByText: '<b>NexFinance</b>' } });
+    api.updateTenant.mockResolvedValue(TENANT);
+    render(<TenantDetail id="t1" />);
+    const editor = await screen.findByRole('textbox', { name: 'Teks atribusi' });
+    expect(editor.querySelector('b')).toHaveTextContent('NexFinance');
+    for (const name of ['Tebal', 'Miring', 'Garis bawah']) expect(screen.getByRole('button', { name })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Tampilkan atribusi/i)).toBeChecked();
+    expect(document.body.textContent).not.toMatch(/produk dari/i);
+
+    editor.innerHTML = '<b>NexFinance</b> by <i>Nexora</i>';
+    fireEvent.input(editor);
+    expect(screen.getByTestId('powered-by-preview').querySelector('i')).toHaveTextContent('Nexora');
+    await user.click(screen.getByRole('button', { name: /Simpan atribusi/i }));
+    await waitFor(() => expect(api.updateTenant).toHaveBeenCalledWith('t1', {
+      branding: { poweredByText: '<b>NexFinance</b> by <i>Nexora</i>' },
+    }));
+
+    await user.click(screen.getByLabelText(/Tampilkan atribusi/i));
+    expect(api.updateTenant).toHaveBeenCalledWith('t1', { branding: { showPoweredBy: false } });
+  });
 });

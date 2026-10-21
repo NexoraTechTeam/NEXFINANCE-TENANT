@@ -1363,3 +1363,7 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Console: attribution preview + rich text placeholder */
+.auth-powered-preview { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 12px; color: var(--text-3); }
+.rich-input [contenteditable][data-placeholder]:empty::before { content: attr(data-placeholder); color: var(--text-3); }

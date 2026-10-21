@@ -3,6 +3,7 @@
 const { DEFAULT_PALETTE, generatePaletteFromImage, buildPalette } = require('./palette');
 
 const ALLOWED_FORMATS = new Set(['png', 'jpeg', 'webp', 'svg', 'gif']);
+const DEFAULT_POWERED_BY_TEXT = 'NexFinance';
 const httpError = (status, message) => Object.assign(new Error(message), { status, expose: true });
 
 /** Public, non-sensitive tenant configuration for the frontend (no ids, no schema). */
@@ -19,6 +20,8 @@ function publicConfig(tenant) {
     loginImageUrl: branding.loginImageUpdatedAt
       ? `/api/v1/tenant/login-image?v=${encodeURIComponent(branding.loginImageUpdatedAt)}` : null,
     showPoweredBy: branding.showPoweredBy !== false,
+    /** Attribution next to the Nexora logo: sanitised inline HTML (b/i/u), editable in the Console. */
+    poweredByText: typeof branding.poweredByText === 'string' ? branding.poweredByText : DEFAULT_POWERED_BY_TEXT,
     login: { title: branding.loginTitle || null, message: branding.loginMessage || null },
   };
 }

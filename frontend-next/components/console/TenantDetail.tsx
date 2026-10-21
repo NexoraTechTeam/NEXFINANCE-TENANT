@@ -1,8 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { ExternalLink, Globe, ImageUp, KeyRound, Palette as PaletteIcon, Power, Save, Trash2, Image as ImageIcon } from 'lucide-react';
+import { ExternalLink, Globe, ImageUp, KeyRound, Palette as PaletteIcon, Power, Save, Trash2, Image as ImageIcon, Type } from 'lucide-react';
 import PalettePreview from '@/components/console/PalettePreview';
+import RichTextInput from '@/components/console/RichTextInput';
+import Attribution from '@/components/brand/Attribution';
 import { statusBadge } from '@/components/console/TenantList';
 import { consoleApi, consoleError, type ConsoleTenant } from '@/lib/console-api';
 import { DEFAULT_PALETTE, type Palette } from '@/lib/theme';
@@ -37,6 +39,7 @@ export default function TenantDetail({ id }: { id: string }) {
   const [tempPassword, setTempPassword] = useState('');
   const [keepColors, setKeepColors] = useState(false);
   const [loginText, setLoginText] = useState({ loginTitle: '', loginMessage: '' });
+  const [poweredByText, setPoweredByText] = useState('NexFinance');
 
   const apply = useCallback((t: ConsoleTenant) => {
     setTenant(t);
@@ -44,6 +47,7 @@ export default function TenantDetail({ id }: { id: string }) {
     setInfo(t.schoolInfo || {});
     setPalette(t.branding.palette || DEFAULT_PALETTE);
     setLoginText({ loginTitle: t.branding.loginTitle || '', loginMessage: t.branding.loginMessage || '' });
+    setPoweredByText(t.branding.poweredByText ?? 'NexFinance');
   }, []);
 
   useEffect(() => {
@@ -159,17 +163,36 @@ export default function TenantDetail({ id }: { id: string }) {
                 <p style={{ fontSize: 12, color: 'var(--text-3)', margin: 0 }}>
                   Sidebar juga mewarnai latar halaman login. Warna yang terlalu terang digelapkan otomatis agar teks menu tetap terbaca.
                 </p>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-                  <input type="checkbox" checked={tenant.branding.showPoweredBy !== false}
-                    onChange={(e) => run(() => consoleApi.updateTenant(id, { branding: { showPoweredBy: e.target.checked } }), 'Atribusi diperbarui.')} />
-                  Tampilkan “NexFinance — produk dari Nexora”
-                </label>
                 <button type="button" className="tour-btn tour-btn-primary" style={{ justifySelf: 'start' }}
                   onClick={() => run(() => consoleApi.updateTenant(id, { branding: { palette: colorsOf(palette) } }), 'Tema tersimpan.')}>
                   Simpan warna
                 </button>
               </div>
               <PalettePreview palette={palette} schoolName={info.shortName || name} logoSrc={logoSrc} />
+            </div>
+          </Section>
+
+          <Section id="sec-attribution" title="Atribusi" icon={Type}>
+            <div className="grid-2" style={{ alignItems: 'start' }}>
+              <form onSubmit={(e) => { e.preventDefault(); run(() => consoleApi.updateTenant(id, { branding: { poweredByText } }), 'Atribusi tersimpan.'); }}
+                style={{ display: 'grid', gap: 10 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                  <input type="checkbox" checked={tenant.branding.showPoweredBy !== false}
+                    onChange={(e) => run(() => consoleApi.updateTenant(id, { branding: { showPoweredBy: e.target.checked } }), 'Atribusi diperbarui.')} />
+                  Tampilkan atribusi di halaman login &amp; sidebar
+                </label>
+                <RichTextInput label="Teks atribusi" value={poweredByText} onChange={setPoweredByText} placeholder="NexFinance" />
+                <p style={{ fontSize: 12, color: 'var(--text-3)', margin: 0 }}>
+                  Tampil sebelum logo Nexora. Bisa ditebalkan, dimiringkan atau digaris bawahi; maks. 120 karakter. Kosongkan untuk logo saja.
+                </p>
+                <button type="submit" className="tour-btn tour-btn-primary" style={{ justifySelf: 'start' }}>Simpan atribusi</button>
+              </form>
+              <div style={{ display: 'grid', gap: 6 }}>
+                <span className="form-label">Pratinjau</span>
+                <div style={{ border: '1px solid var(--border)', borderRadius: 12, padding: 14, opacity: tenant.branding.showPoweredBy === false ? 0.45 : 1 }}>
+                  <Attribution className="auth-powered-preview" html={poweredByText} logoHeight={18} testId="powered-by-preview" />
+                </div>
+              </div>
             </div>
           </Section>
 

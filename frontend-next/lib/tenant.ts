@@ -12,6 +12,8 @@ export interface TenantConfig {
   /** Welcome text for the login page, set in the Console (null = school default). */
   login: { title: string | null; message: string | null };
   showPoweredBy: boolean;
+  /** Attribution text before the Nexora logo: inline rich text (b/i/u) from the Console. */
+  poweredByText: string;
 }
 
 /** Used for the console, unknown hosts and local development without a backend. */
@@ -25,6 +27,7 @@ export const DEFAULT_TENANT: TenantConfig = {
   loginImageUrl: null,
   login: { title: null, message: null },
   showPoweredBy: true,
+  poweredByText: 'NexFinance',
 };
 
 /** Merge an API payload over the defaults, tolerating partial/missing fields. */
@@ -39,6 +42,7 @@ export function normalizeTenantConfig(raw: Partial<TenantConfig> | null | undefi
     loginImageUrl: raw.loginImageUrl ?? null,
     login: { title: raw.login?.title ?? null, message: raw.login?.message ?? null },
     showPoweredBy: raw.showPoweredBy !== false,
+    poweredByText: typeof raw.poweredByText === 'string' ? raw.poweredByText : DEFAULT_TENANT.poweredByText,
   };
 }
 

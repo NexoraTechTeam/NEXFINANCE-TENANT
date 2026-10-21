@@ -8,7 +8,7 @@ import {
   LifeBuoy,
 } from 'lucide-react';
 import { authService } from '@/lib/api';
-import { NexoraLogo } from '@/components/brand/BrandMark';
+import Attribution from '@/components/brand/Attribution';
 import TenantMark from '@/components/tenant/TenantMark';
 import { useTenant } from '@/components/tenant/TenantProvider';
 import { brandLines } from '@/lib/tenant';
@@ -344,12 +344,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           Keluar
         </button>
 
-        {tenant.showPoweredBy && (
-          <div className="sidebar-powered">
-            <span>NexFinance · produk dari</span>
-            <NexoraLogo height={16} />
-          </div>
-        )}
+        {tenant.showPoweredBy && <Attribution className="sidebar-powered" html={tenant.poweredByText} logoHeight={16} />}
       </div>
     </aside>
   );

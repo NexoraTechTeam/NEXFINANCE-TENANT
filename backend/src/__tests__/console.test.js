@@ -167,6 +167,26 @@ describe('tenant lifecycle from the console', () => {
     expect(cleared.body.login).toEqual({ title: null, message: null });
   });
 
+  it('stores the attribution as sanitised rich text, defaulting to "NexFinance" without "produk dari"', async () => {
+    const before = await tenantApi('al-musabbihin.nexfinance.test').get('/api/v1/tenant/config');
+    expect(before.body.poweredByText).toBe('NexFinance');
+    expect(before.body.poweredByText).not.toMatch(/produk dari/i);
+
+    const res = await consoleApi.patch(`/api/v1/console/tenants/${tenantId}`).send({
+      branding: { poweredByText: '<strong>NexFinance</strong> by <em>Nexora</em><script>alert(1)</script>' },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.body.tenant.branding.poweredByText).toBe('<b>NexFinance</b> by <i>Nexora</i>');
+    const config = await tenantApi('al-musabbihin.nexfinance.test').get('/api/v1/tenant/config');
+    expect(config.body.poweredByText).toBe('<b>NexFinance</b> by <i>Nexora</i>');
+
+    // Empty text keeps only the Nexora logo; the checkbox still decides whether anything is shown.
+    await consoleApi.patch(`/api/v1/console/tenants/${tenantId}`).send({ branding: { poweredByText: '' } }).expect(200);
+    const logoOnly = await tenantApi('al-musabbihin.nexfinance.test').get('/api/v1/tenant/config');
+    expect(logoOnly.body.poweredByText).toBe('');
+    expect(logoOnly.body.showPoweredBy).toBe(true);
+  });
+
   it('allows manual palette overrides and branding edits', async () => {
     const res = await consoleApi.patch(`/api/v1/console/tenants/${tenantId}`).send({
       name: 'SIT Al Musabbihin',
