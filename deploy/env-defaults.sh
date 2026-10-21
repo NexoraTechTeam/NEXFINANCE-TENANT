@@ -16,6 +16,8 @@ zone="nexoratech.co"
 : "${ONBOARD_TENANTS:=al-musabbihin}"
 : "${CONSOLE_ADMIN_EMAIL:=ops@nexoratech.co}"
 : "${DEMO_TENANT_HOSTS:=}"
-for k in CONSOLE_HOSTS TENANT_BASE_DOMAIN SAAS_HOSTS ONBOARD_TENANTS CONSOLE_ADMIN_EMAIL DEMO_TENANT_HOSTS; do
+# Schools' own domains: routed (own router + certificate) only once their DNS points at this VPS.
+if [ "$1" = production ]; then : "${SAAS_CUSTOM_HOSTS:=almusabbihin.sch.id}"; else : "${SAAS_CUSTOM_HOSTS:=}"; fi
+for k in CONSOLE_HOSTS TENANT_BASE_DOMAIN SAAS_HOSTS SAAS_CUSTOM_HOSTS ONBOARD_TENANTS CONSOLE_ADMIN_EMAIL DEMO_TENANT_HOSTS; do
   eval "printf '%s=%s\n' $k \"\$$k\""
 done

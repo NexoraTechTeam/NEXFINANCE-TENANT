@@ -12,10 +12,12 @@ prod="$(env -i PATH="$PATH" sh env-defaults.sh production)"
 [ "$(get "$prod" SAAS_HOSTS)" = 'console-nexfinance.nexoratech.co,almusabbihin-nexfinance.nexoratech.co' ] || fail "prod hosts"
 [ "$(get "$prod" ONBOARD_TENANTS)" = al-musabbihin ] || fail "prod onboard"
 [ "$(get "$prod" CONSOLE_ADMIN_EMAIL)" = ops@nexoratech.co ] || fail "prod console email"
+[ "$(get "$prod" SAAS_CUSTOM_HOSTS)" = almusabbihin.sch.id ] || fail "prod custom (school) domains"
 
 stg="$(env -i PATH="$PATH" sh env-defaults.sh staging)"
 [ "$(get "$stg" CONSOLE_HOSTS)" = console-nexfinance-staging.nexoratech.co ] || fail "staging console host"
 [ "$(get "$stg" SAAS_HOSTS)" = 'console-nexfinance-staging.nexoratech.co,almusabbihin-nexfinance-staging.nexoratech.co' ] || fail "staging hosts"
+[ -z "$(get "$stg" SAAS_CUSTOM_HOSTS)" ] || fail "staging has no custom domains"
 
 # GitHub variables (non-empty) win over defaults
 over="$(env -i PATH="$PATH" CONSOLE_HOSTS=c.example.test SAAS_HOSTS=c.example.test sh env-defaults.sh production)"

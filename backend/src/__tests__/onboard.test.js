@@ -26,7 +26,7 @@ describe('scripted tenant onboarding', () => {
   it('creates Al-Musabbihin from its spec with a logo-derived palette and super_admin', async () => {
     const result = await onboard(knex, SPEC_FILE, { config });
     expect(result.status).toBe('created');
-    expect(result.domains).toEqual(['al-musabbihin.nexfinance.test']);
+    expect(result.domains).toEqual(['al-musabbihin.nexfinance.test', 'almusabbihin.sch.id']); // + the school's own domain
     expect(result.palette.primary).toMatch(/^#[0-9a-f]{6}$/);
     expect(result.admin).toMatchObject({ username: 'admin-almusabbihin' });
     expect(result.admin.temporaryPassword.length).toBeGreaterThanOrEqual(12);
@@ -54,7 +54,7 @@ describe('scripted tenant onboarding', () => {
     await knex.raw('DROP SCHEMA t_al_musabbihin CASCADE');
     await knex.withSchema('platform').from('tenants').where({ slug: 'al-musabbihin' }).del();
     const result = await onboard(knex, SPEC_FILE, { config: { tenantBaseDomain: '{label}-nexfinance.test' }, showPassword: false });
-    expect(result.domains).toEqual(['almusabbihin-nexfinance.test']);
+    expect(result.domains).toEqual(['almusabbihin-nexfinance.test', 'almusabbihin.sch.id']);
   });
 
   it('adds a login image from the spec to an existing tenant that has none (idempotent deploys)', async () => {
@@ -75,5 +75,15 @@ describe('scripted tenant onboarding', () => {
     await require('../services/console').removeLoginImage(knex, 'ops', id);
     expect(await onboard(knex, path.join(dir, 'tenant.json'), { config, ifMissing: true }))
       .toEqual({ status: 'exists', tenant: 'al-musabbihin' });
+  });
+
+  it("adds the school's own domain from the spec to an existing tenant (deploys keep it registered)", async () => {
+    const tenant = await knex.withSchema('platform').from('tenants').where({ slug: 'al-musabbihin' }).first('id');
+    await knex.withSchema('platform').from('tenant_domains').where({ tenant_id: tenant.id, domain: 'almusabbihin.sch.id' }).del();
+    const result = await onboard(knex, SPEC_FILE, { config, ifMissing: true });
+    expect(result).toMatchObject({ status: 'updated', added: ['domain:almusabbihin.sch.id'] });
+    const domains = (await knex.withSchema('platform').from('tenant_domains').where({ tenant_id: tenant.id })).map((d) => d.domain);
+    expect(domains).toContain('almusabbihin.sch.id');
+    expect(await onboard(knex, SPEC_FILE, { config, ifMissing: true })).toEqual({ status: 'exists', tenant: 'al-musabbihin' });
   });
 });

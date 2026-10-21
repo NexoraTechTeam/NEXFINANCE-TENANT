@@ -34,6 +34,12 @@ async function syncMissingAssets(knex, id, spec, file) {
     await svc.setLoginImage(knex, 'cli', id, fs.readFileSync(path.resolve(path.dirname(file), spec.loginImage)));
     added.push('loginImage');
   }
+  // The school's own domains (e.g. almusabbihin.sch.id) stay registered; Traefik routes them once their DNS points here.
+  for (const domain of spec.domains || []) {
+    if (tenant.domains.includes(domain)) continue;
+    await svc.addDomain(knex, 'cli', id, domain);
+    added.push(`domain:${domain}`);
+  }
   return added.length ? { status: 'updated', tenant: spec.slug, added } : { status: 'exists', tenant: spec.slug };
 }
 

@@ -69,7 +69,10 @@ jobs:
           CONSOLE_HOSTS: console.example.test
           TENANT_BASE_DOMAIN: example.test
           SAAS_TRAEFIK_RULE: Host(`console.example.test`)
-        run: docker compose -p "$STACK" -f docker-compose.saas.yml config -q
+        run: |
+          docker compose -p "$STACK" -f docker-compose.saas.yml config -q
+          sh deploy/compose-custom.sh "$STACK" school.example.test > /tmp/custom-domains.yml
+          docker compose -p "$STACK" -f docker-compose.saas.yml -f /tmp/custom-domains.yml config -q
 
   deploy:
     name: Deploy ${{ inputs.environment }}
@@ -98,6 +101,7 @@ jobs:
         env:
           ENVIRONMENT: ${{ inputs.environment }}
           SAAS_HOSTS: ${{ vars.SAAS_HOSTS }}
+          SAAS_CUSTOM_HOSTS: ${{ vars.SAAS_CUSTOM_HOSTS }}
           CONSOLE_HOSTS: ${{ vars.CONSOLE_HOSTS }}
           TENANT_BASE_DOMAIN: ${{ vars.TENANT_BASE_DOMAIN }}
           ONBOARD_TENANTS: ${{ vars.ONBOARD_TENANTS }}
@@ -135,6 +139,10 @@ jobs:
         run: |
           set -e
           RULE="$(sh deploy/traefik-rule.sh "$SAAS_HOSTS")"
+          # Schools' own domains get their own router + certificate, and only once their DNS points at this VPS.
+          LIVE_CUSTOM="$(sh deploy/custom-domains.sh "$SAAS_CUSTOM_HOSTS" "${CONSOLE_HOSTS%%,*}")"
+          echo "LIVE_CUSTOM_HOSTS=$LIVE_CUSTOM" >> "$GITHUB_ENV"
+          echo "custom domains configured: ${SAAS_CUSTOM_HOSTS:-none}; routed now (DNS → this VPS): ${LIVE_CUSTOM:-none}"
           mkdir -p "$APP_DIR"
           rsync -a --delete --exclude='.git' --exclude='node_modules' --exclude='.next' --exclude='.env.saas' \
             "$GITHUB_WORKSPACE/" "$APP_DIR/"
@@ -150,13 +158,20 @@ jobs:
             printf 'CONSOLE_ADMIN_PASSWORD=%s\n' "$CONSOLE_ADMIN_PASSWORD"
             printf 'DEMO_TENANT_HOSTS=%s\n' "$DEMO_TENANT_HOSTS"
           } > "$APP_DIR/.env.saas"
+          if [ -n "$LIVE_CUSTOM" ]; then
+            sh deploy/compose-custom.sh "$STACK" "$LIVE_CUSTOM" > "$APP_DIR/docker-compose.custom-domains.yml"
+          else
+            rm -f "$APP_DIR/docker-compose.custom-domains.yml"
+          fi
 
       - name: Build and start stack
         run: |
           set -e
           cd "$APP_DIR"
-          docker compose -p "$STACK" --env-file .env.saas -f docker-compose.saas.yml build
-          docker compose -p "$STACK" --env-file .env.saas -f docker-compose.saas.yml up -d --remove-orphans
+          files="-f docker-compose.saas.yml"
+          [ -f docker-compose.custom-domains.yml ] && files="$files -f docker-compose.custom-domains.yml"
+          docker compose -p "$STACK" --env-file .env.saas $files build
+          docker compose -p "$STACK" --env-file .env.saas $files up -d --remove-orphans
 
       - name: Wait for backend and frontend
         run: |
@@ -187,7 +202,14 @@ jobs:
       - name: Smoke test every host
         run: |
           set -e
-          for host in $(echo "$SAAS_HOSTS" | tr ',' ' '); do
+          for host in $(echo "$SAAS_HOSTS,$SAAS_CUSTOM_HOSTS" | tr ',' ' '); do
+            case ",$SAAS_CUSTOM_HOSTS," in *",$host,"*)
+              case ",$LIVE_CUSTOM_HOSTS," in *",$host,"*) ;; *)
+                docker exec "$STACK-backend" curl -sf -H "x-forwarded-host: $host" http://127.0.0.1:5000/api/v1/tenant/config >/dev/null \
+                  && echo "✓ tenant registered for $host (⚠ DNS not pointing at this VPS yet — not routed)" || { echo "✗ no active tenant for $host"; exit 1; }
+                continue ;;
+              esac ;;
+            esac
             case ",$CONSOLE_HOSTS," in *",$host,"*) path=/console ;; *) path=/login ;; esac
             # Inside the stack first (works before DNS exists), then through Traefik + TLS when DNS resolves.
             docker exec "$STACK-frontend" wget -qO /dev/null --header "Host: $host" "http://127.0.0.1:3000$path" \
