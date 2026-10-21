@@ -2,6 +2,25 @@
 
 Living record of state, decisions and open items. Newest entries first. Update at the end of every session.
 
+## Current state (snapshot — refresh every session)
+_Last updated 2026-10-21._ Read this first; dated sections below are the history (newest first).
+
+| Area | State |
+| --- | --- |
+| Production | LIVE: https://console-nexfinance.nexoratech.co/console · https://almusabbihin-nexfinance.nexoratech.co (200, Let's Encrypt). Stack `nexfin-saas`, VPS 72.61.209.201. |
+| Staging | Stack `nexfin-saas-staging`, internal checks only (no DNS). |
+| Branches | `dev` = `main` (production snapshot). Deploy path: ops bridge `ops/tenant-deploy` in NEXFINANCE (last run 39593276735 green). |
+| Quality | Backend 159 tests (14 suites), frontend 123 (24 files), deploy-script tests 4/4, isolation contract ✅ (2026-10-21). Final review: API 238/238, UI 78 visits 0 issues; production QA 183 checks 0 findings. |
+| Al-Musabbihin data | Empty production tenant (1 user, 18 accounts) — school has not started entering data. Admin `admin-almusabbihin` must change password at first login. |
+| Features | Multi-tenant Console (logo palette, login photo/text, sidebar colour, rich-text attribution), SPP, payroll, expenses (dual control, approver roles), procurement (PR → PO → receive), ISAK 335 package (2 net-asset classes, changes in net assets, direct cash flow, CALK, restricted funds), role-filtered menus. |
+| Docs | Guide v1.4: `docs/guide/` MD (internal) + PDFs Nexora edition 58 p. / school edition 48 p.; QA report `docs/qa/FINAL_REVIEW_2026-10-21.md`; runbook `docs/OPERATIONS.md`; checklist `docs/PENDING_TASKS.md`. |
+| Own domain | `almusabbihin.sch.id` configured and DNS-gated; **NXDOMAIN** — waits for PANDI registration + A record → 72.61.209.201. |
+| NEXFINANCE demo | Frozen until Imam's go (ISAK 335, RBAC and validation fixes not ported yet). |
+
+**Blocked on Imam / the school:** register `almusabbihin.sch.id` + A record (or choose a subdomain such as
+`keuangan.almusabbihin.sch.id`); hand the admin password to the school (Console → Reset password); confirm the
+accounting framework (SAK Entitas Privat vs full SAK) with the school's treasurer; go-ahead for porting to NEXFINANCE demo.
+
 ## 2026-10-21 — own domain almusabbihin.sch.id (zero-touch, DNS-gated)
 - Imam: "setup production al-musabbihin supaya bisa diakses di almusabbihin.sch.id".
 - Observed: `almusabbihin.sch.id` (and www) is **NXDOMAIN** — not registered at PANDI yet, so it cannot be served today.
@@ -133,7 +152,7 @@ Living record of state, decisions and open items. Newest entries first. Update a
   Deploying through the NEXFINANCE repo's VPS runner (orphan ops branch) was refused by the session's
   permission guard as a CI bypass → needs Imam's explicit approval, or the runner registration.
 
-## Session handoff (end of 2026-10-17)
+## Session handoff (end of 2026-10-17) — superseded by "Current state"
 - **Pending checklist (both repos):** `docs/PENDING_TASKS.md`; Telegram version `docs/PENDING_TELEGRAM.txt`, send with `scripts/notify-telegram.sh` once `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID` are set as session secrets (not available on 2026-10-17, so it was not sent yet).
 - `dev` @ `ff9bc48`, CI "Test & contracts" green (backend 95, frontend 82). Nothing uncommitted.
 - **Blocked on Nexora ops (not doable from a cloud session):** `deploy/setup-github.sh staging|production`,
@@ -158,7 +177,7 @@ Living record of state, decisions and open items. Newest entries first. Update a
 - **Backlog (not done):** pick student from master when creating an SPP invoice; PR approval flow;
   wildcard DNS/TLS.
 
-## Current status (2026-10-17)
+## Status (2026-10-17) — history, superseded by "Current state"
 - `dev` @ `ef0b6f4` pushed to `NexoraTechTeam/NEXFINANCE-TENANT`; CI job **Test & contracts** green
   (backend 89 tests on Postgres, frontend 71 tests, lint, typecheck, isolation contract, compose config).
 - **Deploy staging: waiting** (job queued on `self-hosted`). Blocked on operator actions:
@@ -214,6 +233,7 @@ Verbatim intent of every rule Imam gave; the binding version is CLAUDE.md → Wo
 | 2026-10-17 | "Cukup sampai sini dulu" — session closed after recording everything. | This log |
 | 2026-10-17 | "Task yg masih pending dicatat dan kirimkan ke telegrambot" — pending list goes to Imam's Telegram (@AgentNexoraBot, chat 6687943152) via `scripts/notify-telegram.sh`; token only as env secret, never in git. | `docs/PENDING_TASKS.md` |
 | 2026-10-19 | "Setupkan NEXFINANCE-TENANT ke console-nexfinance.nexoratech.co & almusabbihin-nexfinance.nexoratech.co". | Decisions, `deploy/env-defaults.sh` |
+| 2026-10-21 | "Catat dan dokumentasikan semuanya ke md file claude, agents dan memory supaya pengerjaan selalu terarah dan terstruktur". | "Current state" snapshot here, AGENTS.md → How a change ships + guardrails 7–10, CLAUDE.md → session checklist |
 | 2026-10-21 | "Setup production al-musabbihin supaya bisa diakses di almusabbihin.sch.id". | 2026-10-21 own-domain section, OPERATIONS |
 | 2026-10-21 | "Sekalian test pakai data baru (production), lalu dibersihkan kembali ke kondisi kosong". | 2026-10-21 production QA section |
 | 2026-10-21 | "Final review full E2E semua role, FE+BE+DB tanpa error; root cause dulu sebelum fixing; OODA + TDD". | 2026-10-21 final review section, `docs/qa/` |
@@ -248,6 +268,10 @@ Team documentation lives in Outline (docs.nexoratech.co) — never write to Noti
 - Inside containers on the VPS `localhost` resolves to `::1` first; probe services on `127.0.0.1`.
 - A local Docker daemon works in cloud sessions (`dockerd &`); builds need the proxy CA injected (rehearsal copy only).
 - Secrets created on the VPS can be handed over safely: encrypt with a session-generated public key in CI, decrypt in-session.
+- A shell test that only checks stdout misses a failing exit status — assert `$?` too (custom-domains gate, 2026-10-21).
+- Deploy gates that depend on DNS must degrade to a warning: staging hosts have no DNS at all.
+- Bridge job logs are readable with the GitHub MCP `get_job_logs` (repo NEXFINANCE) — use them as deploy evidence.
+- Fresh session containers lose the local Postgres process: restart it with `pg_ctl … start` before backend tests.
 
 ## Open items / ideas (need user approval)
 - Wildcard DNS + DNS-01 wildcard certificate in shared Traefik → new tenants online without redeploy.

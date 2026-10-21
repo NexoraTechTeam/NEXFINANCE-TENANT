@@ -1,15 +1,15 @@
-📌 PENDING NexFinance — update 19 Okt 2026
+📌 PENDING NexFinance — update 21 Okt 2026
 
 ✅ LIVE: console-nexfinance.nexoratech.co/console & almusabbihin-nexfinance.nexoratech.co
 
 A. Tenant (SIT Al Musabbihin)
 1. Login Console (kredensial sudah dikirim terpisah) → Al Musabbihin → Reset password admin-almusabbihin → kirim ke sekolah (kanal aman)
 2. Opsional: daftarkan runner repo TENANT (deploy/register-runner.sh) → hapus branch ops/tenant-deploy di NEXFINANCE
-3. Nanti: domain al-musabbihin.sch.id
+3. Domain almusabbihin.sch.id: daftar di PANDI + A record → 72.61.209.201 (sisi Nexora sudah siap)
 4. Fitur ganti password Console (belum ada)
 
 B. NexFinance (demo)
-5. Approve merge dev → master
+5. Approve merge dev → master; izin port fitur tenant (ISAK 335 dll.) ke demo
 
 C. Dokumen
 6. Share slide deck / versi sekolah

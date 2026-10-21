@@ -44,3 +44,17 @@ Standing instruction from Imam (2026-10-17), so it never has to be repeated:
 - GitHub access from cloud sessions is limited to repository-scoped MCP tools: environments, secrets,
   runners and DNS cannot be changed from a session — use `deploy/setup-github.sh` and
   `deploy/register-runner.sh` instructions for the operator instead.
+
+## Session checklist (this repo)
+- **Start:** read `docs/MEMORY.md` → "Current state" + "Open items"; restart local Postgres if needed (AGENTS.md → Commands);
+  check `git status`, `origin/dev` vs `origin/main` and the live hosts before changing anything.
+- **During:** follow AGENTS.md → "How a change ships"; deploy only through `deploy/sync-ops-bridge.sh`; watch the run to the end.
+- **End:** update `docs/MEMORY.md` (state snapshot, dated section, Imam's request log, lessons, open items) and
+  `docs/PENDING_TASKS.md`; commit + push `dev` (and `dev:main` once production is verified); report in Indonesian with
+  evidence (tests, run id, live check) plus a plain list of what is blocked and what Imam/the school must do.
+
+## Standing rules from Imam for this repo (beyond the agreement)
+- NEXFINANCE demo: do not change it until Imam gives the go (2026-10-21).
+- Never ask for tokens/passwords in chat; never print secrets or one-time passwords in logs, commits or chat.
+- School-facing documents: no Console or Nexora-internal content; Nexora edition may include it.
+- Testing on production only with a throwaway tenant, cleaned up afterwards; the school's data stays untouched.
