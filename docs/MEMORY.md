@@ -173,7 +173,7 @@ Living record of state, decisions and open items. Newest entries first. Update a
 - Name "Sekolah Islam Terpadu Al Musabbihin", short "SIT Al Musabbihin", slug `al-musabbihin`, schema `t_al_musabbihin`.
 - Logo `docs/tenants/al-musabbihin/logo.png` → palette primary `#196fb0` (blue), secondary `#5ebd69` (green).
 - Admin `admin-almusabbihin`, role `super_admin`, must change password at first login.
-- Website (future custom domain): `al-musabbihin.sch.id`.
+- School domain (Imam 2026-10-21): **`almusabbihin.sch.id`** — not registered yet at PANDI (NXDOMAIN); our side is ready (see OPERATIONS).
 
 ## Verified end-to-end (local, Playwright)
 Console login → wizard → tenant created with logo palette → tenant login by username → forced password

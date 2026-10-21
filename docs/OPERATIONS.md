@@ -79,16 +79,15 @@ Scripted alternative (same service as the console):
 docker exec -it nexfin-saas-backend node scripts/onboard-tenant.js /app/tenant.json
 ```
 
-### Custom domain later (e.g. `al-musabbihin.sch.id`)
-1. School sets an A record to the VPS.
-2. Console → tenant → **Domain** → add `al-musabbihin.sch.id`.
-3. Add it to `SAAS_HOSTS` and re-run the deploy workflow.
-
-### Accounting standard (ISAK 335)
-Reports follow **ISAK 335 (d/h ISAK 35)** on **SAK Entitas Privat** by default (tenant setting `reporting_framework` overrides
-the wording in the notes). Restricted funds: `restrictedFunds` in settings `posting_accounts` (default temporer 4100/3100,
-permanen 4200/3200, permanent not releasable). Cash-flow activity per account can be set with `activity` on the COA record
-(`operating|investing|financing`) — the hook for the 2027 PSAK 118 format (Amendemen ISAK 335, only for full SAK Indonesia).
+### School's own domain (e.g. `almusabbihin.sch.id`) — zero-touch once DNS exists
+- Registry: list the domain in `docs/tenants/<slug>/tenant.json` → `domains`; every deploy adds it to the tenant if missing
+  (or Console → tenant → **Domain**).
+- Routing: `SAAS_CUSTOM_HOSTS` (production default `almusabbihin.sch.id`). Each deploy checks DNS
+  (`deploy/custom-domains.sh`): a domain whose A record equals the console host's IP gets its **own** Traefik router and
+  certificate (`deploy/compose-custom.sh` → `docker-compose.custom-domains.yml`); otherwise it is skipped, so a missing or
+  wrong record never triggers failed Let's Encrypt attempts or touches the certificate of the Nexora hosts.
+- The school (domain owner) only has to: register the `.sch.id` domain at PANDI (via a registrar) and create
+  `A  almusabbihin.sch.id → 72.61.209.201`. Then re-run any deploy (or wait for the next one) — HTTPS is issued automatically.
 
 ### Common operator tasks (Console)
 - Edit identity / school info (used on PDF letterhead), logo (optionally keeping the colours), theme colours incl.
