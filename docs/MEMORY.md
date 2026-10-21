@@ -2,6 +2,19 @@
 
 Living record of state, decisions and open items. Newest entries first. Update at the end of every session.
 
+## 2026-10-21 — own domain almusabbihin.sch.id (zero-touch, DNS-gated)
+- Imam: "setup production al-musabbihin supaya bisa diakses di almusabbihin.sch.id".
+- Observed: `almusabbihin.sch.id` (and www) is **NXDOMAIN** — not registered at PANDI yet, so it cannot be served today.
+- Done: domain in `tenant.json` + onboarding syncs missing domains (prod log: `added: ["domain:almusabbihin.sch.id"]`);
+  `SAAS_CUSTOM_HOSTS` (prod default `almusabbihin.sch.id`); `deploy/custom-domains.sh` routes a custom host only when its
+  A record equals the console host's IP; `deploy/compose-custom.sh` gives it its own Traefik router + certificate
+  (a failing HTTP-01 for the school domain can never break the shared certificate). Smoke test: "tenant registered
+  (⚠ DNS not pointing at this VPS yet — not routed)". Fix 738022b: gate never fails a deploy (staging has no reference DNS).
+- Verified: bridge run 39593276735 green (staging + production + credential), NexFinance stacks untouched,
+  `almusabbihin-nexfinance…/login` and console 200; `main` = `dev` = 738022b.
+- **School/Imam must:** register `almusabbihin.sch.id` at PANDI via a registrar (sch.id needs school documents) and
+  create `A almusabbihin.sch.id → 72.61.209.201` (optional `www` CNAME). The next deploy issues HTTPS automatically.
+
 ## 2026-10-21 — production QA on a throwaway tenant
 - Imam: "test pakai data baru di production untuk make sure, lalu bersihkan kembali". Did NOT use the school tenant (unknown
   real data) → `backend/scripts/qa-production.js` (count | run | cleanup; refuses any slug but `qa-final-review`; own app
@@ -201,6 +214,7 @@ Verbatim intent of every rule Imam gave; the binding version is CLAUDE.md → Wo
 | 2026-10-17 | "Cukup sampai sini dulu" — session closed after recording everything. | This log |
 | 2026-10-17 | "Task yg masih pending dicatat dan kirimkan ke telegrambot" — pending list goes to Imam's Telegram (@AgentNexoraBot, chat 6687943152) via `scripts/notify-telegram.sh`; token only as env secret, never in git. | `docs/PENDING_TASKS.md` |
 | 2026-10-19 | "Setupkan NEXFINANCE-TENANT ke console-nexfinance.nexoratech.co & almusabbihin-nexfinance.nexoratech.co". | Decisions, `deploy/env-defaults.sh` |
+| 2026-10-21 | "Setup production al-musabbihin supaya bisa diakses di almusabbihin.sch.id". | 2026-10-21 own-domain section, OPERATIONS |
 | 2026-10-21 | "Sekalian test pakai data baru (production), lalu dibersihkan kembali ke kondisi kosong". | 2026-10-21 production QA section |
 | 2026-10-21 | "Final review full E2E semua role, FE+BE+DB tanpa error; root cause dulu sebelum fixing; OODA + TDD". | 2026-10-21 final review section, `docs/qa/` |
 | 2026-10-21 | "Rangkum perubahan + sesuaikan panduan & PDF; NexFinance demo tunggu arahan saya. Lets cook!" | 2026-10-21 guide v1.3 section |
@@ -237,4 +251,5 @@ Team documentation lives in Outline (docs.nexoratech.co) — never write to Noti
 
 ## Open items / ideas (need user approval)
 - Wildcard DNS + DNS-01 wildcard certificate in shared Traefik → new tenants online without redeploy.
-- Custom domain for Al-Musabbihin once the school sets the A record.
+- Custom domain for Al-Musabbihin: waits for PANDI registration + A record → 72.61.209.201 (then automatic on next deploy).
+- If the school wants `almusabbihin.sch.id` for its public website, use a subdomain (e.g. `keuangan.almusabbihin.sch.id`) for NexFinance instead — change `tenant.json` domains + `SAAS_CUSTOM_HOSTS`.
