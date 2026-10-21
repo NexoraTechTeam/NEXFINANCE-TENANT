@@ -6,7 +6,7 @@
 | **Produk** | NexFinance Tenant (SaaS multi-tenant) — oleh Nexora |
 | **Repo** | `NexoraTechTeam/NEXFINANCE-TENANT` |
 | **Tenant contoh** | Sekolah Islam Terpadu Al Musabbihin (`al-musabbihin`) |
-| **Versi dokumen** | 1.3 — 21 Oktober 2026 (laporan ISAK 335 lengkap, dana terikat, auditor baca saja) |
+| **Versi dokumen** | 1.4 — 21 Oktober 2026 (final review semua peran: menu sesuai hak akses, validasi data, kontrol persetujuan) |
 | **Sumber screenshot** | Uji end-to-end otomatis (Playwright) pada build `dev`, database PostgreSQL nyata, nama host produksi. Semua angka di dokumen ini adalah hasil transaksi nyata dalam uji tersebut. |
 
 > **Cara membaca dokumen ini.** Bagian 1–3 memberi gambaran umum (untuk semua orang). Bagian 4–9 adalah
@@ -525,7 +525,10 @@ Semua halaman responsif — login dan dashboard di ponsel:
 
 ## 10. Matriks hak akses default
 
-Dapat diubah Super Admin per sekolah (Role & Akses → klik badge).
+Dapat diubah Super Admin per sekolah (Role & Akses → klik badge). **Menu di sidebar mengikuti matriks ini**: setiap
+pengguna hanya melihat modul yang boleh ia buka. Bila sebuah alamat halaman dibuka langsung tanpa hak akses, aplikasi
+menampilkan **"Akses tidak tersedia"**. Persetujuan pengeluaran hanya dapat diberikan oleh Kepala Bagian, Bendahara,
+Administrator, dan Super Admin — dan tidak pernah untuk pengajuan sendiri.
 
 | Modul | Super Admin | Administrator | Bendahara | Kepala Bagian | Staf | Auditor |
 | --- | :-: | :-: | :-: | :-: | :-: | :-: |
@@ -636,6 +639,7 @@ berikut ditemukan **dan diperbaiki** (dengan test otomatis) sebelum dokumen fina
 | (v1.3) Donasi/infaq terikat ikut menambah Dana Tidak Terikat | Laporan tidak sesuai ISAK 335 | Dua kelas aset neto; pendapatan terikat tetap di kelas dengan pembatasan |
 | (v1.3) Auditor ("baca saja") bisa membuat jurnal, saldo awal, dan dana terikat lewat API | Kontrol akses jebol | Semua aksi tulis Akuntansi ditolak untuk auditor (403) + tombol disembunyikan |
 | (v1.3) Pesan "melebihi saldo" menampilkan angka mentah | Kurang jelas | Saldo tersedia ditampilkan dalam format Rupiah |
+| (v1.4) Final review semua peran: 15 temuan (validasi nominal/tanggal & jurnal tidak seimbang, gaji ganda per bulan, PO tanpa PR, staf bisa menyetujui pengeluaran sendiri, sesi password sementara & user nonaktif masih bisa memakai API, admin bisa menonaktifkan Super Admin, menu tidak sesuai peran, ID PR diketik manual, dll.) | Data & kontrol akses | Semua diperbaiki dengan tes; rincian akar masalah di `docs/qa/FINAL_REVIEW_2026-10-21.md` |
 
 **Rekomendasi berikutnya (belum dikerjakan):** pilih siswa dari master saat membuat invoice SPP (saat ini
 ID & nama diketik), alur persetujuan PR, dan wildcard DNS/TLS agar tenant baru langsung online tanpa deploy.
