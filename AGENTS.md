@@ -6,7 +6,7 @@ Read this file and [docs/MEMORY.md](docs/MEMORY.md) (project state & decision lo
 ## What this repository is
 - **Repo:** `NexoraTechTeam/NEXFINANCE-TENANT` (branches `dev` → staging, `main` → production).
 - Multi-tenant SaaS edition of NexFinance (school finance: SPP, payroll, expenses, procurement,
-  ISAK 35 accounting & reports) by **Nexora**. Cloned from `Nexora-Tech-Team/NEXFINANCE@dev (5f7458c)`
+  ISAK 335 (formerly ISAK 35) accounting & reports) by **Nexora**. Cloned from `Nexora-Tech-Team/NEXFINANCE@dev (5f7458c)`
   with full history, then converted to multi-tenant.
 - **Sibling repo:** `Nexora-Tech-Team/NEXFINANCE` = original single-tenant product used for sales/demo
   (`nexfinance.nexoratech.co`, `dev-nexfinance.nexoratech.co`). It is a separate product with its own
@@ -20,7 +20,7 @@ Read this file and [docs/MEMORY.md](docs/MEMORY.md) (project state & decision lo
 | API | `backend/` | Express + knex + pg. **Schema per tenant** (`t_<slug>`), registry in schema `platform`. Tenant resolved from `x-forwarded-host`/`Host` (`middleware/tenant.js`). Domain data lives in `records` (JSONB) per collection via `db/store.js`. |
 | Auth | `routes/auth.js`, `middleware/auth.js` | JWT `aud=tenant` + `tid` must match the host's tenant. Console JWT `aud=console`. Login by username **or** email, rate-limited. No public register. `must_change_password` enforced. |
 | RBAC | `middleware/rbac.js` | Role → modules stored per tenant (`role_permissions`). |
-| Ledger | `services/ledger.js`, `services/posting.js` | Accrual journal auto-posted from SPP, payroll, approved expenses, received POs, opening balance. Reports/dashboard computed from journals — **never hardcode figures**. |
+| Ledger | `services/ledger.js`, `services/posting.js` | Accrual journal auto-posted from SPP, payroll, approved expenses, received POs, opening balance, restricted receipts/releases. Reports/dashboard computed from journals — **never hardcode figures**. ISAK 335 package `GET /accounting/reports/isak335?year=` (2 net-asset classes, changes in net assets, direct cash flow, CALK); account metadata `activity`/class via `classifyAccount`. |
 | Branding | `services/palette.js`, `services/branding.js`, `routes/tenant.js` | Logo → WCAG-AA palette (sharp). Public `GET /api/v1/tenant/config`. |
 | Console (CMS) | `routes/console.js`, `frontend-next/app/console/**` | Only on `CONSOLE_HOSTS`. Create/edit tenants, logo/palette, domains, suspend, reset admin password, audit. |
 | Web | `frontend-next/` | Next.js 14 app router. Tenant theme injected SSR in `app/layout.tsx` (CSS vars + `-rgb` channels). Colours only via tokens (`var(--brand-*)`, `rgb(var(--x-rgb)/a)`); a guard test fails on raw brand hex. |

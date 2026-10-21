@@ -84,6 +84,12 @@ docker exec -it nexfin-saas-backend node scripts/onboard-tenant.js /app/tenant.j
 2. Console → tenant → **Domain** → add `al-musabbihin.sch.id`.
 3. Add it to `SAAS_HOSTS` and re-run the deploy workflow.
 
+### Accounting standard (ISAK 335)
+Reports follow **ISAK 335 (d/h ISAK 35)** on **SAK Entitas Privat** by default (tenant setting `reporting_framework` overrides
+the wording in the notes). Restricted funds: `restrictedFunds` in settings `posting_accounts` (default temporer 4100/3100,
+permanen 4200/3200, permanent not releasable). Cash-flow activity per account can be set with `activity` on the COA record
+(`operating|investing|financing`) — the hook for the 2027 PSAK 118 format (Amendemen ISAK 335, only for full SAK Indonesia).
+
 ### Common operator tasks (Console)
 - Edit identity / school info (used on PDF letterhead), logo (optionally keeping the colours), theme colours incl.
   **sidebar** (also tints the login page; darkened automatically until white menu text is AA-readable).

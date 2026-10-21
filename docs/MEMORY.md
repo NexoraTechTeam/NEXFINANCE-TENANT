@@ -2,6 +2,22 @@
 
 Living record of state, decisions and open items. Newest entries first. Update at the end of every session.
 
+## 2026-10-21 — ISAK 335 (d/h ISAK 35) reports
+- Imam asked what ISAK 35 is / whether it is implemented; research (IAI): ISAK 35 renumbered **ISAK 335** (1 Jan 2024, same
+  content); 5 components; two net-asset classes; **Amendemen ISAK 335 (3 Jun 2026)** adds PSAK 118 formats (effective
+  1 Jan 2027) only for entities on full SAK Indonesia — schools/foundations most likely use **SAK Entitas Privat** (to confirm
+  with the school's treasurer). Imam: "kerjakan 1-7 dulu".
+- Done: (1) two classes everywhere — restricted revenue (4100/4200) no longer inflates unrestricted funds (old test encoded the
+  bug); (2) restricted receipts + releases (Akuntansi → Dana Terikat; permanent not releasable; never overdraws, incl. back-dated);
+  (3) Laporan Perubahan Aset Neto; (4) direct-method cash flow per activity; (5) generated CALK A–F; (6) wording "ISAK 335
+  (d/h ISAK 35)" (guard test); (7) per-account `activity`/class metadata (`classifyAccount`) for PSAK 118 later.
+- API `GET /accounting/reports/isak335?year=`; `GET/POST /accounting/restricted-funds[/receipts|/releases]`. Opening-balance
+  journals always count as the start position. Reports page = 5 statements + trend; PDF = summary + 4 statements + CALK (6 p.).
+- Tests: backend 129, frontend 113; local E2E (receipts, overdraw refused, release, every tab, PDF text, mobile no overflow) — figures
+  reconcile (assets 675 jt = net assets 623 + 52; closing cash 158 jt = Kas 25 + Bank 133).
+- Open: confirm framework with Al Musabbihin; NEXFINANCE repo has the same ledger core → port when Imam wants; guide screenshots
+  for 6.6 still show the old report tabs (regenerate with `docs/guide/tools/run-all.sh`).
+
 ## 2026-10-21 — editable attribution (rich text + show/hide)
 - Imam: "'NexFinance — produk dari Nexora' supaya editable rich text dan tetap ada checklist tampil/tidak; '…produk dari' dihilangkan".
 - Console → tenant → **Atribusi**: checkbox (existing `showPoweredBy`) + one-line rich text editor (B/I/U toolbar,
@@ -152,6 +168,7 @@ Verbatim intent of every rule Imam gave; the binding version is CLAUDE.md → Wo
 | 2026-10-17 | "Cukup sampai sini dulu" — session closed after recording everything. | This log |
 | 2026-10-17 | "Task yg masih pending dicatat dan kirimkan ke telegrambot" — pending list goes to Imam's Telegram (@AgentNexoraBot, chat 6687943152) via `scripts/notify-telegram.sh`; token only as env secret, never in git. | `docs/PENDING_TASKS.md` |
 | 2026-10-19 | "Setupkan NEXFINANCE-TENANT ke console-nexfinance.nexoratech.co & almusabbihin-nexfinance.nexoratech.co". | Decisions, `deploy/env-defaults.sh` |
+| 2026-10-21 | "ISAK 35 itu apa, sudah diterapkan?, beda dengan Accurate?" → riset ulang → "kerjakan 1-7 dulu, use OODA + TDD". | 2026-10-21 ISAK 335 section |
 | 2026-10-21 | "'NexFinance — produk dari Nexora' editable rich text + checklist tampil/tidak; hilangkan 'produk dari'". | 2026-10-21 attribution section |
 | 2026-10-21 | "User manual PDF untuk di-share ke Al Musabbihin tanpa informasi Console/internal Nexora". | 2026-10-21 section, `docs/guide/tools/README.md` |
 | 2026-10-20 | "Halaman login menampilkan gambar terkait sekolah al-musabbihin dan tema pewarnaan sidebar maupun logo yg bisa di adjust dari console nexfinance". | 2026-10-20 section above |

@@ -31,7 +31,7 @@
 8. [POV Kepala Bagian](#8-pov-kepala-bagian)
 9. [POV Auditor & hasil akhir](#9-pov-auditor--hasil-akhir)
 10. [Matriks hak akses default](#10-matriks-hak-akses-default)
-11. [Jurnal otomatis (ISAK 35)](#11-jurnal-otomatis-isak-35)
+11. [Jurnal otomatis (ISAK 335)](#11-jurnal-otomatis-isak-335)
 12. [Checklist go-live Al Musabbihin](#12-checklist-go-live-al-musabbihin)
 13. [FAQ & troubleshooting](#13-faq--troubleshooting)
 14. [Catatan kualitas uji E2E](#14-catatan-kualitas-uji-e2e)
@@ -53,7 +53,7 @@ langsung bisa dipakai.
 <!-- /nexora -->
 <!-- school -->
 **NexFinance** adalah aplikasi keuangan SIT Al Musabbihin untuk SPP, penggajian, pengeluaran, pengadaan,
-akuntansi, dan laporan keuangan ISAK 35 — dapat dibuka dari komputer maupun ponsel.
+akuntansi, dan laporan keuangan ISAK 335 (d/h ISAK 35) — dapat dibuka dari komputer maupun ponsel.
 
 - **alamat sekolah sendiri** — `https://almusabbihin-nexfinance.nexoratech.co`;
 - **data sekolah aman dan terpisah** — hanya pengguna SIT Al Musabbihin yang dapat mengaksesnya;
@@ -130,7 +130,7 @@ Halaman di aplikasi sekolah (semua di bawah `https://almusabbihin-nexfinance.nex
 | 5 | Bendahara | Buat invoice SPP → catat pembayaran → hitung gaji | Piutang, kas, beban gaji terjurnal otomatis |
 | 6 | Staf | Ajukan pengeluaran | Pengeluaran menunggu 2 persetujuan |
 | 7 | Kepala Bagian | Persetujuan ke-1 → PR → PO → terima barang | Persediaan & hutang usaha terjurnal |
-| 8 | Bendahara | Persetujuan ke-2 (orang berbeda) → cek jurnal → laporan & PDF | Beban terjurnal, laporan ISAK 35 berkop sekolah |
+| 8 | Bendahara | Persetujuan ke-2 (orang berbeda) → cek jurnal → laporan & PDF | Beban terjurnal, laporan ISAK 335 berkop sekolah |
 | 9 | Auditor / Admin | Tinjau laporan, dashboard, log historis | Transparansi & jejak audit |
 
 ---
@@ -201,7 +201,7 @@ menggantinya saat login pertama.
 
 ![Tenant berhasil dibuat](img/06-console-created.jpg)
 
-Saat tenant dibuat, sistem langsung menyiapkan **bagan akun (Chart of Accounts) ISAK 35**, **6 peran beserta
+Saat tenant dibuat, sistem langsung menyiapkan **bagan akun (Chart of Accounts) ISAK 335 (d/h ISAK 35)**, **6 peran beserta
 hak aksesnya**, dan **akun admin** sekolah — semuanya sekaligus.
 
 <!-- internal -->
@@ -368,16 +368,23 @@ referensi dokumennya. Total debit = total kredit (Rp 1.429.350.000 pada contoh i
 
 ![Jurnal umum](img/37-bendahara-journals.jpg)
 
-### 6.6 Laporan keuangan ISAK 35 & PDF
-Menu **Laporan** → tab **Laporan Aktivitas**, **Posisi Keuangan**, **Arus Kas / Tren**. Semua angka
-dihitung dari jurnal.
+### 6.6 Laporan keuangan ISAK 335 & PDF
+Menu **Laporan** → pilih **tahun**, lalu tab **Posisi Keuangan**, **Penghasilan Komprehensif**, **Perubahan Aset Neto**,
+**Arus Kas** (metode langsung: operasi, investasi, pendanaan), **Catatan (CALK)** dan **Tren Bulanan**. Aset neto selalu
+disajikan dalam dua kelas: **tanpa pembatasan** dan **dengan pembatasan** dari pemberi sumber daya. Semua angka dihitung dari
+jurnal; Catatan disusun otomatis dan perlu ditinjau bendahara/akuntan sebelum diterbitkan.
+
+**Dana terikat** (menu **Akuntansi** → tab **Dana Terikat**): catat sumbangan yang dibatasi pemberinya (*Terima dana terikat*:
+jenis *Dibatasi waktu/tujuan* atau *Dibatasi permanen*, tanggal, jumlah, diterima ke kas/bank, keterangan). Saat tujuannya
+terpenuhi (mis. renovasi selesai), **Lepaskan pembatasan** sebesar dana yang terpakai; jumlahnya tidak bisa melebihi saldo,
+dan dana permanen (wakaf) tidak dapat dilepaskan.
 
 ![Laporan aktivitas](img/38-bendahara-report-activity.jpg)
 
 ![Posisi keuangan](img/39-bendahara-report-balance.jpg)
 
-Tombol **Unduh PDF** menghasilkan `al-musabbihin_Laporan_Keuangan_2026.pdf` dengan **kop sekolah**
-(logo, nama, alamat) dan warna tema sekolah:
+Tombol **Unduh PDF** menghasilkan `al-musabbihin_Laporan_Keuangan_2026.pdf` (ringkasan, empat laporan, dan Catatan) dengan
+**kop sekolah** dan warna tema sekolah:
 
 ![PDF halaman 1](img/47-report-pdf-1.jpg)
 
@@ -495,7 +502,7 @@ Dapat diubah Super Admin per sekolah (Role & Akses → klik badge).
 | Log aktivitas | ✔ | ✔ | ✔ | ✔ | – | – |
 | Notifikasi | ✔ | ✔ | ✔ | ✔ | ✔ | – |
 
-## 11. Jurnal otomatis (ISAK 35)
+## 11. Jurnal otomatis (ISAK 335)
 
 | Kejadian | Debit | Kredit |
 | --- | --- | --- |
@@ -507,6 +514,9 @@ Dapat diubah Super Admin per sekolah (Role & Akses → klik badge).
 | Potongan gaji terutang | 5000 Beban Gaji & Honor | 2100 Hutang Gaji |
 | Pengeluaran disetujui (2/2) | Beban sesuai kategori (5100/5300/…) | 1100 Rekening Bank |
 | Barang PO diterima | 1300 Persediaan | 2000 Hutang Usaha |
+| Dana terikat diterima (waktu/tujuan) | 1100 Bank / 1000 Kas | 4100 Pendapatan Infaq/Sedekah |
+| Dana terikat diterima (permanen) | 1100 Bank / 1000 Kas | 4200 Pendapatan Donasi |
+| Pembatasan dilepaskan | 3100 Dana Terikat Temporer | 3000 Dana Tidak Terikat |
 
 Setiap jurnal otomatis mencatat sumbernya (ID invoice/slip/pengeluaran/PO) dan **tidak pernah terposting
 dua kali** untuk dokumen yang sama.
