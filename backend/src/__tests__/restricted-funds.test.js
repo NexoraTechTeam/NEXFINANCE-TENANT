@@ -94,4 +94,20 @@ describe('restricted funds (ISAK 335 net assets with restrictions)', () => {
     expect(bs.netAssets).toEqual({ unrestricted: 8 * M, restricted: 52 * M, total: 60 * M });
     expect(bs.equity).toBe(60 * M);
   });
+
+  it('keeps the auditor read-only: reports yes, accounting writes no', async () => {
+    await api.post('/api/v1/master/users').send({
+      name: 'Auditor', email: 'auditor@funds.test', password: 'Auditor-Pass-123', role: 'auditor',
+    }).expect(201);
+    const login = await request(app).post('/api/v1/auth/login').set('Host', HOST)
+      .send({ email: 'auditor@funds.test', password: 'Auditor-Pass-123' });
+    const as = (method, path) => request(app)[method](path).set('Host', HOST).set('Authorization', `Bearer ${login.body.token}`);
+    expect((await as('get', `/api/v1/accounting/reports/isak335?year=${YEAR}`)).statusCode).toBe(200);
+    expect((await as('get', '/api/v1/accounting/restricted-funds')).statusCode).toBe(200);
+    for (const path of ['/api/v1/accounting/journals', '/api/v1/accounting/opening-balance',
+      '/api/v1/accounting/restricted-funds/receipts', '/api/v1/accounting/restricted-funds/releases']) {
+      const res = await as('post', path).send({ date: D('05-01'), fund: 'temporer', amount: 1, description: 'x' });
+      expect([path, res.statusCode]).toEqual([path, 403]);
+    }
+  });
 });

@@ -67,4 +67,11 @@ describe('RestrictedFunds', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Melebihi saldo dana terikat');
     expect(svc.postRestrictionRelease).toHaveBeenCalledWith({ date: '2026-04-01', fund: 'temporer', amount: 99 * M, description: 'Renovasi' });
   });
+
+  it('is read-only for the auditor (balances and history, no forms)', async () => {
+    render(<RestrictedFunds readOnly />);
+    expect(await screen.findByTestId('fund-temporer')).toBeInTheDocument();
+    expect(screen.getByText('Renovasi musala selesai')).toBeInTheDocument();
+    expect(screen.queryByRole('form')).not.toBeInTheDocument();
+  });
 });

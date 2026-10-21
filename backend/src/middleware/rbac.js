@@ -25,7 +25,14 @@ const rbac = (module) => async (req, res, next) => {
   }
 };
 
+/** Roles that may read a module but never change it (the auditor reviews the books only). */
+const READ_ONLY_ROLES = new Set(['auditor']);
+const denyReadOnly = (req, res, next) => (READ_ONLY_ROLES.has(req.user?.role)
+  ? res.status(403).json({ error: 'Peran ini hanya dapat melihat data (baca saja).' })
+  : next());
+
 rbac.DEFAULT_PERMISSIONS = DEFAULT_PERMISSIONS;
+rbac.denyReadOnly = denyReadOnly;
 rbac.loadPermissions = loadPermissions;
 rbac.allows = allows;
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import OpeningBalanceForm from '@/components/accounting/OpeningBalanceForm';
 import RestrictedFunds from '@/components/accounting/RestrictedFunds';
+import { useStoredUser } from '@/lib/use-stored-user';
 import { accountingService } from '@/lib/api';
 import { BookOpen, Plus, List, X } from 'lucide-react';
 
@@ -29,6 +30,8 @@ export default function AccountingPage() {
   const [accounts, setAccounts]   = useState<AccountItem[]>([]);
   const [journals, setJournals]   = useState<JournalItem[]>([]);
   const [loading, setLoading]     = useState(true);
+  // The auditor reviews the books only (the API refuses writes too).
+  const readOnly = useStoredUser()?.role === 'auditor';
   const [tab, setTab]             = useState<'coa'|'journal'|'funds'>('journal');
   const [modal, setModal]         = useState(false);
   const [openingOpen, setOpeningOpen] = useState(false);
@@ -188,6 +191,7 @@ export default function AccountingPage() {
           </h1>
           <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Jurnal umum, chart of accounts &amp; dana terikat — ISAK 335 (d/h ISAK 35)</p>
         </div>
+        {!readOnly && (<>
         <button
           onClick={() => setModal(true)}
           className="acct-action-btn acct-header-btn"
@@ -205,6 +209,7 @@ export default function AccountingPage() {
         <button type="button" className="btn-secondary acct-header-btn" onClick={() => setOpeningOpen(true)}>
           Saldo Awal
         </button>
+        </>)}
       </div>
 
       {/* Summary Stat Cards */}
@@ -273,7 +278,7 @@ export default function AccountingPage() {
       {/* Tab Content */}
       <div className="card anim-fadeup" style={{ padding: 'clamp(16px, 3vw, 24px)' }}>
         {tab === 'funds' ? (
-          <RestrictedFunds />
+          <RestrictedFunds readOnly={readOnly} />
         ) : loading ? (
           <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-4)', fontSize: 15 }}>
             Memuat data...
@@ -288,6 +293,7 @@ export default function AccountingPage() {
               />
               <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6, color: 'var(--text-3)' }}>Belum ada jurnal</div>
               <div style={{ fontSize: 14 }}>Tambah jurnal pertama untuk memulai pencatatan.</div>
+              {!readOnly && (
               <button
                 onClick={() => setModal(true)}
                 style={{
@@ -301,6 +307,7 @@ export default function AccountingPage() {
               >
                 <Plus size={16} /> Tambah Jurnal
               </button>
+              )}
             </div>
           ) : (
             <>

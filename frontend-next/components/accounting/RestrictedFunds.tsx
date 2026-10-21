@@ -19,7 +19,7 @@ const errorOf = (err: unknown, fallback: string) =>
  * Net assets with restrictions (ISAK 335): record contributions with a donor restriction and release them
  * once the purpose or time restriction is met. Expenses themselves are always recorded as usual.
  */
-export default function RestrictedFunds() {
+export default function RestrictedFunds({ readOnly = false }: { readOnly?: boolean }) {
   const [funds, setFunds] = useState<Fund[]>([]);
   const [transactions, setTransactions] = useState<FundJournal[]>([]);
   const [receipt, setReceipt] = useState({ fund: 'temporer', date: today(), amount: '', method: 'transfer', description: '' });
@@ -73,7 +73,7 @@ export default function RestrictedFunds() {
       {error && <div role="alert" style={{ padding: '10px 12px', borderRadius: 10, background: '#fee2e2', color: '#991b1b', fontSize: 13 }}>{error}</div>}
       {message && <div role="status" style={{ padding: '10px 12px', borderRadius: 10, background: '#dcfce7', color: '#166534', fontSize: 13 }}>{message}</div>}
 
-      <div className="grid-2" style={{ alignItems: 'start' }}>
+      {!readOnly && <div className="grid-2" style={{ alignItems: 'start' }}>
         <form aria-label="Terima dana terikat" className="card" style={{ padding: 16, display: 'grid', gap: 8 }}
           onSubmit={submit(() => accountingService.postRestrictedReceipt({ ...receipt, amount: Number(receipt.amount) }), 'Penerimaan dana terikat tersimpan.',
             () => setReceipt((v) => ({ ...v, amount: '', description: '' })))}>
@@ -112,7 +112,7 @@ export default function RestrictedFunds() {
           <input id="rf-l-desc" className="form-input" required placeholder="Mis. Renovasi musala selesai" value={release.description} onChange={(e) => setRelease((v) => ({ ...v, description: e.target.value }))} />
           <button type="submit" className="btn-primary" style={{ justifySelf: 'start', marginTop: 4 }}>Lepaskan pembatasan</button>
         </form>
-      </div>
+      </div>}
 
       <div className="card" style={{ padding: 16 }}>
         <strong style={{ fontSize: 15 }}>Riwayat dana terikat</strong>

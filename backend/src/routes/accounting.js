@@ -25,7 +25,7 @@ router.get('/journals', auth, rbac('accounting'), ah(async (req, res) => {
   res.json({ journals: (await req.store.list('journals')).reverse() });
 }));
 
-router.post('/journals', auth, rbac('accounting'), ah(async (req, res) => {
+router.post('/journals', auth, rbac('accounting'), rbac.denyReadOnly, ah(async (req, res) => {
   const ipAddress = getRequestIp(req);
   const { date, description, debit, credit } = req.body;
   if (!date || !description || !debit || !credit) {
@@ -84,8 +84,8 @@ const restrictedAction = (fn, action) => ah(async (req, res) => {
   return res.status(201).json({ journal });
 });
 
-router.post('/restricted-funds/receipts', auth, rbac('accounting'), restrictedAction(postRestrictedReceipt, 'restricted_receipt'));
-router.post('/restricted-funds/releases', auth, rbac('accounting'), restrictedAction(postRestrictionRelease, 'restriction_release'));
+router.post('/restricted-funds/receipts', auth, rbac('accounting'), rbac.denyReadOnly, restrictedAction(postRestrictedReceipt, 'restricted_receipt'));
+router.post('/restricted-funds/releases', auth, rbac('accounting'), rbac.denyReadOnly, restrictedAction(postRestrictionRelease, 'restriction_release'));
 
 router.get('/reports/income-statement', auth, rbac('accounting'), ah(async (req, res) => {
   const { journals, coa } = await loadBooks(req.store);
@@ -107,7 +107,7 @@ router.get('/opening-balance', auth, rbac('accounting'), ah(async (req, res) => 
   res.json({ journals: journals.filter((jr) => jr.source?.type === 'opening_balance') });
 }));
 
-router.post('/opening-balance', auth, rbac('accounting'), ah(async (req, res) => {
+router.post('/opening-balance', auth, rbac('accounting'), rbac.denyReadOnly, ah(async (req, res) => {
   const { date, entries } = req.body || {};
   if (!date || !Array.isArray(entries) || entries.length === 0) {
     return res.status(400).json({ error: 'date and a non-empty entries array are required' });
