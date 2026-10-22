@@ -8,6 +8,10 @@ A. Tenant (SIT Al Musabbihin)
 3. Domain almusabbihin.sch.id: daftar di PANDI + A record → 72.61.209.201 (sisi Nexora sudah siap)
 4. Fitur ganti password Console (belum ada)
 
+A2. Update 22 Okt: penyusutan aset tetap (WAJIB ISAK 335) sudah dibangun di tenant
+13. Bendahara Al-Musabbihin konfirmasi kebijakan penyusutan (masa manfaat, bulan mulai) + kerangka SAK EP vs SAK penuh
+14. Opsional (belum dikerjakan): rekonsiliasi bank, edit/lepas aset, beban per fungsi, pajak PPh 23/4(2), multi-cabang, Open API, regenerasi panduan, trial Accurate
+
 B. NexFinance (demo)
 5. Approve merge dev → master; izin port fitur tenant (ISAK 335 dll.) ke demo
 

@@ -3,23 +3,42 @@
 Living record of state, decisions and open items. Newest entries first. Update at the end of every session.
 
 ## Current state (snapshot — refresh every session)
-_Last updated 2026-10-21._ Read this first; dated sections below are the history (newest first).
+_Last updated 2026-10-22._ Read this first; dated sections below are the history (newest first).
 
 | Area | State |
 | --- | --- |
 | Production | LIVE: https://console-nexfinance.nexoratech.co/console · https://almusabbihin-nexfinance.nexoratech.co (200, Let's Encrypt). Stack `nexfin-saas`, VPS 72.61.209.201. |
 | Staging | Stack `nexfin-saas-staging`, internal checks only (no DNS). |
 | Branches | `dev` = `main` (production snapshot). Deploy path: ops bridge `ops/tenant-deploy` in NEXFINANCE (last run 39593276735 green). |
-| Quality | Backend 159 tests (14 suites), frontend 123 (24 files), deploy-script tests 4/4, isolation contract ✅ (2026-10-21). Final review: API 238/238, UI 78 visits 0 issues; production QA 183 checks 0 findings. |
-| Al-Musabbihin data | Empty production tenant (1 user, 18 accounts) — school has not started entering data. Admin `admin-almusabbihin` must change password at first login. |
-| Features | Multi-tenant Console (logo palette, login photo/text, sidebar colour, rich-text attribution), SPP, payroll, expenses (dual control, approver roles), procurement (PR → PO → receive), ISAK 335 package (2 net-asset classes, changes in net assets, direct cash flow, CALK, restricted funds), role-filtered menus. |
+| Quality | Backend 190 tests (16 suites), frontend 132 (25 files), lint/tsc/build clean (2026-10-22); local API sweep 244/244, UI sweep 0 issues; earlier production QA 183 checks 0 findings. |
+| Al-Musabbihin data | Empty production tenant (1 user; 18 accounts → 21 after the fixed-asset migration runs on the next deploy) — school has not started entering data. Admin `admin-almusabbihin` must change password at first login. |
+| Features | Multi-tenant Console (logo palette, login photo/text, sidebar colour, rich-text attribution), SPP, payroll, expenses (dual control, approver roles), procurement (PR → PO → receive), ISAK 335 package (2 net-asset classes, changes in net assets, direct cash flow, CALK, restricted funds), **fixed assets + monthly straight-line depreciation** (Akuntansi → Aset Tetap, CALK note G), role-filtered menus. |
 | Docs | Guide v1.4: `docs/guide/` MD (internal) + PDFs Nexora edition 58 p. / school edition 48 p.; QA report `docs/qa/FINAL_REVIEW_2026-10-21.md`; runbook `docs/OPERATIONS.md`; checklist `docs/PENDING_TASKS.md`. |
 | Own domain | `almusabbihin.sch.id` configured and DNS-gated; **NXDOMAIN** — waits for PANDI registration + A record → 72.61.209.201. |
 | NEXFINANCE demo | Frozen until Imam's go (ISAK 335, RBAC and validation fixes not ported yet). |
 
-**Blocked on Imam / the school:** register `almusabbihin.sch.id` + A record (or choose a subdomain such as
+**Blocked on Imam / the school:** (new) treasurer confirms the depreciation policy (useful lives, start month); register `almusabbihin.sch.id` + A record (or choose a subdomain such as
 `keuangan.almusabbihin.sch.id`); hand the admin password to the school (Console → Reset password); confirm the
 accounting framework (SAK Entitas Privat vs full SAK) with the school's treasurer; go-ahead for porting to NEXFINANCE demo.
+
+## 2026-10-22 — fixed assets & depreciation (mandatory ISAK 335 gap)
+- Imam: asked whether the features Accurate has and we lack are really required → verified (Accurate pages, IAI DE ISAK 35, our code)
+  → "catat dan dokumentasikan hasil verifikasinya untuk yg wajib dan opsional, kerjakan yg wajib dulu ke NEXFINANCE-TENANT al-musabbihin,
+  opsional jadi pending task". Verdict in `docs/ISAK335_GAP_VERIFICATION.md`: **depreciation is mandatory**; bank reconciliation, tax,
+  inventory, multi-branch, API are optional → `docs/PENDING_TASKS.md` §F.
+- Built (TDD, red first): accounts 1510/1590/5500 (new tenants + migration `002_fixed_asset_accounts` for existing ones: only when the chart
+  is non-empty, `ON CONFLICT DO NOTHING`, edited accounts kept); `services/depreciation.js` (pure month maths, rounding absorbed by the last
+  month), `services/fixed-assets.js` (register `fixed_assets`, validation, create, summary, ledger reconciliation, run, CALK note G),
+  journals via `posting.js` (`asset_acquisition`, opening accumulated as `opening_balance`, `depreciation` dated month end);
+  `GET/POST /accounting/fixed-assets`, `POST /accounting/depreciation/run` (advisory lock, idempotent, no future month, auditor 403);
+  ledger: `asetTetap` net, `bebanPenyusutan`, policy sentence in CALK B + note G; UI tab **Aset Tetap** (`components/accounting/FixedAssets.tsx`).
+- Tests: backend 190, frontend 132; local E2E on a tenant downgraded to 18 accounts (boot migrated to 21), 3 assets, 27 journals/Rp 22 jt,
+  repeat = no-op; API sweep 244/244, UI sweep 0 issues. E2E screenshot found a UI bug (category reset to Bangunan with a 48-month life) → fixed with a test.
+- Design decisions: straight-line only; land never depreciated; depreciation = *Beban Program*; opening accumulated depreciation is booked
+  against 3000 and dated the month end before depreciation starts (counts as opening position); register vs ledger differences are shown, not blocked.
+- Not done on purpose: NEXFINANCE demo untouched (frozen); guide screenshots/PDF not regenerated (PENDING F8); no asset edit/disposal (F2).
+- Lesson: a tenant migration that seeds data must skip a brand-new tenant (empty chart) because `seedDefaults` runs right after migrating;
+  jest tests that provision a tenant count accounts (`tenancy.test.js` = 21).
 
 ## 2026-10-21 — own domain almusabbihin.sch.id (zero-touch, DNS-gated)
 - Imam: "setup production al-musabbihin supaya bisa diakses di almusabbihin.sch.id".
@@ -239,6 +258,7 @@ Verbatim intent of every rule Imam gave; the binding version is CLAUDE.md → Wo
 | 2026-10-21 | "Final review full E2E semua role, FE+BE+DB tanpa error; root cause dulu sebelum fixing; OODA + TDD". | 2026-10-21 final review section, `docs/qa/` |
 | 2026-10-21 | "Rangkum perubahan + sesuaikan panduan & PDF; NexFinance demo tunggu arahan saya. Lets cook!" | 2026-10-21 guide v1.3 section |
 | 2026-10-21 | "ISAK 35 itu apa, sudah diterapkan?, beda dengan Accurate?" → riset ulang → "kerjakan 1-7 dulu, use OODA + TDD". | 2026-10-21 ISAK 335 section |
+| 2026-10-22 | "Untuk yg belum ada (vs Accurate), apakah benar-benar harus ada atau opsional? Pastikan dulu" → "catat verifikasinya, kerjakan yg wajib dulu ke NEXFINANCE-TENANT al-musabbihin, opsional jadi pending task; OODA + TDD, 100% tanpa error". | 2026-10-22 section, `docs/ISAK335_GAP_VERIFICATION.md`, PENDING §F |
 | 2026-10-21 | "'NexFinance — produk dari Nexora' editable rich text + checklist tampil/tidak; hilangkan 'produk dari'". | 2026-10-21 attribution section |
 | 2026-10-21 | "User manual PDF untuk di-share ke Al Musabbihin tanpa informasi Console/internal Nexora". | 2026-10-21 section, `docs/guide/tools/README.md` |
 | 2026-10-20 | "Halaman login menampilkan gambar terkait sekolah al-musabbihin dan tema pewarnaan sidebar maupun logo yg bisa di adjust dari console nexfinance". | 2026-10-20 section above |

@@ -23,6 +23,10 @@ Authorization: Bearer {token}
 - `POST /accounting/journals` - Create journal entry
 - `GET /accounting/reports/balance-sheet` - Balance sheet report
 - `GET /accounting/reports/income-statement` - Income statement
+- `GET /accounting/reports/isak335?year=` - ISAK 335 package (financial position, comprehensive income, changes in net assets, cash flows, notes A–G)
+- `GET /accounting/fixed-assets` - Fixed-asset register: cost, accumulated depreciation, book value, `reconciliation` against the ledger accounts, `categories`
+- `POST /accounting/fixed-assets` - Register an asset (`mode: acquisition` posts the cost; `mode: existing` is already in the opening balance and may carry `accumulatedDepreciation` + `depreciationFrom`)
+- `POST /accounting/depreciation/run` - `{ "period": "YYYY-MM" }` posts every missing monthly straight-line charge up to that month (idempotent, never a future month)
 
 ### SPP (Fee Collection)
 - `GET /spp/invoices` - List all invoices

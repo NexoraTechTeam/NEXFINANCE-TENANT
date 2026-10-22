@@ -1,6 +1,6 @@
 # Pending tasks — NexFinance & NexFinance Tenant
 
-Checklist of everything still open (updated 21 Oktober 2026). Covers both repos. Tick items here (and in
+Checklist of everything still open (updated 22 Oktober 2026). Covers both repos. Tick items here (and in
 `docs/MEMORY.md`) when done. A short version for Telegram lives in `docs/PENDING_TELEGRAM.txt`
 (send it with `scripts/notify-telegram.sh`).## A. NexFinance Tenant (SIT Al Musabbihin) — LIVE since 19 Oktober 2026
 Console https://console-nexfinance.nexoratech.co/console · school https://almusabbihin-nexfinance.nexoratech.co
@@ -14,10 +14,12 @@ Console https://console-nexfinance.nexoratech.co/console · school https://almus
       (e.g. `keuangan.almusabbihin.sch.id`) if the root domain is for the school website.
 - [ ] **7d.** Confirm with the school's treasurer which framework applies (SAK Entitas Privat vs full SAK → PSAK 118 from 2027).
 - [ ] **7c.** Console has no change-password screen yet (operator password = generated one).
+- [ ] **7e.** Treasurer confirms the depreciation policy: useful lives (suggested Bangunan 240 / Peralatan 48 / Kendaraan 96 months),
+      start-month convention, and that land is kept apart from buildings (`docs/ISAK335_GAP_VERIFICATION.md`).
 
 ## B. NexFinance (demo product)
 - [ ] **8.** Decide/approve merging `dev` → `master` (production gets its own database; all users log in again once).
-- [ ] **8b.** Go-ahead to port the tenant work (ISAK 335, RBAC/validation fixes) to the demo — frozen until Imam says so.
+- [ ] **8b.** Go-ahead to port the tenant work (ISAK 335, fixed assets & depreciation, RBAC/validation fixes) to the demo — frozen until Imam says so.
 
 ## C. Documents
 - [ ] **9.** Share the summary slide deck from its Share menu (https://claude.ai/artifact/PVH2eiaPNo3GFGK5qmi3p1),
@@ -36,3 +38,16 @@ Console https://console-nexfinance.nexoratech.co/console · school https://almus
 - [x] **16.** Sent to Imam's Telegram via @AgentNexoraBot on 2026-10-17 (`scripts/notify-telegram.sh`).
       Re-send after changes: `TELEGRAM_BOT_TOKEN` (env/secret, never in git) + `TELEGRAM_CHAT_ID=6687943152`,
       then `sh scripts/notify-telegram.sh docs/PENDING_TELEGRAM.txt`.
+
+## F. Optional features (verified 2026-10-22 — NOT mandatory; do only on Imam's go / a school request)
+Mandatory item (fixed-asset depreciation) is built and live-ready; see `docs/ISAK335_GAP_VERIFICATION.md`.
+- [ ] **F1.** Bank reconciliation (import statement, match, difference) — priority 2, auditors ask for it.
+- [ ] **F2.** Asset lifecycle: edit/void a mis-entered asset, disposal/sale (gain or loss), revaluation not needed.
+- [ ] **F3.** Expenses by function (program / management / support) incl. depreciation allocation, if the school's auditor wants it.
+- [ ] **F4.** Tax helpers (PPh 23 / 4(2) withholding on rent & services; no e-Faktur — education is normally VAT-exempt) — only if the school needs them.
+- [ ] **F5.** Multi-branch consolidation (one foundation, several schools) — only for such a customer.
+- [ ] **F6.** Open API / integrations for sales demos.
+- [ ] **F7.** Inventory beyond ATK (FIFO/batch) — not planned; multi-currency — not needed.
+- [ ] **F8.** Regenerate the user guide (screenshots + PDFs) so it covers the new *Aset Tetap* tab and note G
+      (`sh docs/guide/tools/run-all.sh`); the 6.6 screenshots were already stale.
+- [ ] **F9.** Trial Accurate Online 30 days with an ISAK 335 scenario to confirm whether it has a ready template (sales battle-card).
