@@ -6,6 +6,9 @@ G = pathlib.Path(sys.argv[1]); SP = pathlib.Path(sys.argv[2])
 EDITION = sys.argv[3] if len(sys.argv) > 3 else 'nexora'
 assert EDITION in ('nexora', 'school'), EDITION
 md = (G / 'PANDUAN_E2E_AL_MUSABBIHIN.md').read_text()
+# Cover version comes from the document's own 'Versi dokumen' row, so the two never drift apart.
+_v = re.search(r'\*\*Versi dokumen\*\* \| (\S+) — (\d+ \w+ \d{4})', md)
+VERSION = f'{_v.group(1)} · {_v.group(2)}'
 # Drop the markdown title block + TOC: the PDF gets its own cover and TOC.
 body_md = md.split('## 1. Ringkasan', 1)[1]
 body_md = '## 1. Ringkasan' + body_md
@@ -101,7 +104,7 @@ a {{ color: var(--brand); }}
   <div class="meta">
     <div><b>{COVER['label']}</b>almusabbihin-nexfinance.nexoratech.co</div>
     <div><b>Disiapkan oleh</b>Tim Nexora · nexoratech.co</div>
-    <div><b>Versi</b>1.4 · 21 Oktober 2026</div>
+    <div><b>Versi</b>{VERSION}</div>
   </div>
 </section>
 <section class="toc"><h2 style="page-break-before:avoid">Daftar isi</h2><ul style="list-style:none;padding-left:0">{toc}</ul>
