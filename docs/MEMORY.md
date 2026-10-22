@@ -10,7 +10,7 @@ _Last updated 2026-10-22._ Read this first; dated sections below are the history
 | Production | LIVE: https://console-nexfinance.nexoratech.co/console · https://almusabbihin-nexfinance.nexoratech.co (200, Let's Encrypt). Stack `nexfin-saas`, VPS 72.61.209.201. |
 | Staging | Stack `nexfin-saas-staging`, internal checks only (no DNS). |
 | Branches | `dev` = 10ece14 is what runs in production (deployed by the ops bridge); `main` still at fd23250 — `git push origin dev:main` waits for Imam's go (the session's permission guard refused a push to `main`). Deploy path: ops bridge `ops/tenant-deploy` in NEXFINANCE (last run 39716256253 green: staging + production, NexFinance stacks untouched). |
-| Quality | Backend 190 tests (16 suites), frontend 137 (26 files), lint/tsc/build clean (2026-10-22); local API sweep 244/244, UI sweep 0 issues; earlier production QA 183 checks 0 findings. |
+| Quality | Backend 190 tests (16 suites), frontend 139 (27 files), lint/tsc/build clean (2026-10-22); local API sweep 244/244, UI sweep 0 issues; earlier production QA 183 checks 0 findings. |
 | Al-Musabbihin data | Empty production tenant (1 user; 18 accounts → 21 after the fixed-asset migration runs on the next deploy) — school has not started entering data. Admin `admin-almusabbihin` must change password at first login. |
 | Features | Multi-tenant Console (logo palette, login photo/text, sidebar colour, rich-text attribution), SPP, payroll, expenses (dual control, approver roles), procurement (PR → PO → receive), ISAK 335 package (2 net-asset classes, changes in net assets, direct cash flow, CALK, restricted funds), **fixed assets + monthly straight-line depreciation** (Akuntansi → Aset Tetap, CALK note G), role-filtered menus. |
 | Docs | Guide v1.5 (Aset Tetap, note G, header fix): `docs/guide/` MD (internal) + PDFs Nexora edition 62 p. / school edition 52 p.; QA report `docs/qa/FINAL_REVIEW_2026-10-21.md`; runbook `docs/OPERATIONS.md`; checklist `docs/PENDING_TASKS.md`. |
@@ -27,6 +27,8 @@ accounting framework (SAK Entitas Privat vs full SAK) with the school's treasure
   opening balance, buys a lab laptop (Rp 24 jt) and posts depreciation (5 journals, Rp 8.833.332); auditor sees no asset form. New shots 37e/37f, PDF page 7 (note G).
 - MD v1.5: new 6.7 Aset tetap & penyusutan (Laporan → 6.8), CALK A–G, figures (total assets 1.157.877.168, net assets 1.144.966.668, cash 209.810.500),
   matrix, three journal rows, four FAQ rows, QA rows (category reset bug, header buttons). PDFs 62/52 pages, leak guards clean, no page errors in the run.
+- Payroll history mixed "2026-10" with "Maret 2026" (found by the demo guide run) → `lib/payroll.ts payrollMonthLabel` + test, same in NEXFINANCE;
+  frontend 139 tests, lint/tsc/build clean; guide regenerated again so the payroll slip shows "Oktober 2026". PDF cover version now read from the MD.
 
 ## 2026-10-22 — Akuntansi header buttons (Imam's screenshot)
 - Imam: "kenapa button Tambah Jurnal ada 2 dan berantakan (yang di atas)? sesuaikan, OODA + TDD".
