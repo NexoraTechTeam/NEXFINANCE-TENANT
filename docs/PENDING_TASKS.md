@@ -48,6 +48,6 @@ Mandatory item (fixed-asset depreciation) is built and live-ready; see `docs/ISA
 - [ ] **F5.** Multi-branch consolidation (one foundation, several schools) — only for such a customer.
 - [ ] **F6.** Open API / integrations for sales demos.
 - [ ] **F7.** Inventory beyond ATK (FIFO/batch) — not planned; multi-currency — not needed.
-- [ ] **F8.** Regenerate the user guide (screenshots + PDFs) so it covers the new *Aset Tetap* tab and note G
+- [x] **F8.** Regenerate the user guide (screenshots + PDFs) so it covers the new *Aset Tetap* tab and note G — done 2026-10-22 (guide v1.5)
       (`sh docs/guide/tools/run-all.sh`); the 6.6 screenshots were already stale.
 - [ ] **F9.** Trial Accurate Online 30 days with an ISAK 335 scenario to confirm whether it has a ready template (sales battle-card).

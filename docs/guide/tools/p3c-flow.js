@@ -69,6 +69,25 @@ const { launch, shot, routeHttps, modal, field, loginTenant, go, OUT } = require
   await rel.getByLabel('Jumlah (Rp)').fill('6000000'); await rel.getByLabel('Keterangan').fill('Renovasi musala tahap 1 selesai');
   await rel.getByRole('button', { name: 'Lepaskan pembatasan' }).click(); await bp.getByText('Pembatasan dilepaskan.').waitFor();
   await shot(bp, '37d-bendahara-dana-terikat-saldo', { full: true });
+  // Fixed assets (ISAK 335): register what the opening balance holds, buy a laptop, post depreciation up to this month
+  await bp.getByRole('button', { name: 'Aset Tetap', exact: true }).click(); await bp.waitForTimeout(800);
+  const fa = bp.getByRole('form', { name: 'Tambah aset tetap' });
+  const addAsset = async ({ name, category, mode, date, cost, life, from, acc, method }, snap) => {
+    await fa.locator('#fa-name').fill(name); await fa.locator('#fa-cat').selectOption(category); await fa.locator('#fa-mode').selectOption(mode);
+    await fa.locator('#fa-date').fill(date); await fa.locator('#fa-cost').fill(cost);
+    if (life) await fa.locator('#fa-life').fill(life);
+    if (from) await fa.locator('#fa-from').fill(from);
+    if (acc) await fa.locator('#fa-acc').fill(acc);
+    if (method) await fa.locator('#fa-method').selectOption(method);
+    if (snap) { await fa.scrollIntoViewIfNeeded(); await shot(bp, snap); }
+    await fa.getByRole('button', { name: 'Simpan aset' }).click(); await bp.getByText('Aset tetap tersimpan.').waitFor(); await bp.waitForTimeout(500);
+  };
+  await addAsset({ name: 'Tanah sekolah Komplek TASBI', category: 'tanah', mode: 'existing', date: '2015-07-01', cost: '700000000' });
+  await addAsset({ name: 'Gedung sekolah 3 lantai', category: 'bangunan', mode: 'existing', date: '2015-07-01', cost: '500000000', life: '240', from: '2026-07', acc: '275000000' }, '37e-bendahara-aset-tetap-form');
+  await addAsset({ name: 'Laptop lab komputer (8 unit)', category: 'peralatan', mode: 'acquisition', date: '2026-10-05', cost: '24000000', life: '48', method: 'transfer' });
+  await bp.getByRole('button', { name: /Catat penyusutan s\.d\./ }).click(); await bp.getByText(/jurnal penyusutan dicatat/).waitFor();
+  console.log('depreciation:', await bp.getByRole('status').textContent());
+  await bp.evaluate(() => window.scrollTo(0, 0)); await shot(bp, '37f-bendahara-aset-tetap-register', { full: true });
   // ISAK 335 reports: every statement + notes
   await go(bp, '/dashboard/reports'); await bp.waitForTimeout(1500); await shot(bp, '38-bendahara-report-position', { full: true });
   for (const [tab, name] of [['Penghasilan Komprehensif', '39-bendahara-report-income'], ['Perubahan Aset Neto', '39b-bendahara-report-netassets'],
@@ -83,6 +102,8 @@ const { launch, shot, routeHttps, modal, field, loginTenant, go, OUT } = require
   await go(au, '/dashboard/reports'); await shot(au, '41-auditor-reports');
   await go(au, '/dashboard/accounting'); await au.getByRole('button', { name: 'Dana Terikat', exact: true }).click(); await au.waitForTimeout(800);
   await shot(au, '41b-auditor-dana-terikat-readonly');
+  await au.getByRole('button', { name: 'Aset Tetap', exact: true }).click(); await au.waitForTimeout(800);
+  console.log('auditor asset form (expect 0):', await au.getByRole('form', { name: 'Tambah aset tetap' }).count());
   // G. Admin: dashboard after, activity log, help, mobile
   const dc = await ctxFor(); const ad = await loginTenant(dc, 'admin-almusabbihin', 'AlMusabbihin-2026!'); ad.on('pageerror', (e) => errors.push(e.message));
   await ad.waitForTimeout(1500); await shot(ad, '42-admin-dashboard-live', { full: true });

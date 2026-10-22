@@ -13,13 +13,20 @@ _Last updated 2026-10-22._ Read this first; dated sections below are the history
 | Quality | Backend 190 tests (16 suites), frontend 137 (26 files), lint/tsc/build clean (2026-10-22); local API sweep 244/244, UI sweep 0 issues; earlier production QA 183 checks 0 findings. |
 | Al-Musabbihin data | Empty production tenant (1 user; 18 accounts → 21 after the fixed-asset migration runs on the next deploy) — school has not started entering data. Admin `admin-almusabbihin` must change password at first login. |
 | Features | Multi-tenant Console (logo palette, login photo/text, sidebar colour, rich-text attribution), SPP, payroll, expenses (dual control, approver roles), procurement (PR → PO → receive), ISAK 335 package (2 net-asset classes, changes in net assets, direct cash flow, CALK, restricted funds), **fixed assets + monthly straight-line depreciation** (Akuntansi → Aset Tetap, CALK note G), role-filtered menus. |
-| Docs | Guide v1.4: `docs/guide/` MD (internal) + PDFs Nexora edition 58 p. / school edition 48 p.; QA report `docs/qa/FINAL_REVIEW_2026-10-21.md`; runbook `docs/OPERATIONS.md`; checklist `docs/PENDING_TASKS.md`. |
+| Docs | Guide v1.5 (Aset Tetap, note G, header fix): `docs/guide/` MD (internal) + PDFs Nexora edition 62 p. / school edition 52 p.; QA report `docs/qa/FINAL_REVIEW_2026-10-21.md`; runbook `docs/OPERATIONS.md`; checklist `docs/PENDING_TASKS.md`. |
 | Own domain | `almusabbihin.sch.id` configured and DNS-gated; **NXDOMAIN** — waits for PANDI registration + A record → 72.61.209.201. |
-| NEXFINANCE demo | Frozen until Imam's go (ISAK 335, RBAC and validation fixes not ported yet). |
+| NEXFINANCE demo | Full parity ported on its `dev` (2026-10-22, Imam's go) and merged to `master` (PR #2); its own guide lives in that repo's `docs/guide/`. |
 
 **Blocked on Imam / the school:** (new) treasurer confirms the depreciation policy (useful lives, start month); register `almusabbihin.sch.id` + A record (or choose a subdomain such as
 `keuangan.almusabbihin.sch.id`); hand the admin password to the school (Console → Reset password); confirm the
 accounting framework (SAK Entitas Privat vs full SAK) with the school's treasurer; go-ahead for porting to NEXFINANCE demo.
+
+## 2026-10-22 — guide v1.5 (fixed assets)
+- Imam (after merging the demo PR): "update dokumentasi user manual/panduan/guidelinenya lagi untuk nexfinance-tenant al-musabbihin maupun nexfinance demo".
+- `tools/p3c-flow.js`: bendahara registers the land (Rp 700 jt) and building (Rp 500 jt, 240 months, accumulated Rp 275 jt from 2026-07) already in the
+  opening balance, buys a lab laptop (Rp 24 jt) and posts depreciation (5 journals, Rp 8.833.332); auditor sees no asset form. New shots 37e/37f, PDF page 7 (note G).
+- MD v1.5: new 6.7 Aset tetap & penyusutan (Laporan → 6.8), CALK A–G, figures (total assets 1.157.877.168, net assets 1.144.966.668, cash 209.810.500),
+  matrix, three journal rows, four FAQ rows, QA rows (category reset bug, header buttons). PDFs 62/52 pages, leak guards clean, no page errors in the run.
 
 ## 2026-10-22 — Akuntansi header buttons (Imam's screenshot)
 - Imam: "kenapa button Tambah Jurnal ada 2 dan berantakan (yang di atas)? sesuaikan, OODA + TDD".

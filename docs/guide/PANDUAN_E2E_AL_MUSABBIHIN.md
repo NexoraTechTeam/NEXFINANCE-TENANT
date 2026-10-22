@@ -6,7 +6,7 @@
 | **Produk** | NexFinance Tenant (SaaS multi-tenant) — oleh Nexora |
 | **Repo** | `NexoraTechTeam/NEXFINANCE-TENANT` |
 | **Tenant contoh** | Sekolah Islam Terpadu Al Musabbihin (`al-musabbihin`) |
-| **Versi dokumen** | 1.4 — 21 Oktober 2026 (final review semua peran: menu sesuai hak akses, validasi data, kontrol persetujuan) |
+| **Versi dokumen** | 1.5 — 22 Oktober 2026 (Aset Tetap & penyusutan bulanan, Catatan G, tombol header Akuntansi dirapikan) |
 | **Sumber screenshot** | Uji end-to-end otomatis (Playwright) pada build `dev`, database PostgreSQL nyata, nama host produksi. Semua angka di dokumen ini adalah hasil transaksi nyata dalam uji tersebut. |
 
 > **Cara membaca dokumen ini.** Bagian 1–3 memberi gambaran umum (untuk semua orang). Bagian 4–9 adalah
@@ -130,7 +130,7 @@ Halaman di aplikasi sekolah (semua di bawah `https://almusabbihin-nexfinance.nex
 | 5 | Bendahara | Buat invoice SPP → catat pembayaran → hitung gaji | Piutang, kas, beban gaji terjurnal otomatis |
 | 6 | Staf | Ajukan pengeluaran | Pengeluaran menunggu 2 persetujuan |
 | 7 | Kepala Bagian | Persetujuan ke-1 → PR → PO → terima barang | Persediaan & hutang usaha terjurnal |
-| 8 | Bendahara | Persetujuan ke-2 (orang berbeda) → cek jurnal → laporan & PDF | Beban terjurnal, laporan ISAK 335 berkop sekolah |
+| 8 | Bendahara | Persetujuan ke-2 (orang berbeda) → cek jurnal → dana terikat → aset tetap & penyusutan → laporan & PDF | Beban & penyusutan terjurnal, laporan ISAK 335 berkop sekolah |
 | 9 | Auditor / Admin | Tinjau laporan, dashboard, log historis | Transparansi & jejak audit |
 
 ---
@@ -288,13 +288,14 @@ Semua angka mulai dari **nol** — tidak ada angka contoh. Grafik terisi otomati
 ### 5.4 Saldo awal (wajib sebelum transaksi)
 Menu **Akuntansi** → **Saldo Awal**. Isi posisi keuangan sekolah per tanggal mulai memakai NexFinance.
 Selisih aset dan kewajiban otomatis dicatat sebagai *Dana Tidak Terikat* (aset bersih).
+Isi tanah & bangunan sebesar **harga perolehan**; akumulasi penyusutannya dicatat di tab **Aset Tetap** (6.7).
 
 | Akun | Contoh Al Musabbihin (per 1 Juli 2026) |
 | --- | --- |
 | 1000 Kas | Rp 25.000.000 |
 | 1100 Rekening Bank | Rp 175.000.000 |
 | 1300 Persediaan ATK | Rp 5.000.000 |
-| 1500 Tanah & Bangunan | Rp 1.200.000.000 |
+| 1500 Tanah & Bangunan | Rp 1.200.000.000 (tanah Rp 700 jt + gedung Rp 500 jt) |
 | 2000 Hutang Usaha | Rp 10.000.000 |
 
 ![Form saldo awal](img/15-admin-opening-balance.jpg)
@@ -364,7 +365,7 @@ Setelah Kepala Bagian menyetujui (lihat POV Kepala Bagian), Bendahara memberi **
 ### 6.5 Jurnal umum (otomatis)
 Menu **Akuntansi** → **Jurnal Umum**: setiap transaksi modul tercatat lengkap dengan akun debit/kredit dan
 referensi dokumennya. Total debit = total kredit (Rp 1.429.350.000 pada contoh ini).
-**Tambah Jurnal** tersedia untuk jurnal manual (penyesuaian).
+Tombol **Tambah Jurnal** (jurnal manual/penyesuaian) dan **Saldo Awal** ada di kanan atas halaman Akuntansi.
 
 ![Jurnal umum](img/37-bendahara-journals.jpg)
 
@@ -389,18 +390,44 @@ Setelah melepaskan Rp 6.000.000 (renovasi tahap 1 selesai), saldo dan riwayatnya
 
 ![Saldo dan riwayat dana terikat](img/37d-bendahara-dana-terikat-saldo.jpg)
 
-### 6.7 Laporan keuangan ISAK 335 & PDF
+### 6.7 Aset tetap & penyusutan
+Menu **Akuntansi** → tab **Aset Tetap**. ISAK 335 menyajikan aset tetap sebesar **harga perolehan dikurangi akumulasi
+penyusutan**. Daftarkan setiap aset, lalu catat penyusutan bulanan (metode **garis lurus**) hingga bulan berjalan.
+
+| Isian | Keterangan |
+| --- | --- |
+| **Kategori** | Tanah (tidak disusutkan), Bangunan (saran 240 bulan), Peralatan (48 bulan), Kendaraan (96 bulan) — masa manfaat bisa diubah |
+| **Status aset** | *Baru dibeli* → pembelian langsung terjurnal dari rekening bank/kas tunai. *Sudah dimiliki* → aset yang sudah ada di saldo awal; isi bulan mulai disusutkan dan akumulasi penyusutan saat ini |
+| **Nilai residu** | Perkiraan nilai sisa di akhir masa manfaat (boleh 0) |
+
+Contoh Al Musabbihin: tanah Rp 700.000.000 dan gedung Rp 500.000.000 (dibangun Juli 2015, masa manfaat 240 bulan,
+akumulasi penyusutan Rp 275.000.000 per 30 Juni 2026) didaftarkan sebagai *sudah dimiliki*; laptop lab komputer
+Rp 24.000.000 dibeli 5 Oktober 2026.
+
+![Mendaftarkan gedung yang sudah dimiliki](img/37e-bendahara-aset-tetap-form.jpg)
+
+Tombol **Catat penyusutan s.d. <bulan berjalan>** mencatat semua bulan yang tertunda sekaligus (contoh: 5 jurnal,
+Rp 8.833.332 — gedung Juli–Oktober Rp 2.083.333/bulan dan laptop Oktober Rp 500.000). Menekannya lagi tidak
+mencatat ganda. Kotak **Kesesuaian daftar aset dengan buku besar** memastikan daftar aset sama dengan saldo akun
+1500, 1510, dan 1590; bila ada selisih, periksa saldo awal atau daftar aset.
+
+![Daftar aset tetap setelah penyusutan](img/37f-bendahara-aset-tetap-register.jpg)
+
+> Kebijakan masa manfaat dan bulan mulai penyusutan sebaiknya dikonfirmasi bendahara/akuntan sekolah sebelum
+> penyusutan pertama dicatat.
+
+### 6.8 Laporan keuangan ISAK 335 & PDF
 Menu **Laporan** → pilih **tahun**. Laporan disusun sesuai **ISAK 335 (d/h ISAK 35)** — standar penyajian laporan
 keuangan entitas berorientasi nonlaba — dan semua angkanya dihitung dari jurnal. Aset neto selalu disajikan dalam
 dua kelas: **tanpa pembatasan** dan **dengan pembatasan** dari pemberi sumber daya.
 
 | Tab | Isi |
 | --- | --- |
-| **Posisi Keuangan** | Aset (lancar & tidak lancar), liabilitas, dan aset neto per kelas |
+| **Posisi Keuangan** | Aset (lancar & tidak lancar — aset tetap neto setelah akumulasi penyusutan), liabilitas, dan aset neto per kelas |
 | **Penghasilan Komprehensif** | Pendapatan & beban tanpa pembatasan, pendapatan dengan pembatasan, total penghasilan komprehensif |
 | **Perubahan Aset Neto** | Saldo awal, surplus tahun berjalan, aset neto yang dibebaskan dari pembatasan, saldo akhir |
 | **Arus Kas** | Metode langsung: aktivitas operasi, investasi, dan pendanaan sampai saldo kas akhir |
-| **Catatan (CALK)** | Catatan A–F yang disusun otomatis — tinjau dan lengkapi oleh bendahara/akuntan sebelum diterbitkan |
+| **Catatan (CALK)** | Catatan A–G (termasuk G. Aset tetap dan penyusutan) yang disusun otomatis — tinjau dan lengkapi oleh bendahara/akuntan sebelum diterbitkan |
 | **Tren Bulanan** | Grafik pendapatan, beban, dan surplus per bulan (pendukung, bukan bagian laporan resmi) |
 
 Di bawahnya, tabel **Klasifikasi akun** menunjukkan kelas aset neto dan aktivitas arus kas setiap akun.
@@ -415,14 +442,19 @@ Di bawahnya, tabel **Klasifikasi akun** menunjukkan kelas aset neto dan aktivita
 
 ![Catatan atas laporan keuangan](img/39d-bendahara-report-notes.jpg)
 
-Tombol **Unduh PDF** menghasilkan `al-musabbihin_Laporan_Keuangan_2026.pdf` (6 halaman: ringkasan, empat laporan,
-dan Catatan) dengan **kop sekolah** dan warna tema sekolah:
+Pada contoh ini total aset Rp 1.157.877.168 (aset tetap neto Rp 940.166.668), total aset neto Rp 1.144.966.668
+(tanpa pembatasan Rp 1.110.966.668, dengan pembatasan Rp 34.000.000), dan kas akhir Rp 209.810.500.
+
+Tombol **Unduh PDF** menghasilkan `al-musabbihin_Laporan_Keuangan_2026.pdf` (7 halaman: ringkasan, empat laporan,
+dan Catatan A–G) dengan **kop sekolah** dan warna tema sekolah:
 
 ![PDF halaman 1 — ringkasan](img/47-report-pdf-1.jpg)
 
 ![PDF halaman 2 — posisi keuangan](img/47-report-pdf-2.jpg)
 
 ![PDF halaman 6 — catatan atas laporan keuangan](img/47-report-pdf-6.jpg)
+
+![PDF halaman 7 — catatan G, aset tetap dan penyusutan](img/47-report-pdf-7.jpg)
 
 ---
 
@@ -487,7 +519,7 @@ Bila orang yang sama mencoba menyetujui lagi, sistem **menolak** — persetujuan
 
 ### 9.1 Auditor (baca saja)
 **Akun contoh:** `auditor@al-musabbihin.sch.id`. Auditor melihat Dashboard, Akuntansi dan Laporan — tanpa
-tombol yang mengubah data. Tombol tambah jurnal, saldo awal, dan formulir dana terikat tidak tampil; sistem juga
+tombol yang mengubah data. Tombol tambah jurnal, saldo awal, formulir dana terikat, serta formulir aset tetap dan tombol penyusutan tidak tampil; sistem juga
 menolak perubahan bila dicoba dari luar tampilan.
 
 ![Dashboard auditor](img/40-auditor-dashboard.jpg)
@@ -498,8 +530,8 @@ menolak perubahan bila dicoba dari luar tampilan.
 
 ### 9.2 Dashboard setelah transaksi (Super Admin)
 Semua angka berasal dari jurnal: pendapatan bulan ini Rp 1.500.000, collection SPP 66,7%,
-**Saldo Kas & Bank Rp 233.810.500** (200 jt saldo awal + 1,5 jt SPP + 40 jt dana terikat − 5,74 jt gaji − 1,95 jt
-pengeluaran), grafik tren bulanan dan distribusi beban. Ringkasan dashboard menjumlahkan semua pendapatan termasuk dana
+**Saldo Kas & Bank Rp 209.810.500** (200 jt saldo awal + 1,5 jt SPP + 40 jt dana terikat − 5,74 jt gaji − 1,95 jt
+pengeluaran − 24 jt laptop), beban penyusutan Rp 8,8 jt di distribusi beban, grafik tren bulanan dan distribusi beban. Ringkasan dashboard menjumlahkan semua pendapatan termasuk dana
 terikat; pemisahan resmi per kelas aset neto ada di menu **Laporan**.
 
 ![Dashboard live](img/42-admin-dashboard-live.jpg)
@@ -537,7 +569,7 @@ Administrator, dan Super Admin — dan tidak pernah untuk pengajuan sendiri.
 | Penggajian | ✔ | ✔ | ✔ | – | – | – |
 | Pengeluaran | ✔ | ✔ | ✔ | ✔ | ✔ | – |
 | Pengadaan | ✔ | ✔ | – | ✔ | – | – |
-| Akuntansi (termasuk Dana Terikat) | ✔ | ✔ | ✔ | – | – | 👁 |
+| Akuntansi (termasuk Dana Terikat & Aset Tetap) | ✔ | ✔ | ✔ | – | – | 👁 |
 | Laporan | ✔ | ✔ | ✔ | – | – | 👁 |
 | Master data | ✔ | ✔ | ✔ | – | – | – |
 | Log aktivitas | ✔ | ✔ | ✔ | ✔ | – | – |
@@ -560,6 +592,9 @@ Administrator, dan Super Admin — dan tidak pernah untuk pengajuan sendiri.
 | Dana terikat diterima (waktu/tujuan) | 1100 Bank / 1000 Kas | 4100 Pendapatan Infaq/Sedekah |
 | Dana terikat diterima (permanen) | 1100 Bank / 1000 Kas | 4200 Pendapatan Donasi |
 | Pembatasan dilepaskan | 3100 Dana Terikat Temporer | 3000 Dana Tidak Terikat |
+| Aset tetap baru dibeli | 1500 Tanah & Bangunan / 1510 Peralatan & Kendaraan | 1100 Rekening Bank / 1000 Kas |
+| Akumulasi penyusutan aset yang sudah dimiliki | 3000 Dana Tidak Terikat | 1590 Akumulasi Penyusutan |
+| Penyusutan bulanan (akhir bulan) | 5500 Beban Penyusutan | 1590 Akumulasi Penyusutan |
 
 Setiap jurnal otomatis mencatat sumbernya (ID invoice/slip/pengeluaran/PO) dan **tidak pernah terposting
 dua kali** untuk dokumen yang sama.
@@ -606,6 +641,10 @@ Console dan di `SAAS_HOSTS`, lalu deploy ulang.
 | Apa itu ISAK 335? Bedanya dengan ISAK 35? | Standar penyajian laporan keuangan entitas berorientasi nonlaba dari IAI. ISAK 35 dinomori ulang menjadi ISAK 335 sejak 1 Januari 2024 tanpa perubahan isi. |
 | Donasi pembangunan / wakaf dicatat di mana? | Menu **Akuntansi** → **Dana Terikat** → *Terima dana terikat*. Jangan dicatat sebagai SPP atau pendapatan biasa. |
 | Dana terikat sudah dipakai sesuai tujuannya | Catat biayanya di **Pengeluaran**, lalu **Lepaskan pembatasan** sebesar dana yang terpakai. |
+| Mengapa nilai gedung di laporan lebih kecil dari harga belinya? | Aset tetap disajikan sebesar harga perolehan dikurangi akumulasi penyusutan (nilai buku), sesuai ISAK 335. |
+| Kapan penyusutan dicatat? | Setiap awal bulan, buka **Akuntansi** → **Aset Tetap** → **Catat penyusutan**. Bulan yang tertunda ikut tercatat; tidak ada pencatatan ganda. |
+| Tanah ikut disusutkan? | Tidak. Tanah dicatat sebesar harga perolehan tanpa penyusutan. |
+| Kotak kesesuaian menunjukkan "selisih" | Daftar aset belum sama dengan saldo akun aset tetap. Lengkapi daftar aset atau periksa saldo awal. |
 | Catatan atas Laporan Keuangan siap diterbitkan? | Catatan disusun otomatis dari pembukuan; tinjau dan lengkapi oleh bendahara/akuntan sekolah sebelum diterbitkan. |
 | Keamanan dan cadangan data | Data sekolah dicadangkan otomatis setiap hari. Hubungi tim Nexora untuk ekspor atau pemulihan data. |
 
@@ -640,6 +679,9 @@ berikut ditemukan **dan diperbaiki** (dengan test otomatis) sebelum dokumen fina
 | (v1.3) Auditor ("baca saja") bisa membuat jurnal, saldo awal, dan dana terikat lewat API | Kontrol akses jebol | Semua aksi tulis Akuntansi ditolak untuk auditor (403) + tombol disembunyikan |
 | (v1.3) Pesan "melebihi saldo" menampilkan angka mentah | Kurang jelas | Saldo tersedia ditampilkan dalam format Rupiah |
 | (v1.4) Final review semua peran: 15 temuan (validasi nominal/tanggal & jurnal tidak seimbang, gaji ganda per bulan, PO tanpa PR, staf bisa menyetujui pengeluaran sendiri, sesi password sementara & user nonaktif masih bisa memakai API, admin bisa menonaktifkan Super Admin, menu tidak sesuai peran, ID PR diketik manual, dll.) | Data & kontrol akses | Semua diperbaiki dengan tes; rincian akar masalah di `docs/qa/FINAL_REVIEW_2026-10-21.md` |
+
+| (v1.5) Setelah menyimpan aset, kategori kembali ke Bangunan tetapi masa manfaat tetap 48 bulan | Masa manfaat aset berikutnya bisa salah | Kategori dan masa manfaat sarannya dipertahankan (tes `fixed-assets.test.tsx`) |
+| (v1.5) Header Akuntansi: dua tombol "Tambah Jurnal" dan tombol berantakan | Tampilan membingungkan | Satu grup aksi kanan atas, tombol duplikat di keadaan kosong dihapus (tes `accounting-header.test.tsx`) |
 
 **Rekomendasi berikutnya (belum dikerjakan):** pilih siswa dari master saat membuat invoice SPP (saat ini
 ID & nama diketik), alur persetujuan PR, dan wildcard DNS/TLS agar tenant baru langsung online tanpa deploy.
