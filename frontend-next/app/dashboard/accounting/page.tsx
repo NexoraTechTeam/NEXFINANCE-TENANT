@@ -117,6 +117,10 @@ export default function AccountingPage() {
             flex-direction: column !important;
             align-items: flex-start !important;
           }
+          .acct-header-actions {
+            flex-direction: column !important;
+            width: 100% !important;
+          }
           .acct-page-header .acct-header-btn {
             width: 100% !important;
             justify-content: center !important;
@@ -166,6 +170,21 @@ export default function AccountingPage() {
           min-width: 560px;
         }
 
+        /* ── Header actions: one aligned group (primary + secondary share height and gap) ── */
+        .acct-header-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .acct-header-actions .acct-header-btn {
+          min-height: 44px;
+          padding-top: 0;
+          padding-bottom: 0;
+          border-radius: 14px;
+          font-size: 14px;
+        }
+
         /* ── Action buttons hover ── */
         .acct-action-btn:hover {
           opacity: 0.85;
@@ -192,25 +211,16 @@ export default function AccountingPage() {
           </h1>
           <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Jurnal umum, chart of accounts &amp; dana terikat — ISAK 335 (d/h ISAK 35)</p>
         </div>
-        {!readOnly && (<>
-        <button
-          onClick={() => setModal(true)}
-          className="acct-action-btn acct-header-btn"
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            padding: '11px 20px', borderRadius: 10,
-            background: 'linear-gradient(135deg, var(--brand-500), var(--brand-600))',
-            color: '#fff', border: 'none', fontSize: 14, fontWeight: 600,
-            cursor: 'pointer', minHeight: 44,
-            boxShadow: '0 4px 14px rgb(var(--brand-500-rgb) / 0.30)',
-          }}
-        >
-          <Plus size={17} strokeWidth={2} /> Tambah Jurnal
-        </button>
-        <button type="button" className="btn-secondary acct-header-btn" onClick={() => setOpeningOpen(true)}>
-          Saldo Awal
-        </button>
-        </>)}
+        {!readOnly && (
+          <div role="group" aria-label="Aksi akuntansi" className="acct-header-actions">
+            <button type="button" className="btn-primary acct-header-btn" onClick={() => setModal(true)}>
+              <Plus size={17} strokeWidth={2} /> Tambah Jurnal
+            </button>
+            <button type="button" className="btn-secondary acct-header-btn" onClick={() => setOpeningOpen(true)}>
+              Saldo Awal
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Summary Stat Cards */}
@@ -295,22 +305,7 @@ export default function AccountingPage() {
                 style={{ opacity: 0.35, display: 'block', margin: '0 auto 12px' }}
               />
               <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6, color: 'var(--text-3)' }}>Belum ada jurnal</div>
-              <div style={{ fontSize: 14 }}>Tambah jurnal pertama untuk memulai pencatatan.</div>
-              {!readOnly && (
-              <button
-                onClick={() => setModal(true)}
-                style={{
-                  marginTop: 18,
-                  display: 'inline-flex', alignItems: 'center', gap: 8,
-                  padding: '10px 20px', borderRadius: 10,
-                  background: 'linear-gradient(135deg, var(--brand-500), var(--brand-600))',
-                  color: '#fff', border: 'none', fontSize: 14, fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                <Plus size={16} /> Tambah Jurnal
-              </button>
-              )}
+              <div style={{ fontSize: 14 }}>Gunakan tombol Tambah Jurnal di atas untuk memulai pencatatan.</div>
             </div>
           ) : (
             <>

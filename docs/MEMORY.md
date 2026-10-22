@@ -10,7 +10,7 @@ _Last updated 2026-10-22._ Read this first; dated sections below are the history
 | Production | LIVE: https://console-nexfinance.nexoratech.co/console · https://almusabbihin-nexfinance.nexoratech.co (200, Let's Encrypt). Stack `nexfin-saas`, VPS 72.61.209.201. |
 | Staging | Stack `nexfin-saas-staging`, internal checks only (no DNS). |
 | Branches | `dev` = 10ece14 is what runs in production (deployed by the ops bridge); `main` still at fd23250 — `git push origin dev:main` waits for Imam's go (the session's permission guard refused a push to `main`). Deploy path: ops bridge `ops/tenant-deploy` in NEXFINANCE (last run 39716256253 green: staging + production, NexFinance stacks untouched). |
-| Quality | Backend 190 tests (16 suites), frontend 132 (25 files), lint/tsc/build clean (2026-10-22); local API sweep 244/244, UI sweep 0 issues; earlier production QA 183 checks 0 findings. |
+| Quality | Backend 190 tests (16 suites), frontend 137 (26 files), lint/tsc/build clean (2026-10-22); local API sweep 244/244, UI sweep 0 issues; earlier production QA 183 checks 0 findings. |
 | Al-Musabbihin data | Empty production tenant (1 user; 18 accounts → 21 after the fixed-asset migration runs on the next deploy) — school has not started entering data. Admin `admin-almusabbihin` must change password at first login. |
 | Features | Multi-tenant Console (logo palette, login photo/text, sidebar colour, rich-text attribution), SPP, payroll, expenses (dual control, approver roles), procurement (PR → PO → receive), ISAK 335 package (2 net-asset classes, changes in net assets, direct cash flow, CALK, restricted funds), **fixed assets + monthly straight-line depreciation** (Akuntansi → Aset Tetap, CALK note G), role-filtered menus. |
 | Docs | Guide v1.4: `docs/guide/` MD (internal) + PDFs Nexora edition 58 p. / school edition 48 p.; QA report `docs/qa/FINAL_REVIEW_2026-10-21.md`; runbook `docs/OPERATIONS.md`; checklist `docs/PENDING_TASKS.md`. |
@@ -20,6 +20,14 @@ _Last updated 2026-10-22._ Read this first; dated sections below are the history
 **Blocked on Imam / the school:** (new) treasurer confirms the depreciation policy (useful lives, start month); register `almusabbihin.sch.id` + A record (or choose a subdomain such as
 `keuangan.almusabbihin.sch.id`); hand the admin password to the school (Console → Reset password); confirm the
 accounting framework (SAK Entitas Privat vs full SAK) with the school's treasurer; go-ahead for porting to NEXFINANCE demo.
+
+## 2026-10-22 — Akuntansi header buttons (Imam's screenshot)
+- Imam: "kenapa button Tambah Jurnal ada 2 dan berantakan (yang di atas)? sesuaikan, OODA + TDD".
+- Root cause: "Tambah Jurnal" and "Saldo Awal" were two direct children of `.page-header` (`justify-content: space-between`) → spread
+  apart and different heights/shapes (inline gradient vs `btn-secondary`); the empty state repeated a second "Tambah Jurnal".
+- Fix (test red first, `__tests__/accounting-header.test.tsx`): one action group `role="group" aria-label="Aksi akuntansi"` (`.acct-header-actions`,
+  right-aligned, same 44 px height, stacked on mobile), shared `btn-primary`/`btn-secondary` classes, duplicate empty-state button removed
+  (text now points to the header button). Frontend 137 tests, lint/tsc/build clean; browser check desktop + 390 px, no overflow, modal still opens.
 
 ## 2026-10-22 — fixed assets & depreciation (mandatory ISAK 335 gap)
 - Imam: asked whether the features Accurate has and we lack are really required → verified (Accurate pages, IAI DE ISAK 35, our code)
