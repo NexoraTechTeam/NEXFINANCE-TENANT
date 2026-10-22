@@ -9,7 +9,7 @@ _Last updated 2026-10-22._ Read this first; dated sections below are the history
 | --- | --- |
 | Production | LIVE: https://console-nexfinance.nexoratech.co/console · https://almusabbihin-nexfinance.nexoratech.co (200, Let's Encrypt). Stack `nexfin-saas`, VPS 72.61.209.201. |
 | Staging | Stack `nexfin-saas-staging`, internal checks only (no DNS). |
-| Branches | `dev` = `main` (production snapshot). Deploy path: ops bridge `ops/tenant-deploy` in NEXFINANCE (last run 39593276735 green). |
+| Branches | `dev` = 10ece14 is what runs in production (deployed by the ops bridge); `main` still at fd23250 — `git push origin dev:main` waits for Imam's go (the session's permission guard refused a push to `main`). Deploy path: ops bridge `ops/tenant-deploy` in NEXFINANCE (last run 39716256253 green: staging + production, NexFinance stacks untouched). |
 | Quality | Backend 190 tests (16 suites), frontend 132 (25 files), lint/tsc/build clean (2026-10-22); local API sweep 244/244, UI sweep 0 issues; earlier production QA 183 checks 0 findings. |
 | Al-Musabbihin data | Empty production tenant (1 user; 18 accounts → 21 after the fixed-asset migration runs on the next deploy) — school has not started entering data. Admin `admin-almusabbihin` must change password at first login. |
 | Features | Multi-tenant Console (logo palette, login photo/text, sidebar colour, rich-text attribution), SPP, payroll, expenses (dual control, approver roles), procurement (PR → PO → receive), ISAK 335 package (2 net-asset classes, changes in net assets, direct cash flow, CALK, restricted funds), **fixed assets + monthly straight-line depreciation** (Akuntansi → Aset Tetap, CALK note G), role-filtered menus. |
@@ -36,6 +36,9 @@ accounting framework (SAK Entitas Privat vs full SAK) with the school's treasure
   repeat = no-op; API sweep 244/244, UI sweep 0 issues. E2E screenshot found a UI bug (category reset to Bangunan with a 48-month life) → fixed with a test.
 - Design decisions: straight-line only; land never depreciated; depreciation = *Beban Program*; opening accumulated depreciation is booked
   against 3000 and dated the month end before depreciation starts (counts as opening position); register vs ledger differences are shown, not blocked.
+- Deployed: bridge run 39716256253 (staging ✓ → production ✓, "NexFinance containers not restarted" ✓, credential job ✓); live: school, console, nexfinance, dev-nexfinance all 200;
+  unauthenticated `GET /accounting/fixed-assets` on the school host → 401 (route live). Al-Musabbihin's 3 new accounts arrive via migration 002 on that boot (read-only check only; no school data touched).
+- `main` NOT updated: push `dev:main` was refused by the permission guard → Imam must say go (or run it himself).
 - Not done on purpose: NEXFINANCE demo untouched (frozen); guide screenshots/PDF not regenerated (PENDING F8); no asset edit/disposal (F2).
 - Lesson: a tenant migration that seeds data must skip a brand-new tenant (empty chart) because `seedDefaults` runs right after migrating;
   jest tests that provision a tenant count accounts (`tenancy.test.js` = 21).
