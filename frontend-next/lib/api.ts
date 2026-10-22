@@ -88,6 +88,10 @@ export const accountingService = {
     api.post('/accounting/restricted-funds/receipts', data),
   postRestrictionRelease: (data: { date: string; fund: string; amount: number; description: string }) =>
     api.post('/accounting/restricted-funds/releases', data),
+  /** Fixed-asset register (cost, accumulated depreciation, book value) and monthly straight-line depreciation. */
+  getFixedAssets: () => api.get('/accounting/fixed-assets'),
+  postFixedAsset: (data: Record<string, unknown>) => api.post('/accounting/fixed-assets', data),
+  runDepreciation: (period: string) => api.post('/accounting/depreciation/run', { period }),
 };
 
 export const reportsService = {

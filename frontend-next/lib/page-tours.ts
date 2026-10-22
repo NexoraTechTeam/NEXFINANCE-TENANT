@@ -52,7 +52,7 @@ const PAGE_STEPS: Record<GuideIcon, StepSpec[]> = {
   accounting: [
     header('Tambah entri jurnal baru dengan tombol "Tambah Jurnal".'),
     stats('Ringkasan jumlah akun, jurnal, serta total debit dan kredit.'),
-    tabs('Pindah antara Jurnal Umum, Chart of Accounts, dan Dana Terikat.'),
+    tabs('Pindah antara Jurnal Umum, Chart of Accounts, Dana Terikat, dan Aset Tetap.'),
     table('Entri jurnal atau daftar akun tampil di sini.'),
   ],
   reports: [
