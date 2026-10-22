@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { payrollService } from '@/lib/api';
+import { payrollMonthLabel } from '@/lib/payroll';
 import { Users, DollarSign, Calculator, FileText, CheckCircle, Clock, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
 
 const fmt = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n || 0);
@@ -167,7 +168,7 @@ export default function PayrollPage() {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.8, marginBottom: 4 }}>Periode</div>
-                <div style={{ fontSize: 16, fontWeight: 700 }}>{payrollResult.month}</div>
+                <div style={{ fontSize: 16, fontWeight: 700 }}>{payrollMonthLabel(payrollResult.month)}</div>
               </div>
             </div>
 
@@ -253,7 +254,7 @@ export default function PayrollPage() {
                 {history.map((p, i) => (
                   <tr key={i} className="payroll-history-row" style={{ borderBottom: '1px solid var(--border)', background: i % 2 === 0 ? '#fff' : '#fafbfc', transition: 'background 150ms' }}>
                     <td style={{ padding: '13px 16px', fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{p.employeeName || p.employeeId}</td>
-                    <td style={{ padding: '13px 16px', color: 'var(--text-2)', fontSize: 14 }}>{p.month}</td>
+                    <td style={{ padding: '13px 16px', color: 'var(--text-2)', fontSize: 14 }}>{payrollMonthLabel(p.month)}</td>
                     <td style={{ padding: '13px 16px', color: 'var(--text)', fontSize: 14, whiteSpace: 'nowrap' }}>{fmt(p.grossSalary)}</td>
                     <td style={{ padding: '13px 16px', fontSize: 14, whiteSpace: 'nowrap' }}>
                       <span style={{ color: '#EF4444', fontWeight: 600 }}>- {fmt(p.grossSalary - p.netSalary)}</span>
