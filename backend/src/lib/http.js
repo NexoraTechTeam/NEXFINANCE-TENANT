@@ -11,4 +11,7 @@ const ah = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch
 
 const today = () => new Date().toISOString().split('T')[0];
 
-module.exports = { getRequestIp, ah, today };
+/** 400 error whose message is safe to show to the client. */
+const badRequest = (message) => Object.assign(new Error(message), { status: 400, expose: true });
+
+module.exports = { getRequestIp, ah, today, badRequest };

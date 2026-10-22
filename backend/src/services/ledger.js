@@ -100,6 +100,7 @@ function incomeStatement(journals, coa, { date = new Date() } = {}) {
       bebanGaji: pick(b, '5000'),
       bebanOperasional: pick(b, '5100'),
       bebanPemeliharaan: pick(b, '5200'),
+      bebanPenyusutan: pick(b, '5500'),
       bebanLain: expenses - pick(b, '5000', '5100', '5200'),
     },
   };
@@ -122,7 +123,9 @@ function balanceSheet(journals, coa, { date = new Date(), funds = DEFAULT_RESTRI
       bank: pick(b, '1100'),
       piutangSPP: pick(b, '1200'),
       persediaan: pick(b, '1300'),
-      asetTetap: pick(b, '1500'),
+      asetTetap: Object.entries(b)
+        .filter(([code]) => coa[code]?.type === 'Asset' && /tetap|tidak lancar/i.test(coa[code].isak35 || ''))
+        .reduce((sum, [, v]) => sum + v, 0),
       hutangUsaha: pick(b, '2000'),
       hutangGaji: pick(b, '2100'),
       danaTidakTerikat: classes.unrestricted,
@@ -203,7 +206,7 @@ function cashFlows(openingSet, periodSet, coa, funds) {
  * Opening-balance journals always count as the start position, whatever their date.
  */
 function isak335Statements(journals, coa, {
-  year = new Date().getFullYear(), funds = DEFAULT_RESTRICTED_FUNDS, entity = {}, framework = DEFAULT_FRAMEWORK,
+  year = new Date().getFullYear(), funds = DEFAULT_RESTRICTED_FUNDS, entity = {}, framework = DEFAULT_FRAMEWORK, fixedAssetNote = null,
 } = {}) {
   const start = `${year}-01-01`;
   const end = `${year}-12-31`;
@@ -274,11 +277,13 @@ function isak335Statements(journals, coa, {
       'Dasar akrual digunakan, kecuali laporan arus kas yang disusun dengan metode langsung. Mata uang penyajian adalah Rupiah.',
       'Aset neto disajikan dalam dua kelas: tanpa pembatasan dan dengan pembatasan dari pemberi sumber daya. Beban dilaporkan sebagai pengurang aset neto tanpa pembatasan; ketika tujuan atau waktu pembatasan terpenuhi, aset neto direklasifikasi sebagai aset neto yang dibebaskan dari pembatasan.',
       'Kas dan setara kas terdiri atas kas dan rekening bank.',
+      'Aset tetap dicatat sebesar harga perolehan dikurangi akumulasi penyusutan. Penyusutan dihitung dengan metode garis lurus selama masa manfaat setiap aset; tanah tidak disusutkan.',
     ] },
     { id: 'C', title: 'Kas dan setara kas', rows: lines(b, coa, (code) => CASH_ACCOUNTS.includes(code)).map(({ label, amount }) => ({ label, amount })) },
     { id: 'D', title: 'Aset neto dengan pembatasan', rows: classes.detail.map(({ label, amount }) => ({ label, amount })) },
     { id: 'E', title: 'Aset neto yang dibebaskan dari pembatasan', rows: releases.map((j) => ({ label: `${dateOf(j)} — ${j.description}`, amount: amountOf(j.debit) })) },
     { id: 'F', title: 'Rincian beban', rows: unrestrictedCI.expenses.map(({ label, amount }) => ({ label, amount })) },
+    ...(fixedAssetNote ? [fixedAssetNote] : []),
   ];
 
   return {

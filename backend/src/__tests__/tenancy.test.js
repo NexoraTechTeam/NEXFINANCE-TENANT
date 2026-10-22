@@ -51,7 +51,7 @@ describe('tenant provisioning', () => {
     expect(rows).toHaveLength(1);
 
     const coa = await knex.withSchema('t_al_musabbihin').from('records').where({ collection: 'chart_of_accounts' });
-    expect(coa.length).toBe(18);
+    expect(coa.length).toBe(21);
     const roles = await knex.withSchema('t_al_musabbihin').from('role_permissions');
     expect(roles.map((r) => r.role).sort()).toEqual(['admin', 'auditor', 'bendahara', 'kabag', 'staff', 'super_admin']);
 

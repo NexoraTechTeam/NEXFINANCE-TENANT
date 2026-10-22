@@ -6,6 +6,7 @@
  */
 
 const { DEFAULT_RESTRICTED_FUNDS, accountBalances } = require('./ledger');
+const { monthEnd, addMonths } = require('./depreciation');
 
 const DEFAULT_ACCOUNTS = {
   cash: '1000',
@@ -24,7 +25,12 @@ const DEFAULT_ACCOUNTS = {
     Pemeliharaan: '5200',
   },
   restrictedFunds: DEFAULT_RESTRICTED_FUNDS,
+  fixedAssetByCategory: { tanah: '1500', bangunan: '1500', peralatan: '1510', kendaraan: '1510' },
+  accumulatedDepreciation: '1590',
+  depreciationExpense: '5500',
 };
+
+const { badRequest } = require('../lib/http');
 
 const today = () => new Date().toISOString().split('T')[0];
 
@@ -135,7 +141,6 @@ async function postOpeningBalance(store, { date, entries }) {
   return posted.filter(Boolean);
 }
 
-const badRequest = (message) => Object.assign(new Error(message), { status: 400, expose: true });
 
 /** Balance of one restricted fund (equity + restricted revenue) from the given journals. */
 function restrictedBalance(journals, coa, fund) {
@@ -188,7 +193,46 @@ async function postRestrictionRelease(store, { date = today(), fund: key, amount
   });
 }
 
+/** Cost of a purchased fixed asset: asset account against cash or bank. */
+async function postAssetAcquisition(store, asset, method) {
+  const ctx = await loadContext(store);
+  return post(store, ctx, {
+    date: asset.acquisitionDate,
+    description: `Perolehan aset tetap — ${asset.name} (${asset.id})`,
+    debit: asset.account,
+    credit: cashAccountFor(ctx.accounts, method),
+    amount: asset.cost,
+    source: { type: 'asset_acquisition', id: asset.id },
+  });
+}
+
+/** Accumulated depreciation of an asset already in use: counted in the opening position (against net assets without restrictions). */
+async function postOpeningAccumulatedDepreciation(store, asset) {
+  const ctx = await loadContext(store);
+  return post(store, ctx, {
+    date: monthEnd(addMonths(asset.depreciationFrom, -1)),
+    description: `Saldo awal akumulasi penyusutan — ${asset.name} (${asset.id})`,
+    debit: ctx.accounts.unrestrictedFunds,
+    credit: ctx.accounts.accumulatedDepreciation,
+    amount: asset.openingAccumulated,
+    source: { type: 'opening_balance', id: ctx.accounts.accumulatedDepreciation, assetId: asset.id },
+  });
+}
+
+/** One month of depreciation of one asset, dated on the last day of the month. */
+async function postDepreciation(store, ctx, asset, { month, amount }) {
+  return post(store, ctx, {
+    date: monthEnd(month),
+    description: `Penyusutan ${month} — ${asset.name} (${asset.id})`,
+    debit: ctx.accounts.depreciationExpense,
+    credit: ctx.accounts.accumulatedDepreciation,
+    amount,
+    source: { type: 'depreciation', assetId: asset.id, month },
+  });
+}
+
 module.exports = {
+  postAssetAcquisition, postOpeningAccumulatedDepreciation, postDepreciation,
   DEFAULT_ACCOUNTS, loadContext, postSppInvoice, postSppPayment, postPayroll,
   postApprovedExpense, postReceivedPurchaseOrder, postOpeningBalance,
   postRestrictedReceipt, postRestrictionRelease, restrictedBalance,

@@ -102,7 +102,7 @@ async function sweep(base) {
     payroll: ['/payroll/employees', '/payroll/history', '/payroll/reports'],
     expenses: ['/expenses'],
     procurement: ['/procurement/pr', '/procurement/po', '/procurement/reports'],
-    accounting: ['/accounting/chart-of-accounts', '/accounting/journals', '/accounting/reports/balance-sheet', '/accounting/reports/income-statement', `/accounting/reports/monthly?year=${year}`, `/accounting/reports/isak335?year=${year}`, '/accounting/opening-balance', '/accounting/restricted-funds'],
+    accounting: ['/accounting/chart-of-accounts', '/accounting/journals', '/accounting/reports/balance-sheet', '/accounting/reports/income-statement', `/accounting/reports/monthly?year=${year}`, `/accounting/reports/isak335?year=${year}`, '/accounting/opening-balance', '/accounting/restricted-funds', '/accounting/fixed-assets'],
     master: ['/master/students', '/master/employees'],
     activity: ['/activity', '/activity/stats'],
     notifications: ['/notifications/config'],

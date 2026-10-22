@@ -11,6 +11,8 @@ const {
 } = require('../services/posting');
 
 const { positiveAmount, isoDate, firstError } = require('../lib/validate');
+const fixedAssets = require('../services/fixed-assets');
+const { currentMonth } = require('../services/depreciation');
 
 const router = express.Router();
 const REPORTS = ['accounting', 'reports'];
@@ -57,7 +59,7 @@ router.post('/journals', auth, rbac('accounting'), rbac.denyReadOnly, ah(async (
 
 const loadBooks = async (store) => {
   const { coa, accounts } = await loadContext(store);
-  return { journals: await store.list('journals'), coa, funds: accounts.restrictedFunds };
+  return { journals: await store.list('journals'), coa, accounts, funds: accounts.restrictedFunds };
 };
 
 router.get('/reports/balance-sheet', auth, rbac(REPORTS), ah(async (req, res) => {
@@ -70,9 +72,11 @@ router.get('/reports/isak335', auth, rbac(REPORTS), ah(async (req, res) => {
   const year = Number(req.query.year) || new Date().getFullYear();
   const { journals, coa, funds } = await loadBooks(req.store);
   const setting = await req.store.db.withSchema(req.store.schema).from('settings').where({ key: 'reporting_framework' }).first();
+  const assets = fixedAssets.summarizeAssets(await req.store.list('fixed_assets'), journals, { asOf: `${year}-12-31` });
   res.json(ledger.isak335Statements(journals, coa, {
     year,
     funds,
+    fixedAssetNote: fixedAssets.fixedAssetNote(assets),
     framework: typeof setting?.value === 'string' ? setting.value : undefined,
     entity: { name: req.tenant.name, city: req.tenant.schoolInfo?.city },
   }));
@@ -100,6 +104,34 @@ const restrictedAction = (fn, action) => ah(async (req, res) => {
 
 router.post('/restricted-funds/receipts', auth, rbac('accounting'), rbac.denyReadOnly, restrictedAction(postRestrictedReceipt, 'restricted_receipt'));
 router.post('/restricted-funds/releases', auth, rbac('accounting'), rbac.denyReadOnly, restrictedAction(postRestrictionRelease, 'restriction_release'));
+
+/** Fixed-asset register with accumulated depreciation, book value and a check against the ledger accounts. */
+router.get('/fixed-assets', auth, rbac('accounting'), ah(async (req, res) => {
+  const { journals, coa, accounts } = await loadBooks(req.store);
+  const assets = fixedAssets.summarizeAssets(await req.store.list('fixed_assets'), journals);
+  const sum = (key) => assets.reduce((s, a) => s + a[key], 0);
+  res.json({
+    assets,
+    totals: { cost: sum('cost'), accumulated: sum('accumulated'), bookValue: sum('bookValue') },
+    reconciliation: fixedAssets.reconcile(assets, ledger.accountBalances(journals, coa), coa, accounts),
+    categories: fixedAssets.categories(accounts),
+    currentMonth: currentMonth(),
+  });
+}));
+
+router.post('/fixed-assets', auth, rbac('accounting'), rbac.denyReadOnly, ah(async (req, res) => {
+  const asset = await req.store.withTransaction((tx) => fixedAssets.createAsset(tx, req.body, req.user));
+  const { journals } = await loadBooks(req.store);
+  const [row] = fixedAssets.summarizeAssets([asset], journals);
+  await logActivity(req.store, req.user.id, req.user.email, 'create_fixed_asset', 'accounting', `Registered fixed asset ${asset.id} ${asset.name}`, { assetId: asset.id, cost: asset.cost, category: asset.category }, { ipAddress: getRequestIp(req) });
+  res.status(201).json({ asset: row });
+}));
+
+router.post('/depreciation/run', auth, rbac('accounting'), rbac.denyReadOnly, ah(async (req, res) => {
+  const result = await fixedAssets.runDepreciation(req.store, req.body?.period);
+  await logActivity(req.store, req.user.id, req.user.email, 'run_depreciation', 'accounting', `Depreciation up to ${result.period}: ${result.posted} journals`, { period: result.period, posted: result.posted, total: result.total }, { ipAddress: getRequestIp(req) });
+  res.status(201).json({ period: result.period, posted: result.posted, total: result.total, journals: result.journals });
+}));
 
 router.get('/reports/income-statement', auth, rbac(REPORTS), ah(async (req, res) => {
   const { journals, coa } = await loadBooks(req.store);

@@ -110,6 +110,26 @@ const TENANT_MIGRATIONS = [
       `);
     },
   },
+  {
+    // Fixed-asset accounts for tenants created before depreciation existed. A brand-new tenant has an empty
+    // chart here (its defaults are seeded right after migrating), so it is left alone; edited accounts are kept.
+    id: '002_fixed_asset_accounts',
+    up: async (trx, schema) => {
+      const { rows } = await trx.raw("SELECT 1 FROM ??.records WHERE collection = 'chart_of_accounts' LIMIT 1", [schema]);
+      if (rows.length === 0) return;
+      const accounts = {
+        1510: { name: 'Peralatan & Kendaraan', type: 'Asset', isak35: 'Aset Tetap' },
+        1590: { name: 'Akumulasi Penyusutan', type: 'Asset', isak35: 'Aset Tetap' },
+        5500: { name: 'Beban Penyusutan', type: 'Expense', isak35: 'Beban Program' },
+      };
+      for (const [id, account] of Object.entries(accounts)) {
+        await trx.raw(
+          "INSERT INTO ??.records (collection, id, data) VALUES ('chart_of_accounts', ?, ?::jsonb) ON CONFLICT (collection, id) DO NOTHING",
+          [schema, id, JSON.stringify({ id, ...account })],
+        );
+      }
+    },
+  },
 ];
 
 async function runMigrations(knex, schema, migrations, extraArg) {

@@ -21,6 +21,7 @@ const ID_FORMATS = {
   purchase_requests: { prefix: 'PR', pad: 6 },
   purchase_orders: { prefix: 'PO', pad: 6 },
   journals: { prefix: 'JRN', pad: 6 },
+  fixed_assets: { prefix: 'AST', pad: 6 },
   activity_logs: { prefix: 'LOG', pad: 10 },
 };
 

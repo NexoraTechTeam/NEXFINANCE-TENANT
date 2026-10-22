@@ -75,6 +75,8 @@ const chartOfAccounts = {
   '1200': { name: 'Piutang SPP',               type: 'Asset',     isak35: 'Aset Lancar' },
   '1300': { name: 'Persediaan ATK',             type: 'Asset',     isak35: 'Aset Lancar' },
   '1500': { name: 'Tanah & Bangunan',           type: 'Asset',     isak35: 'Aset Tetap' },
+  '1510': { name: 'Peralatan & Kendaraan',      type: 'Asset',     isak35: 'Aset Tetap' },
+  '1590': { name: 'Akumulasi Penyusutan',       type: 'Asset',     isak35: 'Aset Tetap' },
   '2000': { name: 'Hutang Usaha',               type: 'Liability', isak35: 'Kewajiban Jangka Pendek' },
   '2100': { name: 'Hutang Gaji',                type: 'Liability', isak35: 'Kewajiban Jangka Pendek' },
   '3000': { name: 'Dana Tidak Terikat',         type: 'Equity',    isak35: 'Aset Bersih Tidak Terikat' },
@@ -88,6 +90,7 @@ const chartOfAccounts = {
   '5200': { name: 'Beban Pemeliharaan',         type: 'Expense',   isak35: 'Beban Pendukung' },
   '5300': { name: 'Beban ATK & Supplies',       type: 'Expense',   isak35: 'Beban Pendukung' },
   '5400': { name: 'Beban Utilitas',             type: 'Expense',   isak35: 'Beban Pendukung' },
+  '5500': { name: 'Beban Penyusutan',           type: 'Expense',   isak35: 'Beban Program' },
 };
 
 const journals = [
